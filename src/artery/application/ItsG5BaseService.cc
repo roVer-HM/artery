@@ -60,7 +60,7 @@ ItsG5BaseService::port_type ItsG5BaseService::getPortNumber() const
 
 cModule* ItsG5BaseService::findHost()
 {
-	return FindModule<>::findHost(this);
+	return veins::FindModule<>::findHost(this);
 }
 
 void ItsG5BaseService::initialize()

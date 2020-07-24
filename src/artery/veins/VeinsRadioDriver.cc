@@ -75,7 +75,7 @@ const simsignal_t channelBusySignal = cComponent::registerSignal("sigChannelBusy
 void VeinsRadioDriver::initialize()
 {
     RadioDriverBase::initialize();
-    mHost = FindModule<>::findHost(this);
+    mHost = veins::FindModule<>::findHost(this);
     mHost->subscribe(channelBusySignal, this);
 
     mLowerLayerOut = gate("lowerLayerOut");
