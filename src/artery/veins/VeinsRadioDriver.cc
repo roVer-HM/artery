@@ -1,13 +1,16 @@
+#include <inet/common/packet/Packet.h>
+#include <inet/common/packet/chunk/cPacketChunk.h>
 #include "artery/networking/GeoNetIndication.h"
 #include "artery/networking/GeoNetRequest.h"
 #include "artery/nic/RadioDriverProperties.h"
 #include "artery/veins/VeinsRadioDriver.h"
 #include "veins/base/utils/FindModule.h"
 #include "veins/base/utils/SimpleAddress.h"
-#include "veins/modules/messages/WaveShortMessage_m.h"
+#include "veins/modules/messages/BaseFrame1609_4_m.h"
 #include "veins/modules/utility/Consts80211p.h"
 
 using namespace omnetpp;
+using namespace veins;
 
 namespace artery
 {
@@ -104,12 +107,13 @@ void VeinsRadioDriver::handleMessage(cMessage* msg)
     }
 }
 
-void VeinsRadioDriver::handleDataIndication(cMessage* packet)
+void VeinsRadioDriver::handleDataIndication(cMessage* msg)
 {
-    auto wsm = check_and_cast<WaveShortMessage*>(packet);
+    auto wsm = check_and_cast<BaseFrame1609_4*>(msg);
     auto gn = wsm->decapsulate();
     auto* indication = new GeoNetIndication();
-    indication->source = convert(wsm->getSenderAddress());
+//    indication->source = convert(wsm->getSenderAddress());
+    indication->source = convert(LAddress::L2NULL()); //todo: new BaseFrame1609_4 does not provide source.
     indication->destination = convert(wsm->getRecipientAddress());
     gn->setControlInfo(indication);
     delete wsm;
@@ -120,12 +124,13 @@ void VeinsRadioDriver::handleDataIndication(cMessage* packet)
 void VeinsRadioDriver::handleDataRequest(cMessage* packet)
 {
     auto request = check_and_cast<GeoNetRequest*>(packet->removeControlInfo());
-    auto wsm = new WaveShortMessage();
+    auto wsm = new BaseFrame1609_4();
     wsm->encapsulate(check_and_cast<cPacket*>(packet));
-    wsm->setSenderAddress(convert(request->source_addr));
+    // todo BaseFrame1609_4 does not need source
+//    wsm->setSenderAddress(convert(request->source_addr));
     wsm->setRecipientAddress(convert(request->destination_addr));
     wsm->setUserPriority(user_priority(request->access_category));
-    wsm->setChannelNumber(Channels::CCH);
+    wsm->setChannelNumber((int)Channel::cch);
 
     delete request;
     send(wsm, mLowerLayerOut);
