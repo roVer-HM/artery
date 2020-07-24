@@ -3,3 +3,7 @@ scenarios/*/results/*
 scenarios/*/.tkenvrc
 src/artery/messages/*_m.cc
 src/artery/messages/*_m.h
+tags
+.directory
+.idea
+cmake-build-debug/

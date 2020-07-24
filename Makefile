@@ -1,6 +1,6 @@
 PYTHON ?= python
 PYTHON2 ?= python2
-INET_DIR = extern/inet
+INET_DIR = extern/inet4
 SIMULTE_DIR = extern/simulte
 VANETZA_DIR = extern/vanetza
 VANETZA_BUILD_TYPE ?= Release
@@ -15,9 +15,9 @@ clean:
 	-rm -rf $(VANETZA_BUILD_DIR)
 
 $(INET_DIR)/.oppfeaturestate: $(INET_DIR)/.oppfeatures
-	cd $(INET_DIR); $(PYTHON) bin/inet_featuretool repair
+	cd $(INET_DIR); $(PYTHON) inet_featuretool repair
 
-$(INET_DIR)/src/Makefile: $(INET_DIR)/.oppfeaturestate
+$(INET_DIR)/src/Makefile: $(INET_DIR)/.oppfeatures
 	$(MAKE) -C $(INET_DIR) makefiles
 
 inet: $(INET_DIR)/src/Makefile
