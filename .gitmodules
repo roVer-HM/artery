@@ -1,6 +1,6 @@
 [submodule "scenario_mt-its2017"]
 	path = scenarios/mt-its2017
-	url = ../../artery_scenario_mt-its2017.git
+	url = ../../rover/artery_scenario_mt-its2017.git
 [submodule "extern/inet4"]
 	path = extern/inet4
 	url = ../../rover/inet.git
@@ -15,8 +15,8 @@
 	branch = hm_master
 [submodule "extern/vanetza"]
 	path = extern/vanetza
-	url = ../../vanetza.git
+	url = ../../rover/vanetza.git
 [submodule "extern/veins"]
 	path = extern/veins
-	url = ../../veins.git
+	url = ../../rover/veins.git
     branch = hm_master
