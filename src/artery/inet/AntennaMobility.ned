@@ -1,8 +1,9 @@
 package artery.inet;
 
 import inet.mobility.contract.IMobility;
+import inet.mobility.single.AttachedMobility;
 
-simple AntennaMobility like IMobility
+simple AntennaMobility extends AttachedMobility
 {
     parameters:
         @class(AntennaMobility);
