@@ -18,9 +18,9 @@ public:
     inet::Coord getCurrentPosition() override;
     inet::Coord getCurrentVelocity() override;
     inet::Coord getCurrentAcceleration() override;
-    inet::EulerAngles getCurrentAngularPosition() override;
-    inet::EulerAngles getCurrentAngularVelocity() override;
-    inet::EulerAngles getCurrentAngularAcceleration() override;
+    inet::Quaternion getCurrentAngularPosition() override;
+    inet::Quaternion getCurrentAngularVelocity() override;
+    inet::Quaternion getCurrentAngularAcceleration() override;
     inet::Coord getConstraintAreaMax() const override;
     inet::Coord getConstraintAreaMin() const override;
 
@@ -37,7 +37,7 @@ private:
 
     inet::Coord mPosition;
     inet::Coord mSpeed;
-    inet::EulerAngles mOrientation;
+    inet::Quaternion mOrientation;
     double mAntennaHeight = 0.0;
     omnetpp::cModule* mVisualRepresentation = nullptr;
     const inet::CanvasProjection* mCanvasProjection = nullptr;

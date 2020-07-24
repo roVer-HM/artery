@@ -19,7 +19,7 @@ Define_Module(InetMobility)
 
 int InetMobility::numInitStages() const
 {
-    return inet::INITSTAGE_PHYSICAL_ENVIRONMENT_2 + 1;
+    return inet::INITSTAGE_PHYSICAL_ENVIRONMENT + 1;
 }
 
 void InetMobility::initialize(int stage)
@@ -31,7 +31,7 @@ void InetMobility::initialize(int stage)
         WATCH(mPosition);
         WATCH(mSpeed);
         WATCH(mOrientation);
-    } else if (stage == inet::INITSTAGE_PHYSICAL_ENVIRONMENT_2) {
+    } else if (stage == inet::INITSTAGE_PHYSICAL_ENVIRONMENT) {
         if (mVisualRepresentation) {
             auto visualizationTarget = mVisualRepresentation->getParentModule();
             mCanvasProjection = inet::CanvasProjection::getCanvasProjection(visualizationTarget->getCanvas());
@@ -60,19 +60,19 @@ inet::Coord InetMobility::getCurrentAcceleration()
     return inet::Coord::NIL;
 }
 
-inet::EulerAngles InetMobility::getCurrentAngularPosition()
+inet::Quaternion InetMobility::getCurrentAngularPosition()
 {
     return mOrientation;
 }
 
-inet::EulerAngles InetMobility::getCurrentAngularVelocity()
+inet::Quaternion InetMobility::getCurrentAngularVelocity()
 {
-    return inet::EulerAngles::NIL;
+    return inet::Quaternion::NIL;
 }
 
-inet::EulerAngles InetMobility::getCurrentAngularAcceleration()
+inet::Quaternion InetMobility::getCurrentAngularAcceleration()
 {
-    return inet::EulerAngles::NIL;
+    return inet::Quaternion::NIL;
 }
 
 inet::Coord InetMobility::getConstraintAreaMax() const
@@ -94,7 +94,9 @@ void InetMobility::initialize(const Position& pos, Angle heading, double speed)
     const inet::Coord direction { cos(heading_rad), -sin(heading_rad) };
     mPosition = inet::Coord { pos.x / meter, pos.y / meter, mAntennaHeight };
     mSpeed = direction * speed;
-    mOrientation.alpha = inet::units::values::rad(-heading_rad);
+    inet::EulerAngles angles;
+    angles.alpha = inet::units::values::rad(-heading_rad);
+    mOrientation = inet::Quaternion(angles);
 }
 
 void InetMobility::update(const Position& pos, Angle heading, double speed)
