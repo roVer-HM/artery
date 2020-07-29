@@ -3,11 +3,18 @@ PYTHON2 ?= python2
 INET_DIR = extern/inet4
 SIMULTE_DIR = extern/simulte
 VANETZA_DIR = extern/vanetza
-VANETZA_BUILD_TYPE ?= Release
-VANETZA_BUILD_DIR ?= $(VANETZA_DIR)/release
 VEINS_DIR = extern/veins
 
+ifeq ($(MODE), debug)
+VANETZA_BUILD_TYPE=Debug
+VANETZA_BUILD_DIR=$(VANETZA_DIR)/build/$(VANETZA_BUILD_TYPE)
+else
+VANETZA_BUILD_TYPE=Release
+VANETZA_BUILD_DIR=$(VANETZA_DIR)/build/$(VANETZA_BUILD_TYPE)
+endif
+
 all: inet vanetza veins
+
 
 clean:
 	-$(MAKE) -C $(INET_DIR) cleanall
@@ -41,7 +48,7 @@ $(VANETZA_BUILD_DIR):
 	mkdir -p $(VANETZA_BUILD_DIR)
 
 $(VANETZA_BUILD_DIR)/Makefile: $(VANETZA_BUILD_DIR)
-	cd $<; cmake -DCMAKE_BUILD_TYPE=$(VANETZA_BUILD_TYPE) -DBUILD_SHARED_LIBS=ON ..
+	cd $<; cmake -DCMAKE_BUILD_TYPE=$(VANETZA_BUILD_TYPE) -DBUILD_SHARED_LIBS=ON ../..
 
 vanetza: $(VANETZA_BUILD_DIR)/Makefile
 	$(MAKE) -C $(VANETZA_BUILD_DIR)

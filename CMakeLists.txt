@@ -17,12 +17,22 @@ include(cmake/GenerateOppMessage.cmake)
 include(cmake/GetNedFolders.cmake)
 include(cmake/AddOppBuildTarget.cmake)
 include(cmake/AddOppRun.cmake)
+include(ProcessorCount)
 
-if(NOT VANETZA_BUILD_TYPE)
-    set(VANETZA_BUILD_TYPE release)
+
+# Postifx
+set(CMAKE_DEBUG_POSTFIX "_dbg")
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib/static)
+
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
 endif()
+set(VANETZA_BINARY_DIR ${PROJECT_SOURCE_DIR}/extern/vanetza/build/${CMAKE_BUILD_TYPE})
 
-find_package(Vanetza CONFIG PATHS extern/vanetza/${VANETZA_BUILD_TYPE} REQUIRED NO_CMAKE_PACKAGE_REGISTRY)
+find_package(Vanetza CONFIG PATHS ${VANETZA_BINARY_DIR} REQUIRED NO_CMAKE_PACKAGE_REGISTRY)
 
 find_path(Veins_DIR NAMES src/veins/package.ned PATHS extern/veins DOC "Veins root directory")
 import_opp_target(veins ${Veins_DIR}/src/Makefile)
@@ -40,10 +50,16 @@ else()
 endif()
 
 find_program(MAKE_COMMAND NAMES make gmake HINTS ${CMAKE_MAKE_COMMAND} DOC "Makefile processor")
-set(MAKE_ARGUMENTS "" CACHE STRING "Additional arguments passed to Makefile processor")
+ProcessorCount(N)
+if(NOT N EQUAL 0)
+    set(MAKE_ARGUMENTS "-j${N};VANETZA_BUILD_TYPE=${CMAKE_BUILD_TYPE}" CACHE STRING "Additional arguments passed to Makefile processor")
+else()
+    set(MAKE_ARGUMENTS "VANETZA_BUILD_TYPE=${CMAKE_BUILD_TYPE}" CACHE STRING "Additional arguments passed to Makefile processor")
+endif()
+
 string(REPLACE " " ";" MAKE_ARGUMENTS "${MAKE_ARGUMENTS}")
 
-if("${Vanetza_DIR}" STREQUAL "${PROJECT_SOURCE_DIR}/extern/vanetza/${VANETZA_BUILD_TYPE}")
+if("${Vanetza_DIR}" STREQUAL "${VANETZA_BINARY_DIR}")
     set(_make_command ${MAKE_COMMAND})
     if(CMAKE_GENERATOR MATCHES "Makefiles")
         set(_make_command \$\(MAKE\))
