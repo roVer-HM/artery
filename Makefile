@@ -4,7 +4,7 @@ INET_DIR = extern/inet4
 SIMULTE_DIR = extern/simulte
 VANETZA_DIR = extern/vanetza
 VANETZA_BUILD_TYPE ?= Release
-VANETZA_BUILD_DIR ?= $(VANETZA_DIR)/build
+VANETZA_BUILD_DIR ?= $(VANETZA_DIR)/release
 VEINS_DIR = extern/veins
 
 all: inet vanetza veins

@@ -18,7 +18,11 @@ include(cmake/GetNedFolders.cmake)
 include(cmake/AddOppBuildTarget.cmake)
 include(cmake/AddOppRun.cmake)
 
-find_package(Vanetza CONFIG PATHS extern/vanetza/build REQUIRED NO_CMAKE_PACKAGE_REGISTRY)
+if(NOT VANETZA_BUILD_TYPE)
+    set(VANETZA_BUILD_TYPE release)
+endif()
+
+find_package(Vanetza CONFIG PATHS extern/vanetza/${VANETZA_BUILD_TYPE} REQUIRED NO_CMAKE_PACKAGE_REGISTRY)
 
 find_path(Veins_DIR NAMES src/veins/package.ned PATHS extern/veins DOC "Veins root directory")
 import_opp_target(veins ${Veins_DIR}/src/Makefile)
@@ -39,7 +43,7 @@ find_program(MAKE_COMMAND NAMES make gmake HINTS ${CMAKE_MAKE_COMMAND} DOC "Make
 set(MAKE_ARGUMENTS "" CACHE STRING "Additional arguments passed to Makefile processor")
 string(REPLACE " " ";" MAKE_ARGUMENTS "${MAKE_ARGUMENTS}")
 
-if("${Vanetza_DIR}" STREQUAL "${PROJECT_SOURCE_DIR}/extern/vanetza/build")
+if("${Vanetza_DIR}" STREQUAL "${PROJECT_SOURCE_DIR}/extern/vanetza/${VANETZA_BUILD_TYPE}")
     set(_make_command ${MAKE_COMMAND})
     if(CMAKE_GENERATOR MATCHES "Makefiles")
         set(_make_command \$\(MAKE\))
