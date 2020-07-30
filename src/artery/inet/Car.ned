@@ -19,7 +19,7 @@ module Car extends PlainVehicle like INetworkNode
         int numRadios = default(1);
         bool withAntennaMobility = default(false);
         *.interfaceTableModule = default(absPath(".interfaceTable"));
-        **.mobilityModule = default(absPath(".mobility"));
+//        **.mobilityModule = default(absPath(".mobility"));
 
     gates:
         input radioIn[numRadios] @directIn;

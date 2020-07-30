@@ -1,6 +1,6 @@
 package artery.networking;
 
-import artery.dcc.IDccEntity;
+import artery.networking.IDccEntity;
 
 module Vanetza
 {

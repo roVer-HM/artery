@@ -1,12 +1,11 @@
 package artery.lte;
 
-import inet.applications.contract.ITCPApp;
-import inet.applications.contract.IUDPApp;
+import inet.applications.contract.IApp;
 import inet.networklayer.configurator.ipv4.HostAutoConfigurator;
 import inet.networklayer.contract.IRoutingTable;
 import inet.networklayer.contract.INetworkLayer;
-import inet.transportlayer.tcp.TCP;
-import inet.transportlayer.udp.UDP;
+import inet.transportlayer.tcp.Tcp;
+import inet.transportlayer.udp.Udp;
 import lte.stack.ILteNic;
 
 module Car extends artery.inet.Car
@@ -45,19 +44,19 @@ module Car extends artery.inet.Car
             nodeType = "UE";
         }
 
-        udpApp[numUdpApps]: <> like IUDPApp {
+        udpApp[numUdpApps]: <> like IApp {
              @display("p=250,25,col,-100");
         }
 
-        udp: UDP if numUdpApps > 0 {
+        udp: Udp if numUdpApps > 0 {
             @display("p=250,125");
         }
 
-        tcpApp[numTcpApps]: <> like ITCPApp {
+        tcpApp[numTcpApps]: <> like IApp {
              @display("p=350,25,col,-100");
         }
 
-        tcp: TCP if numTcpApps > 0 {
+        tcp: Tcp if numTcpApps > 0 {
             @display("p=350,125");
         }
 
