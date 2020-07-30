@@ -1,0 +1,5 @@
+Submodules inte4, simulte and veins are removed because
+they are provided elsewere in the setup of roVer.
+See tag *rover_dependency_handling* for devergence of upstream
+artery.
+
