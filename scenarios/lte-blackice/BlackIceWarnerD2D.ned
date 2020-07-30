@@ -1,6 +1,6 @@
-import inet.applications.contract.IUDPApp;
+import inet.applications.contract.IApp;
 
-simple BlackIceWarnerD2D like IUDPApp
+simple BlackIceWarnerD2D like IApp
 {
     parameters:
         int localPort = default(9330);
@@ -12,6 +12,6 @@ simple BlackIceWarnerD2D like IUDPApp
         double warningDuration @unit(s) = default(10 s);
 
     gates:
-        output udpOut;
-        input udpIn;
+        input socketIn;
+        output socketOut;
 }

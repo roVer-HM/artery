@@ -16,12 +16,12 @@ BlackIceCentral::~BlackIceCentral()
 void BlackIceCentral::initialize()
 {
     reportPort = par("reportPort");
-    reportSocket.setOutputGate(gate("udpOut"));
+    reportSocket.setOutputGate(gate("socketOut"));
     reportSocket.bind(inet::L3Address(), reportPort);
     reportSocket.setCallback(this);
 
     queryPort = par("queryPort");
-    querySocket.setOutputGate(gate("udpOut"));
+    querySocket.setOutputGate(gate("socketOut"));
     querySocket.bind(inet::L3Address(), queryPort);
     querySocket.setCallback(this);
 

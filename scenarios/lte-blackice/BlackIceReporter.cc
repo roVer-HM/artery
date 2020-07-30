@@ -22,7 +22,7 @@ void BlackIceReporter::initialize(int stage)
         tractionLosses = 0;
         WATCH(tractionLosses);
     } else if (stage == artery::InitStages::Self) {
-        socket.setOutputGate(gate("udpOut"));
+        socket.setOutputGate(gate("socketOut"));
         auto centralAddress = inet::L3AddressResolver().resolve(par("centralAddress"));
         socket.connect(centralAddress, par("centralPort"));
 

@@ -34,7 +34,7 @@ void BlackIceWarnerD2D::initialize(int stage)
 
     mcastAddress = inet::L3AddressResolver().resolve(par("mcastAddress"));
     mcastPort = par("mcastPort");
-    socket.setOutputGate(gate("udpOut"));
+    socket.setOutputGate(gate("socketOut"));
     socket.bind(mcastPort);
     socket.setCallback(this);
 

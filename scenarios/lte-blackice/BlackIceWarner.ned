@@ -1,6 +1,6 @@
-import inet.applications.contract.IUDPApp;
+import inet.applications.contract.IApp;
 
-simple BlackIceWarner like IUDPApp
+simple BlackIceWarner like IApp
 {
     parameters:
         int centralPort = default(9321);
@@ -10,6 +10,6 @@ simple BlackIceWarner like IUDPApp
         double pollingInterval @unit(s) = default(1.0 s);
 
     gates:
-        output udpOut;
-        input udpIn;
+        input socketIn;
+        output socketOut;
 }

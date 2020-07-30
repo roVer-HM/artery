@@ -28,7 +28,7 @@ void BlackIceWarner::initialize(int stage)
         numWarningsCentral = 0;
         WATCH(numWarningsCentral);
     } else if (stage == artery::InitStages::Self) {
-        socket.setOutputGate(gate("udpOut"));
+        socket.setOutputGate(gate("socketOut"));
         auto centralAddress = inet::L3AddressResolver().resolve(par("centralAddress"));
         socket.connect(centralAddress, par("centralPort"));
         socket.setCallback(this);

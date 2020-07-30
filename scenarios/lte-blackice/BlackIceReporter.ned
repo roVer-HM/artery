@@ -1,6 +1,6 @@
-import inet.applications.contract.IUDPApp;
+import inet.applications.contract.IApp;
 
-simple BlackIceReporter like IUDPApp
+simple BlackIceReporter like IApp
 {
     parameters:
         int centralPort = default(9320);
@@ -8,6 +8,6 @@ simple BlackIceReporter like IUDPApp
         string middlewareModule;
 
     gates:
-        output udpOut;
-        input udpIn;
+        input socketIn;
+        output socketOut;
 }
