@@ -10,4 +10,5 @@ tags
 .idea
 cmake-build-debug/
 build/
+.settings
 
