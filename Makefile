@@ -17,6 +17,8 @@ endif
 
 N_CORES := $(shell nproc)
 
+all: artery
+
 allExtern: inet vanetza veins
 
 
@@ -60,7 +62,7 @@ vanetza: $(VANETZA_BUILD_DIR)/Makefile
 vanetza_clean: 
 	rm -rf $(VANETZA_BUILD_DIR)
 
-$(CM_BUILD_DIR):
+$(CM_BUILD_DIR): vanetza
 	mkdir -p $(CM_BUILD_DIR)
 
 $(CM_BUILD_DIR)/Makefile: $(CM_BUILD_DIR)
@@ -81,10 +83,11 @@ VEINS_INET_PROJ=../veins/subprojects/veins_inet
 ARTERY_PROJ=.
 VANETZA_PROJ=extern/vanetza
 
-all: artery
+
+
 	
 
-clean: artery_clean
+clean: vanetza_clean artery_clean 
 	
 
 cleanall: 
