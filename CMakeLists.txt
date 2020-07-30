@@ -19,6 +19,10 @@ include(cmake/AddOppBuildTarget.cmake)
 include(cmake/AddOppRun.cmake)
 include(ProcessorCount)
 
+set(VANETZA_PATH  ${PROJECT_SOURCE_DIR}/extern/vanetza CACHE STRING "Path to dependency")
+set(VEINS_PATH  ${PROJECT_SOURCE_DIR}/../veins CACHE STRING "Path to dependency default in extern/*")
+set(INET_PATH ${PROJECT_SOURCE_DIR}/../inet4 CACHE STRING "Path to dependency")
+set(SIMULTE_PATH ${PROJECT_SOURCE_DIR}/../simulte CACHE STRING "Path to dependency")
 
 # Postifx
 set(CMAKE_DEBUG_POSTFIX "_dbg")
@@ -27,23 +31,29 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib/static)
 
-if(NOT CMAKE_BUILD_TYPE)
+
+if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
     set(CMAKE_BUILD_TYPE Release)
+    set(MAKE_MODE release)
+else()
+	set(CMAKE_BUILD_TYPE Debug)
+	set(MAKE_MODE debug)
 endif()
-set(VANETZA_BINARY_DIR ${PROJECT_SOURCE_DIR}/extern/vanetza/build/${CMAKE_BUILD_TYPE})
+
+set(VANETZA_BINARY_DIR ${VANETZA_PATH}/build/${CMAKE_BUILD_TYPE})
 
 find_package(Vanetza CONFIG PATHS ${VANETZA_BINARY_DIR} REQUIRED NO_CMAKE_PACKAGE_REGISTRY)
 
-find_path(Veins_DIR NAMES src/veins/package.ned PATHS extern/veins DOC "Veins root directory")
+find_path(Veins_DIR NAMES src/veins/package.ned PATHS ${VEINS_PATH} DOC "Veins root directory")
 import_opp_target(veins ${Veins_DIR}/src/Makefile)
 
-find_path(INET_DIR NAMES src/inet/package.ned PATHS extern/inet4 DOC "INET root directory")
+find_path(INET_DIR NAMES src/inet/package.ned PATHS ${INET_PATH} DOC "INET root directory")
 import_opp_target(INET ${INET_DIR}/src/Makefile)
 
 option(WITH_SIMULTE "Build Artery with SimuLTE integration" OFF)
 if(WITH_SIMULTE)
     message(SEND_ERROR "SimuLTE is not yet compatible with INET4. Please turn off WITH_SIMULTE.")
-    find_path(SimuLTE_DIR NAMES src/package.ned PATHS extern/simulte DOC "SimuLTE root directory")
+    find_path(SimuLTE_DIR NAMES src/package.ned PATHS ${SIMULTE_PATH} DOC "SimuLTE root directory")
     import_opp_target(lte ${SimuLTE_DIR}/src/Makefile)
 else()
     message(STATUS "SimuLTE integration disabled")
@@ -52,9 +62,9 @@ endif()
 find_program(MAKE_COMMAND NAMES make gmake HINTS ${CMAKE_MAKE_COMMAND} DOC "Makefile processor")
 ProcessorCount(N)
 if(NOT N EQUAL 0)
-    set(MAKE_ARGUMENTS "-j${N};VANETZA_BUILD_TYPE=${CMAKE_BUILD_TYPE}" CACHE STRING "Additional arguments passed to Makefile processor")
+    set(MAKE_ARGUMENTS "-j${N};MODE=${MAKE_MODE}" CACHE STRING "Additional arguments passed to Makefile processor")
 else()
-    set(MAKE_ARGUMENTS "VANETZA_BUILD_TYPE=${CMAKE_BUILD_TYPE}" CACHE STRING "Additional arguments passed to Makefile processor")
+    set(MAKE_ARGUMENTS ";MODE=${MAKE_MODE}" CACHE STRING "Additional arguments passed to Makefile processor")
 endif()
 
 string(REPLACE " " ";" MAKE_ARGUMENTS "${MAKE_ARGUMENTS}")

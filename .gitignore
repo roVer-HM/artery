@@ -3,6 +3,8 @@ scenarios/*/results/*
 scenarios/*/.tkenvrc
 src/artery/messages/*_m.cc
 src/artery/messages/*_m.h
+**/*_m.cc
+**/*_m.h
 tags
 .directory
 .idea
