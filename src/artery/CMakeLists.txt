@@ -12,6 +12,7 @@ add_library(core SHARED
     application/ItsG5Service.cc
     application/LocalDynamicMap.cc
     application/Middleware.cc
+    application/MovingNodeDataProvider.cc
     application/StationaryMiddleware.cc
     application/StoryboardSignal.cc
     application/Timer.cc
@@ -35,6 +36,7 @@ add_library(core SHARED
     nic/ChannelLoadMeasurements.cc
     nic/RadioDriverBase.cc
     traci/MobilityBase.cc
+    traci/MovingNodeController.cc
     traci/VehicleController.cc
     traci/VehicleType.cc
     utility/AsioScheduler.cc
