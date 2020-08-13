@@ -17,6 +17,7 @@ class ServerEndpoint;
 class API : public TraCIAPI
 {
 public:
+    virtual ~API() = default;
     using Version = std::pair<int, std::string>;
     Version getVersion() const;
     TraCIGeoPosition convertGeo(const TraCIPosition&) const;

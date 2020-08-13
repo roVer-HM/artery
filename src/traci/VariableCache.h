@@ -18,6 +18,7 @@ namespace traci
 class VariableCache
 {
 public:
+    virtual ~VariableCache() = default;
     LiteAPI& getLiteAPI() { return m_api; }
     const std::string& getId() const { return m_id; }
 
