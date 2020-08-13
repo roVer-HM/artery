@@ -13,7 +13,7 @@ network World extends artery.inet.World
 {
     parameters:
         int numLteBaseStations = default(1);
-        traci.mapper.vehicleType = default("artery.lte.Car");
+        traci.mapper.objectType = default("artery.lte.Car");
 
     submodules:
         channelControl: LteChannelControl {
