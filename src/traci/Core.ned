@@ -1,6 +1,7 @@
 package traci;
 
-simple Core
+
+simple Core like ICore
 {
     parameters:
         @class(traci::Core);
