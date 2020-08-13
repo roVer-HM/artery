@@ -23,6 +23,7 @@
 // included modules
 // ===========================================================================
 #include <config.h>
+#include <omnetpp/cexception.h>
 
 #include "TraCIAPI.h"
 
@@ -331,6 +332,9 @@ TraCIAPI::check_resultState(tcpip::Storage& inMsg, int command, bool ignoreComma
     }
     switch (resultType) {
         case RTYPE_ERR:
+            if (msg == "Simulation end reached."){
+                throw omnetpp::cTerminationException("TraCI server reported Simulation end reached.");
+            }
             throw libsumo::TraCIException(".. Answered with error to command (" + toString(command) + "), [description: " + msg + "]");
         case RTYPE_NOTIMPLEMENTED:
             throw libsumo::TraCIException(".. Sent command is not implemented (" + toString(command) + "), [description: " + msg + "]");
