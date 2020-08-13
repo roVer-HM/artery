@@ -150,6 +150,35 @@ public:
         libsumo::SubscriptionResults mySubscriptionResults;
         libsumo::ContextSubscriptionResults myContextSubscriptionResults;
 
+        /** @brief Sends a SetVariable request
+         * @param[in] domID The domain of the variable
+         * @param[in] varID The variable to set
+         * @param[in] objID The object to change
+         * @param[in] content The value of the variable
+         */
+        void send_commandSetValue(int domID, int varID, const std::string& objID, tcpip::Storage& content) const;
+
+        /// @name Command sending methods
+        /// @{
+
+        /** @brief Validates the result state of a command
+         * @param[in] inMsg The buffer to read the message from
+         * @param[in] command The original command id
+         * @param[in] ignoreCommandId Whether the returning command id shall be validated
+         * @param[in] acknowledgement Pointer to an existing string into which the acknowledgement message shall be inserted
+         */
+        void check_resultState(tcpip::Storage& inMsg, int command, bool ignoreCommandId = false, std::string* acknowledgement = 0) const;
+
+        /** @brief Sends a GetVariable request
+         * @param[in] domID The domain of the variable
+         * @param[in] varID The variable to retrieve
+         * @param[in] objID The object to retrieve the variable from
+         * @param[in] add Optional additional parameter
+         */
+        void send_commandGetVariable(int domID, int varID, const std::string& objID, tcpip::Storage* add = 0) const;
+        void send_commandGetVariableExtLenghtField(int domID, int varID, const std::string& objID, tcpip::Storage* add) const;
+
+        void processGET(tcpip::Storage& inMsg, int command, int expectedType, bool ignoreCommandId = false) const;
 
     private:
         /// @brief invalidated copy constructor
@@ -896,6 +925,7 @@ protected:
      * @param[in] add Optional additional parameter
      */
     void send_commandGetVariable(int domID, int varID, const std::string& objID, tcpip::Storage* add = 0) const;
+    void send_commandGetVariableExtLenghtField(int domID, int varID, const std::string& objID, tcpip::Storage* add) const;
 
 
     /** @brief Sends a SetVariable request
