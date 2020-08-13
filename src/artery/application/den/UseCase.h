@@ -18,6 +18,7 @@ class DenmObject;
 class DenService;
 class StoryboardSignal;
 class VehicleDataProvider;
+class MovingNodeDataProvider;
 
 namespace den
 {
@@ -52,9 +53,10 @@ protected:
     using TriggeringCondition = std::function<bool(void)>;
 
     virtual vanetza::asn1::Denm createMessageSkeleton();
+    virtual const MovingNodeDataProvider* dataProvider() = 0;
 
     DenService* mService = nullptr;
-    const VehicleDataProvider* mVdp = nullptr;
+//    const VehicleDataProvider* mVdp = nullptr;
 };
 
 } // namespace den

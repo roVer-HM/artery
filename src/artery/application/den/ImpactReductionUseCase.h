@@ -17,6 +17,8 @@ namespace den
 class ImpactReductionContainerExchange : public UseCase
 {
 public:
+    void initialize(int) override;
+
     // UseCase interface
     void check() override;
     void indicate(const artery::DenmObject&) override;
@@ -24,6 +26,11 @@ public:
 
     vanetza::asn1::Denm createMessage(RequestResponseIndication_t);
     vanetza::btp::DataRequestB createRequest();
+
+protected:
+    virtual const MovingNodeDataProvider* dataProvider() override;
+
+    const MovingNodeDataProvider* mVdp = nullptr;
 
 private:
     bool mPendingRequest = false;
