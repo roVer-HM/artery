@@ -3,6 +3,7 @@
 
 #include <artery/traci/MovingNodeController.h>
 #include "artery/traci/VehicleType.h"
+#include "artery/traci/MovingNodeController.h"
 #include "traci/LiteAPI.h"
 #include "traci/VariableCache.h"
 
@@ -35,7 +36,7 @@ public:
     Velocity getMaxSpeed() const override;
     void setMaxSpeed(Velocity) override;
     void setSpeed(Velocity) override;
-    void setSpeedFactor(double) override;
+    void setSpeedFactor(double);
 
     Length getLength() const override;
     Length getWidth() const override;

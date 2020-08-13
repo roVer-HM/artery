@@ -35,6 +35,7 @@ add_library(core SHARED
     networking/VehiclePositionProvider.cc
     nic/ChannelLoadMeasurements.cc
     nic/RadioDriverBase.cc
+    traci/ControllableVehicle.cc
     traci/MobilityBase.cc
     traci/MovingNodeController.cc
     traci/VehicleController.cc

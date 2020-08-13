@@ -38,12 +38,12 @@ public:
     virtual Velocity getMaxSpeed() const= 0;
     virtual void setMaxSpeed(Velocity)= 0;
     virtual void setSpeed(Velocity)= 0;
-    virtual void setSpeedFactor(double)= 0;
 
     virtual Length getLength() const = 0;
     virtual Length getWidth() const = 0;
-
 };
+
+
 
 } /* namespace traci */
 
