@@ -4,7 +4,7 @@
 #include "traci/LiteAPI.h"
 #include "traci/ModuleMapper.h"
 #include "traci/VariableCache.h"
-#include "traci/VehicleSink.h"
+#include "traci/MovingObjectSink.h"
 #include <inet/common/ModuleAccess.h>
 
 using namespace omnetpp;
@@ -96,7 +96,7 @@ void BasicNodeManager::traciStep()
 
     for (auto& vehicle : m_vehicles) {
         const std::string& id = vehicle.first;
-        VehicleSink* sink = vehicle.second;
+        MovingObjectSink* sink = vehicle.second;
         updateVehicle(id, sink);
     }
 
@@ -113,15 +113,15 @@ void BasicNodeManager::traciClose()
 void BasicNodeManager::addVehicle(const std::string& id)
 {
     NodeInitializer init = [this, &id](cModule* module) {
-        VehicleSink* vehicle = getVehicleSink(module);
+        MovingObjectSink* vehicle = getVehicleSink(module);
         auto& traci = m_api->vehicle();
         vehicle->initializeSink(m_api, id, m_boundary, m_subscriptions->getVehicleCache(id));
-        vehicle->initializeVehicle(traci.getPosition(id), TraCIAngle { traci.getAngle(id) }, traci.getSpeed(id));
+        vehicle->initializeObject(traci.getPosition(id), TraCIAngle { traci.getAngle(id) }, traci.getSpeed(id));
         m_vehicles[id] = vehicle;
     };
 
     emit(addVehicleSignal, id.c_str());
-    cModuleType* type = m_mapper->vehicle(*this, id);
+    cModuleType* type = m_mapper->getMovingObjectType(*this, id);
     if (type != nullptr) {
         addNodeModule(id, type, init);
     } else {
@@ -136,13 +136,13 @@ void BasicNodeManager::removeVehicle(const std::string& id)
     m_vehicles.erase(id);
 }
 
-void BasicNodeManager::updateVehicle(const std::string& id, VehicleSink* sink)
+void BasicNodeManager::updateVehicle(const std::string& id, MovingObjectSink* sink)
 {
     auto vehicle = m_subscriptions->getVehicleCache(id);
     VehicleObjectImpl update(vehicle);
     emit(updateVehicleSignal, id.c_str(), &update);
     if (sink) {
-        sink->updateVehicle(vehicle->get<VAR_POSITION>(),
+        sink->updateObject(vehicle->get<VAR_POSITION>(),
                 TraCIAngle { vehicle->get<VAR_ANGLE>() },
                 vehicle->get<VAR_SPEED>());
     }
@@ -193,7 +193,7 @@ std::size_t BasicNodeManager::getNumberOfNodes() const
     return m_nodes.size();
 }
 
-VehicleSink* BasicNodeManager::getVehicleSink(cModule* node)
+MovingObjectSink* BasicNodeManager::getVehicleSink(cModule* node)
 {
     ASSERT(node);
     cModule* module = node->getModuleByPath(m_vehicleSinkModule.c_str());
@@ -201,7 +201,7 @@ VehicleSink* BasicNodeManager::getVehicleSink(cModule* node)
         throw cRuntimeError("No module found at %s relative to %s", m_vehicleSinkModule.c_str(), node->getFullPath().c_str());
     }
 
-    auto* mobility = dynamic_cast<VehicleSink*>(module);
+    auto* mobility = dynamic_cast<MovingObjectSink*>(module);
     if (!mobility) {
         throw cRuntimeError("Module %s is not a VehicleSink", module->getFullPath().c_str());
     }
@@ -209,7 +209,7 @@ VehicleSink* BasicNodeManager::getVehicleSink(cModule* node)
     return mobility;
 }
 
-VehicleSink* BasicNodeManager::getVehicleSink(const std::string& id)
+MovingObjectSink* BasicNodeManager::getVehicleSink(const std::string& id)
 {
     auto found = m_vehicles.find(id);
     return found != m_vehicles.end() ? found->second : nullptr;
