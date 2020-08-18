@@ -1,7 +1,7 @@
 package artery.inet;
 
 import artery.application.VehicleMiddleware;
-import artery.networking.Vanetza;
+import artery.networking.IVanetza;
 import artery.nic.IRadioDriver;
 import inet.node.inet.INetworkNode;
 import inet.linklayer.contract.IWirelessInterface;
@@ -50,7 +50,7 @@ module Car extends PlainVehicle like INetworkNode
                 macModule = ".wlan[" + string(index) + "].mac";
         }
 
-        vanetza: Vanetza {
+        vanetza: <default("Vanetza")> like IVanetza {
             parameters:
                 @display("p=250,200");
                 *.middlewareModule = absPath("^.middleware");
