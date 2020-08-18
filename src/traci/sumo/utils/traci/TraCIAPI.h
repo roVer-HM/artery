@@ -157,6 +157,7 @@ public:
          * @param[in] content The value of the variable
          */
         void send_commandSetValue(int domID, int varID, const std::string& objID, tcpip::Storage& content) const;
+        void send_commandSetValueExtLenghtField(int domID, int varID, const std::string& objID, tcpip::Storage& content) const;
 
         /// @name Command sending methods
         /// @{
@@ -935,6 +936,7 @@ protected:
      * @param[in] content The value of the variable
      */
     void send_commandSetValue(int domID, int varID, const std::string& objID, tcpip::Storage& content) const;
+    void send_commandSetValueExtLenghtField(int domID, int varID, const std::string& objID, tcpip::Storage& content) const;
 
 
     /** @brief Sends a SubscribeVariable request

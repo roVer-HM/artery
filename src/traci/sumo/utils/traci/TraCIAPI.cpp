@@ -231,6 +231,32 @@ TraCIAPI::send_commandSetValue(int domID, int varID, const std::string& objID, t
     mySocket->sendExact(outMsg);
 }
 
+void
+TraCIAPI::send_commandSetValueExtLenghtField(int domID, int varID, const std::string& objID, tcpip::Storage& content) const
+{
+    if (mySocket == 0) {
+        throw tcpip::SocketException("Socket is not initialised");
+    }
+    tcpip::Storage outMsg;
+    // command length (length[1+4=5] + domID[1] + varID[1] + strLengthField[4] + strLenght[objId.length]
+    int length = 5 + 1 + 1 + 4 + (int) objID.length();
+    if (content.size() != 0) {
+        length += (int)content.size();
+    }
+    outMsg.writeUnsignedByte(0); // first byte of extended length field must be zero
+    outMsg.writeInt(length);
+
+    // command id
+    outMsg.writeUnsignedByte(domID);
+    // variable id
+    outMsg.writeUnsignedByte(varID);
+    // object id
+    outMsg.writeString(objID);
+    // data type
+    outMsg.writeStorage(content);
+    // send message
+    mySocket->sendExact(outMsg);
+}
 
 void
 TraCIAPI::send_commandSubscribeObjectVariable(int domID, const std::string& objID, double beginTime, double endTime,
@@ -3261,6 +3287,10 @@ TraCIAPI::TraCIScopeWrapper::getModifiableContextSubscriptionResults(const std::
 
 void TraCIAPI::TraCIScopeWrapper::send_commandSetValue(int domID, int varID, const std::string& objID, tcpip::Storage& content) const{
    myParent.send_commandSetValue(domID, varID, objID, content);
+}
+
+void TraCIAPI::TraCIScopeWrapper::send_commandSetValueExtLenghtField(int domID, int varID, const std::string& objID, tcpip::Storage& content) const{
+    myParent.send_commandSetValueExtLenghtField(domID, varID, objID, content);
 }
 
 void TraCIAPI::TraCIScopeWrapper::check_resultState(tcpip::Storage& inMsg, int command, bool ignoreCommandId, std::string* acknowledgement) const{
