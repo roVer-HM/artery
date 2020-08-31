@@ -49,6 +49,7 @@ void Middleware::initialize(int stage)
         mFacilities.register_mutable(&mLocalDynamicMap);
         mFacilities.register_const(&mIdentity);
         mFacilities.register_const(&mStationType);
+        mFacilities.register_const(mRouter);
 
         initializeServices(InitStages::Self);
 
