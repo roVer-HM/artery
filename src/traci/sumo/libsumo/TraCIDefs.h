@@ -110,6 +110,9 @@ struct TraCIPosition : TraCIResult {
         os << "TraCIPosition(" << x << "," << y << "," << z << ")";
         return os.str();
     }
+    TraCIPosition(){};
+    TraCIPosition(double x, double y, double z =0.0)
+        : x(x), y(y), z(z) {}
     double x, y, z;
 };
 
