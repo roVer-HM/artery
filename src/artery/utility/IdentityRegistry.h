@@ -25,6 +25,7 @@ public:
     static const omnetpp::simsignal_t removeSignal;
 
     void initialize() override;
+    using omnetpp::cIListener::finish;  // [-Woverloaded-virtual]
     void finish() override;
     void receiveSignal(omnetpp::cComponent*, omnetpp::simsignal_t, omnetpp::cObject*, omnetpp::cObject*) override;
 

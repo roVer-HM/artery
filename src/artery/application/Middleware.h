@@ -51,6 +51,7 @@ class Middleware : public omnetpp::cSimpleModule, public omnetpp::cListener
         // cSimpleModule
         int numInitStages() const override;
         void initialize(int stage) override;
+        using omnetpp::cIListener::finish;  // [-Woverloaded-virtual]
         void finish() override;
         void handleMessage(omnetpp::cMessage* msg) override;
 
