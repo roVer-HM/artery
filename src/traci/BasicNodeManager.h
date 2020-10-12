@@ -70,7 +70,6 @@ private:
     Boundary m_boundary;
     SubscriptionManager* m_subscriptions;
     unsigned m_nodeIndex;
-    std::map<std::string, omnetpp::cModule*> m_nodes;
     std::map<std::string, MovingObjectSink*> m_vehicles;
     std::string m_vehicleSinkModule;
 };

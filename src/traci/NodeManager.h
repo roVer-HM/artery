@@ -12,6 +12,13 @@ namespace traci
 
 class LiteAPI;
 
+class ITraciNodeVisitor {
+public:
+    virtual ~ITraciNodeVisitor() = default;
+    virtual void visitNode(const std::string& traciNodeId, omnetpp::cModule* mod) = 0;
+};
+
+
 class NodeManager
 {
 public:
@@ -45,8 +52,11 @@ public:
 
     virtual ~NodeManager() = default;
 
-private:
-    //LiteAPI* m_api = nullptr;
+    virtual void visit(ITraciNodeVisitor *visitor) const;
+
+protected:
+    std::map<std::string, omnetpp::cModule*> m_nodes;
+
 };
 
 } // namespace traci
