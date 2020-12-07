@@ -29,6 +29,7 @@ public:
     };
 
     bool update(const Identity&, long changes);
+    vanetza::MacAddress mid() const {return geonet.mid();}
 
     omnetpp::cModule* host = nullptr; /*< host module, e.g. vehicle node */
     std::string traci; /*< Vehicle ID used by TraCI protocol */
