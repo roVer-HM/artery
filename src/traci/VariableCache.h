@@ -66,6 +66,7 @@ public:
      * \param values new values to be stored
      */
     void reset(const libsumo::TraCIResults& values);
+    void invalidate(const int key);
 
 protected:
     VariableCache(LiteAPI& api, int command, const std::string& id);
