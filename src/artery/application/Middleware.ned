@@ -9,13 +9,18 @@ moduleinterface IMiddleware
 {
 }
 
+simple MiddlewareBase like IMiddleware {
+		@class(MiddlewareBase);
+		@signal[IdentityUpdated](type=artery::Identity);
+		@signal[IdentityRemoved](type=artery::Identity);
+
+}
+
 // Middleware for ITS G5 services
-simple Middleware like IMiddleware
+simple Middleware extends MiddlewareBase
 {
 	parameters:
 		@class(Middleware);
-		@signal[IdentityUpdated](type=artery::Identity);
-		@signal[IdentityRemoved](type=artery::Identity);
 		@signal[StoryboardSignal](type=StoryboardSignal);
 
 		string routerModule;

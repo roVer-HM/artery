@@ -11,6 +11,7 @@ add_library(core SHARED
     application/ItsG5PromiscuousService.cc
     application/ItsG5Service.cc
     application/LocalDynamicMap.cc
+    application/MiddlewareBase.cc
     application/Middleware.cc
     application/MovingNodeDataProvider.cc
     application/StationaryMiddleware.cc
