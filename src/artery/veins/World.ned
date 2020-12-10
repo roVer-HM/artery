@@ -41,7 +41,7 @@ network World
         traci: Manager {
             parameters:
                 mapper.objectType = default("artery.veins.Car");
-                nodes.vehicleSinkModule = default(".mobility");
+                nodes.objectSinkModule = default(".mobility");
                 @display("p=20,20");
         }
 

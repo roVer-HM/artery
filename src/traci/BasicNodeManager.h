@@ -71,7 +71,7 @@ private:
     SubscriptionManager* m_subscriptions;
     unsigned m_nodeIndex;
     std::map<std::string, MovingObjectSink*> m_vehicles;
-    std::string m_vehicleSinkModule;
+    std::string m_objectSinkModule;
 };
 
 } // namespace traci
