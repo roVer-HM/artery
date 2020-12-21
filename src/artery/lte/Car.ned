@@ -6,22 +6,30 @@ import inet.networklayer.contract.IRoutingTable;
 import inet.networklayer.contract.INetworkLayer;
 import inet.transportlayer.tcp.Tcp;
 import inet.transportlayer.udp.Udp;
+import inet.transportlayer.contract.ITcp;
+import inet.transportlayer.contract.IUdp;
+import inet.common.MessageDispatcher;
 import lte.stack.ILteNic;
 
 module Car extends artery.inet.Car
 {
     parameters:
-        // INET network layer
-        *.routingTableModule = default(absPath(".routingTable"));
+        //# Network Layer specs
+        *.routingTableModule = default(absPath(".ipv4.routingTable"));   
+        ipv4.configurator.typename = "HostAutoConfigurator";
+        // ipv4.configurator.interfaces = "cellular";
 
         // LTE NIC
         string nicType = default("LteNicUe");
         int macNodeId = default(0);
         int masterId;
 
-        // application
-        int numUdpApps = default(0);
-        int numTcpApps = default(0);
+        //# Apps
+        int numApps = default(0);   // no of apps.
+
+        //# Transport layer
+        bool hasUdp = default(firstAvailableOrEmpty("Udp") != "");
+        bool hasTcp = default(firstAvailableOrEmpty("Tcp", "TcpLwip", "TcpNsc") != "");
 
     gates:
         input lteRadioIn @directIn;
@@ -44,41 +52,61 @@ module Car extends artery.inet.Car
             nodeType = "UE";
         }
 
-        udpApp[numUdpApps]: <> like IApp {
-             @display("p=250,25,col,-100");
+        app[numApps]: <> like IApp {
+            @display("p=375,76,row,140");
         }
 
-        udp: Udp if numUdpApps > 0 {
-            @display("p=250,125");
+        udp: <default(firstAvailableOrEmpty("Udp"))> like IUdp if hasUdp {
+            parameters:
+                @display("p=375,226");
         }
-
-        tcpApp[numTcpApps]: <> like IApp {
-             @display("p=350,25,col,-100");
+        tcp: <default(firstAvailableOrEmpty("Tcp", "TcpLwip", "TcpNsc"))> like ITcp if hasTcp {
+            parameters:
+                @display("p=525,226");
         }
-
-        tcp: Tcp if numTcpApps > 0 {
-            @display("p=350,125");
+        
+        // message dispatcher for SAP between application and transport layer
+        at: MessageDispatcher {
+            parameters:
+                @display("p=550,146;b=600,5,,,,1");
+        }
+        // message dispatcher for SAP between transport and network layer
+        tn: MessageDispatcher {
+            parameters:
+                @display("p=550,296;b=600,5,,,,1");
+        }
+        // message dispatcher for SAP to link layer
+        nl: MessageDispatcher {
+            parameters:
+                @display("p=550,446;b=600,5,,,,1");
         }
 
     connections allowunconnected:
         lteNic.radioIn <-- lteRadioIn;
+        
+        lteNic.upperLayerOut --> nl.in++;
+        lteNic.upperLayerIn <-- nl.out++;
 
-        networkLayer.ifOut++ --> lteNic.upperLayerIn;
-        networkLayer.ifIn++ <-- lteNic.upperLayerOut;
+        networkLayer.ifIn <-- nl.out++;
+        networkLayer.ifOut --> nl.in++;
 
-        for i = 0..numUdpApps-1 {
-            udpApp[i].udpOut --> udp.appIn++;
-            udpApp[i].udpIn <-- udp.appOut++;
+        networkLayer.transportIn <-- tn.out++;
+        networkLayer.transportOut --> tn.in++;
+        
+        udp.ipOut --> tn.in++ if hasUdp;
+        udp.ipIn <-- tn.out++ if hasUdp;
+
+        tcp.ipOut --> tn.in++ if hasTcp;
+        tcp.ipIn <-- tn.out++ if hasTcp;
+
+        for i=0..numApps-1 {
+            app[i].socketOut --> at.in++;
+            app[i].socketIn <-- at.out++;
         }
 
-        udp.ipOut --> networkLayer.transportIn++ if numUdpApps > 0;
-        udp.ipIn <-- networkLayer.transportOut++ if numUdpApps > 0;
+        at.out++ --> udp.appIn if hasUdp;
+        at.in++ <-- udp.appOut if hasUdp;
 
-        for i = 0..numTcpApps-1 {
-            tcpApp[i].tcpOut --> tcp.appIn++;
-            tcpApp[i].tcpIn <-- tcp.appOut++;
-        }
-
-        tcp.ipOut --> networkLayer.transportIn++ if numTcpApps > 0;
-        tcp.ipIn <-- networkLayer.transportout++ if numTcpApps > 0;
+        at.out++ --> tcp.appIn if hasTcp;
+        at.in++ <-- tcp.appOut if hasTcp;
 }

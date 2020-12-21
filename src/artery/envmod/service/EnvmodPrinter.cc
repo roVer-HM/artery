@@ -10,6 +10,9 @@
 #include "artery/traci/VehicleController.h"
 #include <boost/units/io.hpp>
 #include <omnetpp/clog.h>
+#if OMNETPP_VERSION >= 0x600
+  #include <omnetpp/ccontextswitcher.h>
+#endif
 
 namespace artery
 {

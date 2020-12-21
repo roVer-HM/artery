@@ -9,7 +9,7 @@ import org.car2x.veins.base.modules.IBaseApplLayer;
 module ApplicationLayer like IBaseApplLayer
 {
 	parameters:
-		int headerLength @unit("bit") = 0; // ignored
+		int headerLength @unit("bit") = 0B; // ignored
 
 	gates:
 		input lowerLayerIn;

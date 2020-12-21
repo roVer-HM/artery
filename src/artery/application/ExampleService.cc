@@ -19,6 +19,9 @@
 #include <vanetza/btp/data_request.hpp>
 #include <vanetza/dcc/profile.hpp>
 #include <vanetza/geonet/interface.hpp>
+#if OMNETPP_VERSION >= 0x600
+  #include <omnetpp/ccontextswitcher.h>
+#endif
 
 using namespace omnetpp;
 using namespace vanetza;

@@ -1,5 +1,8 @@
 #include "PoliceServiceEnvmod.h"
 #include "artery/envmod/LocalEnvironmentModel.h"
+#if OMNETPP_VERSION >= 0x600
+  #include <omnetpp/ccontextswitcher.h>
+#endif
 
 using namespace omnetpp;
 
