@@ -5,9 +5,6 @@
 #include "artery/nic/RadioDriverProperties.h"
 #include <inet/common/InitStages.h>
 #include <inet/common/ModuleAccess.h>
-#include <inet/common/Protocol.h>
-#include <inet/common/ProtocolGroup.h>
-#include <inet/common/ProtocolTag_m.h>
 #include <inet/common/packet/chunk/cPacketChunk.h>
 #include <inet/linklayer/common/MacAddressTag_m.h>
 #include <inet/linklayer/common/UserPriorityTag_m.h>
@@ -38,9 +35,11 @@ inet::MacAddress convert(const vanetza::MacAddress& mac)
 }
 
 std::once_flag register_protocol_flag;
-const inet::Protocol geonet { "GeoNet", "ETSI ITS-G5 GeoNetworking", inet::Protocol::NetworkLayer };
+
 
 } // namespace
+
+const inet::Protocol InetRadioDriver::geonet { "GeoNet", "ETSI ITS-G5 GeoNetworking", inet::Protocol::NetworkLayer };
 
 int InetRadioDriver::numInitStages() const
 {
@@ -97,16 +96,16 @@ void InetRadioDriver::handleDataRequest(cMessage* msg)
 
 	auto up_tag = packet->addTag<inet::UserPriorityReq>();
 	switch (request->access_category) {
-		case vanetza::AccessCategory::VO:
+		case vanetza::access::AccessCategory::VO:
 			up_tag->setUserPriority(7);
 			break;
-		case vanetza::AccessCategory::VI:
+		case vanetza::access::AccessCategory::VI:
 			up_tag->setUserPriority(5);
 			break;
-		case vanetza::AccessCategory::BE:
+		case vanetza::access::AccessCategory::BE:
 			up_tag->setUserPriority(3);
 			break;
-		case vanetza::AccessCategory::BK:
+		case vanetza::access::AccessCategory::BK:
 			up_tag->setUserPriority(1);
 			break;
 		default:

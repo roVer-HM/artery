@@ -31,6 +31,10 @@ const std::string& VehicleController::getVehicleId() const
     return m_id;
 }
 
+const std::string& VehicleController::getNodeId() const {
+    return getVehicleId();
+}
+
 std::string VehicleController::getTypeId() const
 {
     return m_cache->get<VAR_TYPE>();
@@ -45,6 +49,10 @@ const VehicleType& VehicleController::getVehicleType() const
 const std::string VehicleController::getVehicleClass() const
 {
     return m_cache->get<VAR_VEHICLECLASS>();
+}
+
+const std::string VehicleController::getNodeClass() const {
+    return getVehicleClass();
 }
 
 artery::Position VehicleController::getPosition() const

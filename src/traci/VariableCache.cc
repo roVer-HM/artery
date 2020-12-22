@@ -19,6 +19,11 @@ void VariableCache::reset(const libsumo::TraCIResults& values)
     m_values = values;
 }
 
+void VariableCache::invalidate(const int key)
+{
+    m_values.erase(key);
+}
+
 SimulationCache::SimulationCache(LiteAPI& api) :
     VariableCache(api, CMD_GET_SIM_VARIABLE, "")
 {

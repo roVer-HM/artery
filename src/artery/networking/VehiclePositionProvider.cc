@@ -20,7 +20,7 @@ void VehiclePositionProvider::initialize(int stage)
         if (mobilityModule) {
             mobilityModule->subscribe(MobilityBase::stateChangedSignal, this);
             if (auto mobilityBase = dynamic_cast<MobilityBase*>(mobilityModule)) {
-                mVehicleController = mobilityBase->getVehicleController();
+                mVehicleController = mobilityBase->getController<traci::VehicleController>();
             } else {
                 error("Module on path '%s' is not a MobilityBase", mobilityModule->getFullPath().c_str());
             }

@@ -7,10 +7,9 @@
 #include "artery/application/Middleware.h"
 #include "artery/application/ItsG5PromiscuousService.h"
 #include "artery/application/ItsG5Service.h"
+#include "artery/utility/InitStages.h"
 #include "artery/networking/Router.h"
 #include "artery/utility/PointerCheck.h"
-#include "artery/utility/IdentityRegistry.h"
-#include "artery/utility/InitStages.h"
 #include "artery/utility/FilterRules.h"
 #include "inet/common/ModuleAccess.h"
 
@@ -30,33 +29,25 @@ Middleware::~Middleware()
     cancelAndDelete(mUpdateMessage);
 }
 
-int Middleware::numInitStages() const
-{
-    return InitStages::Total;
-}
-
 void Middleware::initialize(int stage)
 {
+    MiddlewareBase::initialize(stage);
     if (stage == InitStages::Prepare) {
         mTimer.setTimebase(par("datetime"));
         mRouter = inet::getModuleFromPar<Router>(par("routerModule"), findHost());
         mUpdateInterval = par("updateInterval");
         mUpdateMessage = new cMessage("middleware update");
-        mIdentity.host = findHost();
-        mIdentity.host->subscribe(Identity::changeSignal, this);
     } else if (stage == InitStages::Self) {
         mFacilities.register_const(&mTimer);
         mFacilities.register_mutable(&mLocalDynamicMap);
-        mFacilities.register_const(&mIdentity);
         mFacilities.register_const(&mStationType);
+        mFacilities.register_const(mRouter);
 
         initializeServices(InitStages::Self);
 
         // start update cycle with random jitter to avoid unrealistic node synchronization
         const auto jitter = uniform(SimTime(0, SIMTIME_MS), mUpdateInterval);
         scheduleAt(simTime() + jitter + mUpdateInterval, mUpdateMessage);
-    } else if (stage == InitStages::Propagate) {
-        emit(artery::IdentityRegistry::updateSignal, &mIdentity);
     }
 }
 
@@ -109,10 +100,6 @@ void Middleware::initializeServices(int stage)
     }
 }
 
-void Middleware::finish()
-{
-    emit(artery::IdentityRegistry::removeSignal, &mIdentity);
-}
 
 void Middleware::handleMessage(cMessage *msg)
 {
@@ -123,20 +110,6 @@ void Middleware::handleMessage(cMessage *msg)
     }
 }
 
-void Middleware::receiveSignal(omnetpp::cComponent*, omnetpp::simsignal_t signal, long changes, omnetpp::cObject* obj)
-{
-    if (signal == Identity::changeSignal) {
-        auto identity = check_and_cast<Identity*>(obj);
-        if (mIdentity.update(*identity, changes)) {
-            emit(artery::IdentityRegistry::updateSignal, &mIdentity);
-        }
-    }
-}
-
-cModule* Middleware::findHost()
-{
-    return inet::getContainingNode(this);
-}
 
 void Middleware::setStationType(const StationType& type)
 {

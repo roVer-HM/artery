@@ -11,8 +11,8 @@ network World
         bool withStoryboard = default(false);
         bool withPhysicalEnvironment = default(false);
         int numRoadSideUnits = default(0);
-        traci.mapper.vehicleType = default("artery.inet.Car");
-        traci.nodes.vehicleSinkModule = default(".mobility");
+        traci.mapper.objectType = default("artery.inet.Car");
+        traci.nodes.objectSinkModule = default(".mobility");
         storyboard.middlewareModule = default(".middleware");
 
     submodules:

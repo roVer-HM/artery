@@ -23,6 +23,7 @@
 // included modules
 // ===========================================================================
 #include <config.h>
+#include <omnetpp/cexception.h>
 
 #include "TraCIAPI.h"
 
@@ -162,12 +163,39 @@ TraCIAPI::send_commandGetVariable(int domID, int varID, const std::string& objID
         throw tcpip::SocketException("Socket is not initialised");
     }
     tcpip::Storage outMsg;
-    // command length
+    // command length (length[1] + domID[1] + varID[1] + strLengthField[4] + strLenght[objId.length]
     int length = 1 + 1 + 1 + 4 + (int) objID.length();
     if (add != 0) {
         length += (int)add->size();
     }
     outMsg.writeUnsignedByte(length);
+    // command id
+    outMsg.writeUnsignedByte(domID);
+    // variable id
+    outMsg.writeUnsignedByte(varID);
+    // object id
+    outMsg.writeString(objID);
+    // additional values
+    if (add != 0) {
+        outMsg.writeStorage(*add);
+    }
+    // send request message
+    mySocket->sendExact(outMsg);
+}
+
+void
+TraCIAPI::send_commandGetVariableExtLenghtField(int domID, int varID, const std::string& objID, tcpip::Storage* add) const {
+    if (mySocket == 0) {
+        throw tcpip::SocketException("Socket is not initialised");
+    }
+    tcpip::Storage outMsg;
+    // command length (length[1+4=5] + domID[1] + varID[1] + strLengthField[4] + strLenght[objId.length]
+    int length = 5 + 1 + 1 + 4 + (int) objID.length();
+    if (add != 0) {
+        length += (int)add->size();
+    }
+    outMsg.writeUnsignedByte(0); // first byte of extended length field must be zero
+    outMsg.writeInt(length);
     // command id
     outMsg.writeUnsignedByte(domID);
     // variable id
@@ -203,6 +231,32 @@ TraCIAPI::send_commandSetValue(int domID, int varID, const std::string& objID, t
     mySocket->sendExact(outMsg);
 }
 
+void
+TraCIAPI::send_commandSetValueExtLenghtField(int domID, int varID, const std::string& objID, tcpip::Storage& content) const
+{
+    if (mySocket == 0) {
+        throw tcpip::SocketException("Socket is not initialised");
+    }
+    tcpip::Storage outMsg;
+    // command length (length[1+4=5] + domID[1] + varID[1] + strLengthField[4] + strLenght[objId.length]
+    int length = 5 + 1 + 1 + 4 + (int) objID.length();
+    if (content.size() != 0) {
+        length += (int)content.size();
+    }
+    outMsg.writeUnsignedByte(0); // first byte of extended length field must be zero
+    outMsg.writeInt(length);
+
+    // command id
+    outMsg.writeUnsignedByte(domID);
+    // variable id
+    outMsg.writeUnsignedByte(varID);
+    // object id
+    outMsg.writeString(objID);
+    // data type
+    outMsg.writeStorage(content);
+    // send message
+    mySocket->sendExact(outMsg);
+}
 
 void
 TraCIAPI::send_commandSubscribeObjectVariable(int domID, const std::string& objID, double beginTime, double endTime,
@@ -304,6 +358,9 @@ TraCIAPI::check_resultState(tcpip::Storage& inMsg, int command, bool ignoreComma
     }
     switch (resultType) {
         case RTYPE_ERR:
+            if (msg == "Simulation end reached."){
+                throw omnetpp::cTerminationException("TraCI server reported Simulation end reached.");
+            }
             throw libsumo::TraCIException(".. Answered with error to command (" + toString(command) + "), [description: " + msg + "]");
         case RTYPE_NOTIMPLEMENTED:
             throw libsumo::TraCIException(".. Sent command is not implemented (" + toString(command) + "), [description: " + msg + "]");
@@ -3228,6 +3285,29 @@ TraCIAPI::TraCIScopeWrapper::getModifiableContextSubscriptionResults(const std::
     return myContextSubscriptionResults[objID];
 }
 
+void TraCIAPI::TraCIScopeWrapper::send_commandSetValue(int domID, int varID, const std::string& objID, tcpip::Storage& content) const{
+   myParent.send_commandSetValue(domID, varID, objID, content);
+}
 
+void TraCIAPI::TraCIScopeWrapper::send_commandSetValueExtLenghtField(int domID, int varID, const std::string& objID, tcpip::Storage& content) const{
+    myParent.send_commandSetValueExtLenghtField(domID, varID, objID, content);
+}
+
+void TraCIAPI::TraCIScopeWrapper::check_resultState(tcpip::Storage& inMsg, int command, bool ignoreCommandId, std::string* acknowledgement) const{
+    myParent.check_resultState(inMsg, command, ignoreCommandId, acknowledgement);
+}
+
+
+void TraCIAPI::TraCIScopeWrapper::send_commandGetVariable(int domID, int varID, const std::string& objID, tcpip::Storage* add) const{
+    myParent.send_commandGetVariable(domID, varID, objID, add);
+}
+
+void TraCIAPI::TraCIScopeWrapper::send_commandGetVariableExtLenghtField(int domID, int varID, const std::string& objID, tcpip::Storage* add) const{
+    myParent.send_commandGetVariableExtLenghtField(domID, varID, objID, add);
+}
+
+void TraCIAPI::TraCIScopeWrapper::processGET(tcpip::Storage& inMsg, int command, int expectedType, bool ignoreCommandId) const {
+    myParent.processGET(inMsg, command, expectedType, ignoreCommandId);
+}
 /****************************************************************************/
 

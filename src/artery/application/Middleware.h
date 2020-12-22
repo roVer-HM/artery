@@ -7,13 +7,10 @@
 #ifndef ARTERY_MIDDLEWARE_H_
 #define ARTERY_MIDDLEWARE_H_
 
-#include "artery/application/Facilities.h"
+#include "artery/application/MiddlewareBase.h"
 #include "artery/application/LocalDynamicMap.h"
 #include "artery/application/StationType.h"
 #include "artery/application/Timer.h"
-#include "artery/utility/Identity.h"
-#include <omnetpp/clistener.h>
-#include <omnetpp/csimplemodule.h>
 #include <omnetpp/simtime.h>
 #include <vanetza/btp/data_request.hpp>
 #include <vanetza/btp/port_dispatcher.hpp>
@@ -30,7 +27,7 @@ class Router;
 /**
  * Middleware providing a runtime context for services.
  */
-class Middleware : public omnetpp::cSimpleModule, public omnetpp::cListener
+class Middleware : public MiddlewareBase
 {
     public:
         typedef uint16_t port_type;
@@ -38,10 +35,7 @@ class Middleware : public omnetpp::cSimpleModule, public omnetpp::cListener
         Middleware();
         ~Middleware();
 
-        Facilities& getFacilities() { return mFacilities; }
-        const Facilities& getFacilities() const { return mFacilities; }
         port_type getPortNumber(const ItsG5BaseService*) const;
-        const Identity& getIdentity() const { return mIdentity; }
         const StationType& getStationType() const { return mStationType; }
 
         vanetza::geonet::TransportInterface& getTransportInterface();
@@ -49,15 +43,9 @@ class Middleware : public omnetpp::cSimpleModule, public omnetpp::cListener
 
     protected:
         // cSimpleModule
-        int numInitStages() const override;
         void initialize(int stage) override;
-        void finish() override;
         void handleMessage(omnetpp::cMessage* msg) override;
 
-        // cListener
-        void receiveSignal(omnetpp::cComponent*, omnetpp::simsignal_t, long, omnetpp::cObject*) override;
-
-        omnetpp::cModule* findHost();
         void setStationType(const StationType&);
 
     private:
@@ -67,9 +55,7 @@ class Middleware : public omnetpp::cSimpleModule, public omnetpp::cListener
         omnetpp::SimTime mUpdateInterval;
         omnetpp::cMessage* mUpdateMessage = nullptr;
         Timer mTimer;
-        Identity mIdentity;
         LocalDynamicMap mLocalDynamicMap;
-        Facilities mFacilities;
         StationType mStationType;
         Router* mRouter = nullptr;
         vanetza::btp::PortDispatcher mBtpPortDispatcher;

@@ -8,7 +8,7 @@
 #include "artery/application/DenService.h"
 #include "artery/application/den/ImpactReductionUseCase.h"
 #include "artery/application/StoryboardSignal.h"
-#include "artery/application/VehicleDataProvider.h"
+#include "artery/application/MovingNodeDataProvider.h"
 #include <omnetpp/cexception.h>
 
 Define_Module(artery::den::ImpactReductionContainerExchange);
@@ -17,6 +17,19 @@ namespace artery
 {
 namespace den
 {
+
+void ImpactReductionContainerExchange::initialize(int stage)
+{
+    UseCase::initialize(stage);
+    if (stage == 0) {
+        mVdp = &mService->getFacilities().get_const<MovingNodeDataProvider>();
+    }
+}
+
+const MovingNodeDataProvider* ImpactReductionContainerExchange::dataProvider()
+{
+    return mVdp;
+}
 
 void ImpactReductionContainerExchange::check()
 {

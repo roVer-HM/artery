@@ -1,7 +1,7 @@
 #include "artery/application/CaObject.h"
 #include "artery/application/CaService.h"
 #include "artery/application/Asn1PacketVisitor.h"
-#include "artery/application/VehicleDataProvider.h"
+#include "artery/application/MovingNodeDataProvider.h"
 #include "artery/utility/simtime_cast.h"
 #include "veins/base/utils/Coord.h"
 #include <boost/units/cmath.hpp>
@@ -37,7 +37,7 @@ long round(const boost::units::quantity<T>& q, const U& u)
 Define_Module(CaService)
 
 CaService::CaService() :
-		mVehicleDataProvider(nullptr),
+		mNodeDataProvider(nullptr),
 		mTimer(nullptr),
 		mGenCamMin { 100, SIMTIME_MS },
 		mGenCamMax { 1000, SIMTIME_MS },
@@ -50,7 +50,7 @@ CaService::CaService() :
 void CaService::initialize()
 {
 	ItsG5BaseService::initialize();
-	mVehicleDataProvider = &getFacilities().get_const<VehicleDataProvider>();
+	mNodeDataProvider = &getFacilities().get_const<MovingNodeDataProvider>();
 	mTimer = &getFacilities().get_const<Timer>();
 	// avoid unreasonable high elapsed time values for newly inserted vehicles
 	mLastCamTimestamp = simTime();
@@ -114,27 +114,27 @@ void CaService::checkTriggeringConditions(const SimTime& T_now)
 
 bool CaService::checkHeadingDelta() const
 {
-	return abs(mLastCamHeading - mVehicleDataProvider->heading()) > mHeadingDelta;
+	return abs(mLastCamHeading - mNodeDataProvider->heading()) > mHeadingDelta;
 }
 
 bool CaService::checkPositionDelta() const
 {
-	return (distance(mLastCamPosition, mVehicleDataProvider->position()) > mPositionDelta);
+	return (distance(mLastCamPosition, mNodeDataProvider->position()) > mPositionDelta);
 }
 
 bool CaService::checkSpeedDelta() const
 {
-	return abs(mLastCamSpeed - mVehicleDataProvider->speed()) > mSpeedDelta;
+	return abs(mLastCamSpeed - mNodeDataProvider->speed()) > mSpeedDelta;
 }
 
 void CaService::sendCam(const SimTime& T_now)
 {
-	uint16_t genDeltaTimeMod = countTaiMilliseconds(mTimer->getTimeFor(mVehicleDataProvider->updated()));
-	auto cam = createCooperativeAwarenessMessage(*mVehicleDataProvider, genDeltaTimeMod);
+	uint16_t genDeltaTimeMod = countTaiMilliseconds(mTimer->getTimeFor(mNodeDataProvider->updated()));
+	auto cam = createCooperativeAwarenessMessage(*mNodeDataProvider, genDeltaTimeMod);
 
-	mLastCamPosition = mVehicleDataProvider->position();
-	mLastCamSpeed = mVehicleDataProvider->speed();
-	mLastCamHeading = mVehicleDataProvider->heading();
+	mLastCamPosition = mNodeDataProvider->position();
+	mLastCamSpeed = mNodeDataProvider->speed();
+	mLastCamHeading = mNodeDataProvider->heading();
 	mLastCamTimestamp = T_now;
 	if (T_now - mLastLowCamTimestamp >= artery::simtime_cast(scLowFrequencyContainerInterval)) {
 		addLowFrequencyContainer(cam);
@@ -169,7 +169,7 @@ SimTime CaService::genCamDcc()
 	return std::min(mGenCamMax, std::max(mGenCamMin, dcc));
 }
 
-vanetza::asn1::Cam createCooperativeAwarenessMessage(const VehicleDataProvider& vdp, uint16_t genDeltaTime)
+vanetza::asn1::Cam createCooperativeAwarenessMessage(const MovingNodeDataProvider& vdp, uint16_t genDeltaTime)
 {
 	vanetza::asn1::Cam message;
 

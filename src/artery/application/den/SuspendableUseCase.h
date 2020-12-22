@@ -20,6 +20,10 @@ protected:
     void blockDetection();
     bool isDetectionBlocked();
 
+    virtual const MovingNodeDataProvider* dataProvider() override;
+
+    const VehicleDataProvider* mVdp = nullptr;
+
 private:
     omnetpp::SimTime mDetectionBlockingInterval;
     boost::optional<omnetpp::SimTime> mDetectionBlockingSince;

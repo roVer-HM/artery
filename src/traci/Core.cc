@@ -20,7 +20,7 @@ const simsignal_t closeSignal = cComponent::registerSignal("traci.close");
 namespace traci
 {
 
-Core::Core() : m_traci(new API()), m_lite(new LiteAPI(*m_traci)), m_subscriptions(nullptr)
+Core::Core() : m_subscriptions(nullptr)
 {
 }
 
@@ -36,9 +36,13 @@ void Core::initialize()
     m_updateEvent = new cMessage("TraCI step");
     cModule* manager = getParentModule();
     m_launcher = inet::getModuleFromPar<Launcher>(par("launcherModule"), manager);
+    auto api = m_launcher->createAPI();
+
+    m_traci.reset(api.first);
+    m_lite.reset(api.second);
     m_stopping = par("selfStopping");
     scheduleAt(par("startTime"), m_connectEvent);
-    m_subscriptions = inet::getModuleFromPar<SubscriptionManager>(par("subscriptionsModule"), manager, false);
+    m_subscriptions = inet::getModuleFromPar<ISubscriptionManager>(par("subscriptionsModule"), manager, false);
 }
 
 void Core::finish()

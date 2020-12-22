@@ -1,7 +1,7 @@
 package artery.inet;
 
 import artery.application.StationaryMiddleware;
-import artery.networking.Vanetza;
+import artery.networking.IVanetza;
 import artery.nic.IRadioDriver;
 import inet.node.inet.INetworkNode;
 import inet.linklayer.contract.IWirelessInterface;
@@ -45,7 +45,7 @@ module RSU like INetworkNode
                 macModule = ".wlan[" + string(index) + "].mac";
         }
 
-        vanetza: Vanetza {
+        vanetza: <default("Vanetza")> like IVanetza {
             parameters:
                 *.middlewareModule = absPath("^.middleware");
                 *.mobilityModule = absPath("^.mobility");

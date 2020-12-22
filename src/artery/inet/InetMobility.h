@@ -10,9 +10,12 @@ namespace inet { class CanvasProjection; }
 namespace artery
 {
 
-class InetMobility : public inet::IMobility, public MobilityBase, public omnetpp::cSimpleModule
+class InetMobility : public inet::IMobility, public MobilityBase, public ControllableVehicle , public omnetpp::cSimpleModule
 {
 public:
+    // artery::MobilityBase
+    void initializeSink(traci::LiteAPI*, const std::string& id, const traci::Boundary&, std::shared_ptr<traci::VariableCache> cache) override;
+
     // inet::IMobility interface
     double getMaxSpeed() const override;
     inet::Coord getCurrentPosition() override;
@@ -23,6 +26,11 @@ public:
     inet::Quaternion getCurrentAngularAcceleration() override;
     inet::Coord getConstraintAreaMax() const override;
     inet::Coord getConstraintAreaMin() const override;
+
+    //
+    traci::MovingNodeController* getControllerBase() override {
+        return MobilityBase::getControllerBase();
+    }
 
     // omnetpp::cSimpleModule
     void initialize(int stage) override;

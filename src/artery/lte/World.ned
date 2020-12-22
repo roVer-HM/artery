@@ -1,6 +1,6 @@
 package artery.lte;
 
-import inet.networklayer.configurator.ipv4.IPv4NetworkConfigurator;
+import inet.networklayer.configurator.ipv4.Ipv4NetworkConfigurator;
 import inet.node.ethernet.Eth10G;
 import inet.node.inet.Router;
 import inet.node.inet.StandardHost;
@@ -13,7 +13,7 @@ network World extends artery.inet.World
 {
     parameters:
         int numLteBaseStations = default(1);
-        traci.mapper.vehicleType = default("artery.lte.Car");
+        traci.mapper.objectType = default("artery.lte.Car");
 
     submodules:
         channelControl: LteChannelControl {
@@ -26,7 +26,7 @@ network World extends artery.inet.World
                 @display("p=140,60");
         }
 
-        configurator: IPv4NetworkConfigurator {
+        configurator: Ipv4NetworkConfigurator {
             parameters:
                 @display("p=60,60");
         }

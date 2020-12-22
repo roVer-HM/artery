@@ -52,6 +52,8 @@ protected:
     bool checkEndOfQueueReceived() const;
     bool checkJamAheadReceived() const;
 
+
+
 private:
     std::shared_ptr<const Memory> mDenmMemory;
     bool mNonUrbanEnvironment;

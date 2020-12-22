@@ -27,7 +27,7 @@ void InetMobility::initialize(int stage)
     if (stage == inet::INITSTAGE_LOCAL) {
         mVisualRepresentation = inet::getModuleFromPar<cModule>(par("visualRepresentation"), this, false);
         mAntennaHeight = par("antennaHeight");
-        WATCH(mVehicleId);
+        WATCH(mObjectId);
         WATCH(mPosition);
         WATCH(mSpeed);
         WATCH(mOrientation);
@@ -38,6 +38,23 @@ void InetMobility::initialize(int stage)
         }
         emit(MobilityBase::stateChangedSignal, this);
     }
+}
+
+void InetMobility::initializeSink(traci::LiteAPI* api, const std::string& id, const traci::Boundary& boundary, std::shared_ptr<traci::VariableCache> cache)
+{
+    ASSERT(api);
+    ASSERT(cache);
+    ASSERT(cache->getId() == id);
+    ASSERT(&cache->getLiteAPI() == api);
+    mTraci = api;
+    mObjectId= id;
+    mNetBoundary = boundary;
+
+    std::shared_ptr<traci::VehicleCache> vehicleCache =  std::dynamic_pointer_cast<traci::VehicleCache> (cache);
+    if (!vehicleCache){
+        //todo
+    }
+    mController.reset(new traci::VehicleController(vehicleCache));
 }
 
 double InetMobility::getMaxSpeed() const

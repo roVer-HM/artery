@@ -24,7 +24,7 @@ protected:
     void handleMessage(omnetpp::cMessage*) override;
 
     void addVehicle(const std::string& id) override;
-    void updateVehicle(const std::string& id, VehicleSink*) override;
+    void updateVehicle(const std::string& id, MovingObjectSink*) override;
     void removeVehicle(const std::string& id) override;
 
 private:

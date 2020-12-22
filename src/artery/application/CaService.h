@@ -31,7 +31,7 @@ namespace artery
 {
 
 class Timer;
-class VehicleDataProvider;
+class MovingNodeDataProvider;
 
 class CaService : public ItsG5BaseService
 {
@@ -49,7 +49,7 @@ class CaService : public ItsG5BaseService
 		void sendCam(const omnetpp::SimTime&);
 		omnetpp::SimTime genCamDcc();
 
-		const VehicleDataProvider* mVehicleDataProvider;
+		const MovingNodeDataProvider* mNodeDataProvider;
 		const Timer* mTimer;
 		artery::LocalDynamicMap* mLocalDynamicMap;
 		omnetpp::SimTime mGenCamMin;
@@ -69,7 +69,7 @@ class CaService : public ItsG5BaseService
 		bool mFixedRate;
 };
 
-vanetza::asn1::Cam createCooperativeAwarenessMessage(const VehicleDataProvider&, uint16_t genDeltaTime);
+vanetza::asn1::Cam createCooperativeAwarenessMessage(const MovingNodeDataProvider&, uint16_t genDeltaTime);
 void addLowFrequencyContainer(vanetza::asn1::Cam&);
 
 } // namespace artery

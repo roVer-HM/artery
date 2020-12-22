@@ -5,6 +5,9 @@
  */
 
 #include "traci/InsertionDelayNodeManager.h"
+#if OMNETPP_VERSION >= 0x600
+  #include <omnetpp/ccontextswitcher.h>
+#endif
 
 using namespace omnetpp;
 
@@ -62,7 +65,7 @@ void InsertionDelayNodeManager::addVehicle(const std::string& id)
     scheduleVehicleInsertion();
 }
 
-void InsertionDelayNodeManager::updateVehicle(const std::string& id, VehicleSink* sink)
+void InsertionDelayNodeManager::updateVehicle(const std::string& id, MovingObjectSink* sink)
 {
     Enter_Method_Silent();
     if (m_insert_queue.left.find(id) == m_insert_queue.left.end()) {
