@@ -8,7 +8,7 @@
 #define PATHLOSS_H_ZABKB47G
 
 #include <inet/common/Units.h>
-#include <inet/physicallayer/contract/packetlevel/IPathLoss.h>
+#include <inet/physicallayer/wireless/common/contract/packetlevel/IPathLoss.h>
 #include <omnetpp/csimplemodule.h>
 
 namespace artery

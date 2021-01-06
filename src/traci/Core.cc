@@ -42,7 +42,7 @@ void Core::initialize()
     m_lite.reset(api.second);
     m_stopping = par("selfStopping");
     scheduleAt(par("startTime"), m_connectEvent);
-    m_subscriptions = inet::getModuleFromPar<ISubscriptionManager>(par("subscriptionsModule"), manager, false);
+    m_subscriptions = inet::findModuleFromPar<ISubscriptionManager>(par("subscriptionsModule"), manager);
 }
 
 void Core::finish()

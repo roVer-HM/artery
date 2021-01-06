@@ -10,7 +10,7 @@
 #include "artery/inet/gemv2/Visualizer.h"
 #include <inet/common/ModuleAccess.h>
 #include <inet/common/Units.h>
-#include <inet/physicallayer/contract/packetlevel/IRadioMedium.h>
+#include <inet/physicallayer/wireless/common/contract/packetlevel/IRadioMedium.h>
 #include <boost/geometry.hpp>
 #include <boost/geometry/geometries/register/linestring.hpp>
 #include <algorithm>
@@ -34,16 +34,16 @@ void NLOSf::initialize(int stage)
 {
     FreeSpacePathLoss::initialize(stage);
     if (stage == INITSTAGE_LOCAL) {
-        mFoliageIndex = inet::findModuleFromPar<ObstacleIndex>(par("foliageIndexModule"), this);
-        mVisualizer = inet::findModuleFromPar<Visualizer>(par("visualizerModule"), this, false);
+        mFoliageIndex = inet::getModuleFromPar<ObstacleIndex>(par("foliageIndexModule"), this);
+        mVisualizer = inet::findModuleFromPar<Visualizer>(par("visualizerModule"), this);
     }
 }
 
-std::ostream& NLOSf::printToStream(std::ostream& stream, int level) const
+std::ostream& NLOSf::printToStream(std::ostream& stream, int level, int evFlags) const
 {
     stream << "GEMV2 NLOSf";
     if (level <= PRINT_LEVEL_TRACE)
-        stream << ", alpha = " << alpha
+        stream << ", alpha = " << EV_FIELD(alpha)
                << ", systemLoss = " << systemLoss;
     return stream;
 }

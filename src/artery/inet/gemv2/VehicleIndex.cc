@@ -51,7 +51,7 @@ void VehicleIndex::initialize()
         throw cRuntimeError("No TraCI module found for signal subscription");
     }
 
-    mVisualizer = inet::findModuleFromPar<Visualizer>(par("visualizerModule"), this, false);
+    mVisualizer = inet::findModuleFromPar<Visualizer>(par("visualizerModule"), this);
 }
 
 void VehicleIndex::receiveSignal(cComponent* source, simsignal_t signal, unsigned long, cObject* obj)
