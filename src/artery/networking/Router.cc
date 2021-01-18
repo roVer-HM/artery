@@ -14,6 +14,9 @@
 #include <vanetza/btp/header.hpp>
 #include <vanetza/btp/header_conversion.hpp>
 #include <vanetza/geonet/data_confirm.hpp>
+#include <vanetza/units/time.hpp>
+
+using namespace vanetza::units::si;
 
 namespace artery
 {
@@ -102,10 +105,14 @@ void Router::handleMessage(omnetpp::cMessage* msg)
 
 void Router::initializeManagementInformationBase(vanetza::geonet::ManagementInformationBase& mib)
 {
-    mib.itsGnDefaultTrafficClass.tc_id(3); // send BEACONs with DP3
-    mib.itsGnIsMobile = par("isMobile");
+    mib.itsGnDefaultTrafficClass.tc_id(par("itsGnDefaultTrafficClass").intValue()); // send BEACONs with DP3
+    mib.vanetzaDisableBeaconing = par("vanetzaDisableBeaconing").boolValue();
     mib.itsGnSecurity = (mSecurityEntity != nullptr);
     mib.vanetzaDeferInitialBeacon = par("deferInitialBeacon");
+    mib.itsGnIsMobile = par("isMobile").boolValue();
+    mib.itsGnBeaconServiceRetransmitTimer = par("itsGnBeaconServiceRetransmitTimer").doubleValue()*second;
+    mib.itsGnBeaconServiceMaxJitter = par("itsGnBeaconServiceMaxJitter").doubleValue()*second;
+
 }
 
 void Router::request(const vanetza::btp::DataRequestB& request, std::unique_ptr<vanetza::DownPacket> packet)
