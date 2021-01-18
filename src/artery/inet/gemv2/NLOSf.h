@@ -10,7 +10,7 @@
 #include "artery/inet/gemv2/Math.h"
 #include "artery/utility/Geometry.h"
 #include <boost/geometry/geometries/linestring.hpp>
-#include <inet/physicallayer/pathloss/FreeSpacePathLoss.h>
+#include <inet/physicallayer/wireless/common/pathloss/FreeSpacePathLoss.h>
 
 namespace artery
 {
@@ -25,7 +25,7 @@ class NLOSf : public inet::physicallayer::FreeSpacePathLoss
 {
 public:
     void initialize(int stage) override;
-    std::ostream& printToStream(std::ostream& stream, int level) const override;
+    std::ostream& printToStream(std::ostream& stream, int level, int evFlags = 0) const override;
     double computePathLoss(const inet::physicallayer::ITransmission *transmission, const inet::physicallayer::IArrival *arrival) const override;
     double computePathLoss(inet::mps propagation, inet::Hz frequency, inet::m distance) const override;
 

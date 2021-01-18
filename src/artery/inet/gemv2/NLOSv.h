@@ -3,7 +3,7 @@
 
 #include "artery/inet/gemv2/VehicleIndex.h"
 #include <inet/common/Units.h>
-#include <inet/physicallayer/contract/packetlevel/IPathLoss.h>
+#include <inet/physicallayer/wireless/common/contract/packetlevel/IPathLoss.h>
 #include <omnetpp/csimplemodule.h>
 #include <list>
 

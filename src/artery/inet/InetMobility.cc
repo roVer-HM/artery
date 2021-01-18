@@ -25,7 +25,7 @@ int InetMobility::numInitStages() const
 void InetMobility::initialize(int stage)
 {
     if (stage == inet::INITSTAGE_LOCAL) {
-        mVisualRepresentation = inet::getModuleFromPar<cModule>(par("visualRepresentation"), this, false);
+        mVisualRepresentation = inet::findModuleFromPar<cModule>(par("visualRepresentation"), this);
         mAntennaHeight = par("antennaHeight");
         WATCH(mObjectId);
         WATCH(mPosition);
@@ -50,6 +50,12 @@ void InetMobility::initializeSink(traci::LiteAPI* api, const std::string& id, co
     mObjectId= id;
     mNetBoundary = boundary;
 
+    const auto& max = mNetBoundary.upperRightPosition();
+    mConstrainedAreaMax = inet::Coord { max.x, max.y, max.z };
+
+    const auto& min = mNetBoundary.lowerLeftPosition();
+    mConstrainedAreaMin = inet::Coord { min.x, min.y, min.z };
+
     std::shared_ptr<traci::VehicleCache> vehicleCache =  std::dynamic_pointer_cast<traci::VehicleCache> (cache);
     if (!vehicleCache){
         //todo
@@ -62,46 +68,44 @@ double InetMobility::getMaxSpeed() const
     return NaN;
 }
 
-inet::Coord InetMobility::getCurrentPosition()
+const inet::Coord& InetMobility::getCurrentPosition()
 {
     return mPosition;
 }
 
-inet::Coord InetMobility::getCurrentVelocity()
+const inet::Coord& InetMobility::getCurrentVelocity()
 {
     return mSpeed;
 }
 
-inet::Coord InetMobility::getCurrentAcceleration()
+const inet::Coord& InetMobility::getCurrentAcceleration()
 {
     return inet::Coord::NIL;
 }
 
-inet::Quaternion InetMobility::getCurrentAngularPosition()
+const inet::Quaternion& InetMobility::getCurrentAngularPosition()
 {
     return mOrientation;
 }
 
-inet::Quaternion InetMobility::getCurrentAngularVelocity()
+const inet::Quaternion& InetMobility::getCurrentAngularVelocity()
 {
     return inet::Quaternion::NIL;
 }
 
-inet::Quaternion InetMobility::getCurrentAngularAcceleration()
+const inet::Quaternion& InetMobility::getCurrentAngularAcceleration()
 {
     return inet::Quaternion::NIL;
 }
 
-inet::Coord InetMobility::getConstraintAreaMax() const
+const inet::Coord& InetMobility::getConstraintAreaMax() const
 {
-    const auto& max = mNetBoundary.upperRightPosition();
-    return inet::Coord { max.x, max.y, max.z };
+    return mConstrainedAreaMax;
 }
 
-inet::Coord InetMobility::getConstraintAreaMin() const
+const inet::Coord& InetMobility::getConstraintAreaMin() const
 {
-    const auto& min = mNetBoundary.lowerLeftPosition();
-    return inet::Coord { min.x, min.y, min.z };
+    return mConstrainedAreaMin;
 }
 
 void InetMobility::initialize(const Position& pos, Angle heading, double speed)

@@ -9,7 +9,7 @@
 #include "artery/inet/gemv2/VehicleIndex.h"
 #include <inet/common/ModuleAccess.h>
 #include <inet/common/Units.h>
-#include <inet/physicallayer/contract/packetlevel/IRadioMedium.h>
+#include <inet/physicallayer/wireless/common/contract/packetlevel/IRadioMedium.h>
 #include <algorithm>
 #include <cmath>
 #include <numeric>
@@ -85,7 +85,7 @@ double NLOSv::computeVehiclePathLoss(const Coord& pos_tx, const Coord& pos_rx, m
     obsTop.push_front(Tx);
     obsTop.push_back(Rx);
 
-    // original GEMV² code uses same Tx and Rx heights for all three paths: we assume zero "height" on side paths
+    // original GEMV2 code uses same Tx and Rx heights for all three paths: we assume zero "height" on side paths
     auto obsSides = buildSideObstacles(vehicles, pos_tx, pos_rx);
     Tx.h = meter(0.0);
     Rx.h = meter(0.0);

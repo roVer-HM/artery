@@ -1,6 +1,6 @@
 package artery.testbed;
 
-import inet.physicallayer.ieee80211.packetlevel.Ieee80211ScalarRadio;
+import inet.physicallayer.wireless.ieee80211.packetlevel.Ieee80211ScalarRadio;
 
 module TestbedRadio extends Ieee80211ScalarRadio
 {

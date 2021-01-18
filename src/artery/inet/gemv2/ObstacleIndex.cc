@@ -52,7 +52,7 @@ void ObstacleIndex::initialize()
     const std::string filterTypes = par("filterTypes");
     boost::split(mFilterTypes, filterTypes, boost::is_any_of(" "));
 
-    mVisualizer = inet::findModuleFromPar<Visualizer>(par("visualizerModule"), this, false);
+    mVisualizer = inet::findModuleFromPar<Visualizer>(par("visualizerModule"), this);
     mColor = cFigure::Color(par("obstacleColor"));
 }
 

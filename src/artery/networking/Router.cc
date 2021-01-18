@@ -38,7 +38,7 @@ void Router::initialize(int stage)
         mRadioDriver = inet::getModuleFromPar<RadioDriverBase>(par("radioDriverModule"), this);
         mRadioDriverDataIn = gate("radioDriverData");
         mRadioDriverPropertiesIn = gate("radioDriverProperties");
-        mSecurityEntity = inet::findModuleFromPar<SecurityEntity>(par("securityModule"), this, false);
+        mSecurityEntity = inet::findModuleFromPar<SecurityEntity>(par("securityModule"), this);
     } else if (stage == InitStages::Self) {
         // initialize MIB (will check for existence of security entity)
         initializeManagementInformationBase(mMIB);

@@ -1,6 +1,6 @@
 package artery.inet.gemv2;
 
-import inet.physicallayer.pathloss.FreeSpacePathLoss;
+import inet.physicallayer.wireless.common.pathloss.FreeSpacePathLoss;
 
 module NLOSf extends FreeSpacePathLoss
 {

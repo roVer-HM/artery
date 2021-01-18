@@ -11,8 +11,8 @@
 #include "artery/inet/gemv2/Visualizer.h"
 #include <inet/common/ModuleAccess.h>
 #include <inet/common/Units.h>
-#include <inet/physicallayer/contract/packetlevel/IPathLoss.h>
-#include <inet/physicallayer/contract/packetlevel/IRadioMedium.h>
+#include <inet/physicallayer/wireless/common/contract/packetlevel/IPathLoss.h>
+#include <inet/physicallayer/wireless/common/contract/packetlevel/IRadioMedium.h>
 #include <boost/geometry.hpp>
 #include <boost/geometry/views/closeable_view.hpp>
 #include <boost/units/cmath.hpp>
@@ -87,7 +87,7 @@ void NLOSb::initialize()
         error("Invalid antenna polarization %s", polarization_str.c_str());
     }
 
-    mVisualizer = inet::findModuleFromPar<Visualizer>(par("visualizerModule"), this, false);
+    mVisualizer = inet::findModuleFromPar<Visualizer>(par("visualizerModule"), this);
 }
 
 NLOSb::NLOSb() :

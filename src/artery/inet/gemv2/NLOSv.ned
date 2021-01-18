@@ -1,6 +1,6 @@
 package artery.inet.gemv2;
 
-import inet.physicallayer.contract.packetlevel.IPathLoss;
+import inet.physicallayer.wireless.common.contract.packetlevel.IPathLoss;
 
 simple NLOSv like IPathLoss
 {
