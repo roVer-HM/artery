@@ -12,7 +12,7 @@
 namespace traci
 {
 
-class ServerEndpoint;
+struct ServerEndpoint;
 
 class API : public TraCIAPI
 {
