@@ -34,8 +34,8 @@ protected:
     omnetpp::SimTime m_updateInterval;
 
     Launcher* m_launcher;
-    std::unique_ptr<API> m_traci;
-    std::unique_ptr<LiteAPI> m_lite;
+    std::shared_ptr<API> m_traci;
+    std::shared_ptr<LiteAPI> m_lite;
     bool m_stopping;
     ISubscriptionManager* m_subscriptions;
 };
