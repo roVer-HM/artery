@@ -1,6 +1,8 @@
 package artery.storyboard;
 
-simple Storyboard
+moduleinterface IStoryboard {}
+
+simple Storyboard like IStoryboard
 {
     parameters:
         @display("i=block/blackboard;is=s");
