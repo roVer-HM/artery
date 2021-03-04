@@ -47,6 +47,12 @@ namespace tcpip
 		init();
 	}
 
+	Storage::Storage(const Storage &other){
+	    this->store = other.store;
+	    this->bigEndian_ = other.bigEndian_;
+	    this->iter_ = other.iter_;
+	}
+
 
 	// ----------------------------------------------------------------------
 	void Storage::init()
@@ -78,6 +84,19 @@ namespace tcpip
 		// According to C++ standard std::distance will simply compute the iterators
 		// difference for random access iterators as std::vector provides.
 		return static_cast<unsigned int>(std::distance(store.begin(), iter_));
+	}
+
+    // ----------------------------------------------------------------------
+	void Storage::resetPosition(int pos){
+	    if (pos < 0 || pos >= size()){
+	        std::stringstream os;
+	        os << "Storage::resetPosition(): position out of range. expected: [0, " << size() << " got " << pos;
+	        throw std::invalid_argument(os.str().c_str());
+	    }
+	    iter_ = store.begin();
+	    if (pos > 0){
+	        std::advance(iter_, pos);
+	    }
 	}
 
 
@@ -230,6 +249,19 @@ namespace tcpip
         }
 	}
 
+    // ----------------------------------------------------------------------
+    /**
+    *  Read command length (1 or 5 byte)
+    *  If first byte equals 0 use extended length field (int)
+    */
+	int Storage::readCmdLength() {
+	    int len = readUnsignedByte();
+	    if (len == 0){
+	        len = readInt();
+	    }
+	    return len;
+	}
+
 
 	// ----------------------------------------------------------------------
 	/**
@@ -352,6 +384,18 @@ namespace tcpip
 		// the compiler cannot deduce to use a const_iterator as source
 		store.insert<StorageType::const_iterator>(store.end(), other.iter_, other.store.end());
 		iter_ = store.begin();
+	}
+
+    // ----------------------------------------------------------------------
+	/**
+	 * Write :length: number of bytes from given other
+	 */
+	void Storage::writeStorage(tcpip::Storage& other, int length){
+	    other.checkReadSafe(length);
+	    StorageType::const_iterator _end = other.iter_ + length;
+        // the compiler cannot deduce to use a const_iterator as source
+	    store.insert<StorageType::const_iterator>(store.end(), other.iter_,  _end);
+	    iter_ = store.begin();
 	}
 
 

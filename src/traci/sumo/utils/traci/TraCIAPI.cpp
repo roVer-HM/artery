@@ -258,6 +258,33 @@ TraCIAPI::send_commandSetValueExtLenghtField(int domID, int varID, const std::st
     mySocket->sendExact(outMsg);
 }
 
+tcpip::Storage
+TraCIAPI::build_command(int domID, int varID, const std::string& objID, tcpip::Storage& content) const{
+
+    tcpip::Storage outMsg;
+    // command length (length[1] + domID[1] + varID[1] + strLengthField[4] + strLenght[objId.length] + contentLength
+    int length = 1 + 1 + 1 + 4 + (int) objID.length() + (int)content.size();
+    if (length < 255) {
+        outMsg.writeUnsignedByte(length);
+    } else {
+        outMsg.writeUnsignedByte(0);
+        // additional 4 byte for length field of size integer
+        outMsg.writeInt(length + 4);
+    }
+
+    // command id
+    outMsg.writeUnsignedByte(domID);
+    // variable id
+    outMsg.writeUnsignedByte(varID);
+    // object id
+    outMsg.writeString(objID);
+    // data type
+    outMsg.writeStorage(content);
+
+    return outMsg;
+}
+
+
 void
 TraCIAPI::send_commandSubscribeObjectVariable(int domID, const std::string& objID, double beginTime, double endTime,
         const std::vector<int>& vars) const {
@@ -375,6 +402,29 @@ TraCIAPI::check_resultState(tcpip::Storage& inMsg, int command, bool ignoreComma
     if ((cmdStart + cmdLength) != (int) inMsg.position()) {
         throw libsumo::TraCIException("#Error: command at position " + toString(cmdStart) + " has wrong length");
     }
+}
+
+TraCiResult TraCIAPI::parse_resultState(tcpip::Storage& inMsg){
+    int cmdLength;
+    int cmdId;
+    int resultType;
+    int cmdStart;
+    std::string msg;
+    try {
+        cmdStart = inMsg.position();
+        cmdLength = inMsg.readUnsignedByte();
+        cmdId = inMsg.readUnsignedByte();
+        resultType = inMsg.readUnsignedByte();
+        msg = inMsg.readString();
+    } catch (std::invalid_argument&) {
+        throw libsumo::TraCIException("#Error: an exception was thrown while reading result state message");
+    }
+
+    if ((cmdStart + cmdLength) != (int) inMsg.position()) {
+        throw libsumo::TraCIException("#Error: command at position " + toString(cmdStart) + " has wrong length");
+    }
+
+    return TraCiResult{resultType, cmdId, msg};
 }
 
 

@@ -48,6 +48,11 @@
  * @brief C++ TraCI client API implementation
  */
 
+struct TraCiResult {
+    int resultType;
+    int cmdId;
+    std::string msg;
+};
 
 class TraCIAPI {
 public:
@@ -78,7 +83,7 @@ public:
     /// @}
 
     /// @brief Advances by one step (or up to the given time)
-    void simulationStep(double time = 0.0);
+    virtual void simulationStep(double time = 0.0);
 
     /// @brief Let sumo load a simulation using the given command line like options.
     void load(const std::vector<std::string>& args);
@@ -937,6 +942,7 @@ protected:
      */
     void send_commandSetValue(int domID, int varID, const std::string& objID, tcpip::Storage& content) const;
     void send_commandSetValueExtLenghtField(int domID, int varID, const std::string& objID, tcpip::Storage& content) const;
+    tcpip::Storage build_command(int domID, int varID, const std::string& objID, tcpip::Storage& content) const;
 
 
     /** @brief Sends a SubscribeVariable request
@@ -982,6 +988,8 @@ protected:
      * @return The command Id
      */
     int check_commandGetResult(tcpip::Storage& inMsg, int command, int expectedType = -1, bool ignoreCommandId = false) const;
+
+    TraCiResult parse_resultState(tcpip::Storage& inMsg);
 
     void processGET(tcpip::Storage& inMsg, int command, int expectedType, bool ignoreCommandId = false) const;
     /// @}

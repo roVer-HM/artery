@@ -67,12 +67,14 @@ public:
 
 	/// Constructor, that fills the storage with an char array. If length is -1, the whole array is handed over
 	Storage(const unsigned char[], int length=-1);
+	Storage(const Storage &other);
 
 	// Destructor
 	virtual ~Storage();
 
 	virtual bool valid_pos();
 	virtual unsigned int position() const;
+	virtual void resetPosition(int pos = 0);
 
 	void reset();
 	/// Dump storage content as series of hex values
@@ -94,6 +96,8 @@ public:
 	virtual std::vector<std::string> readStringList();
 	virtual void writeStringList(const std::vector<std::string> &s);
 
+	virtual int readCmdLength();
+
 	virtual int readShort();
 	virtual void writeShort(int);
 
@@ -110,6 +114,7 @@ public:
     virtual void writePacket(const std::vector<unsigned char> &packet);
 
 	virtual void writeStorage(tcpip::Storage& store);
+	virtual void writeStorage(tcpip::Storage& store, int length);
 
 	// Some enabled functions of the underlying std::list
 	StorageType::size_type size() const { return store.size(); }
