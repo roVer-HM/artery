@@ -14,7 +14,7 @@ public:
     ServerEndpoint launch() override;
     virtual std::pair<API*, LiteAPI*> createAPI() override;
 
-private:
+protected:
     ServerEndpoint m_endpoint;
 };
 
