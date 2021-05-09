@@ -72,6 +72,8 @@ private:
     unsigned m_nodeIndex;
     std::map<std::string, MovingObjectSink*> m_vehicles;
     std::string m_objectSinkModule;
+    bool m_destroy_vehicles_on_crash;
+    std::map<std::string, omnetpp::cModule*> m_nodes;
 };
 
 } // namespace traci

@@ -14,4 +14,5 @@ simple BasicNodeManager like NodeManager
         string mapperModule;
         string objectSinkModule;
         string subscriptionsModule;
+        bool destroyVehiclesOnCrash = default(false);
 }
