@@ -10,6 +10,7 @@
 #include <vanetza/btp/ports.hpp>
 #include <vanetza/dcc/transmission.hpp>
 #include <vanetza/dcc/transmit_rate_control.hpp>
+#include <vanetza/facilities/cam_functions.hpp>
 #include <chrono>
 
 namespace artery
