@@ -74,7 +74,6 @@ class Middleware : public MiddlewareBase
         Timer mTimer;
         LocalDynamicMap mLocalDynamicMap;
         StationType mStationType;
-        Router* mRouter = nullptr;
 
         NetworkInterfaceTable mNetworkInterfaceTable;
         TransportDispatcher mTransportDispatcher;

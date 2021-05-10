@@ -50,6 +50,7 @@ void ExampleService::indicate(const btp::DataIndication& ind, cPacket* packet, c
 		EV_INFO << "packet indication on channel " << net.channel << "\n";
 	}
 
+	take(packet);
 	delete(packet);
 }
 

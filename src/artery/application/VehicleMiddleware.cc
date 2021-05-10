@@ -20,7 +20,6 @@ Define_Module(VehicleMiddleware)
 void VehicleMiddleware::initialize(int stage)
 {
     if (stage == InitStages::Self) {
-        findHost()->subscribe(MobilityBase::stateChangedSignal, this);
         initializeVehicleController(par("mobilityModule"));
         initializeStationType(mVehicleController->getVehicleClass());
         getFacilities().register_const(&mVehicleDataProvider);

@@ -60,8 +60,6 @@ void Middleware::initialize(int stage)
         mTimer.setTimebase(par("datetime"));
         mUpdateInterval = par("updateInterval");
         mUpdateMessage = new cMessage("middleware update");
-        mIdentity.host = findHost();
-        mIdentity.host->subscribe(Identity::changeSignal, this);
         mMultiChannelPolicy.reset(new XmlMultiChannelPolicy(par("mcoPolicy").xmlValue()));
     } else if (stage == InitStages::Self) {
         mFacilities.register_const(&mTimer);
@@ -69,7 +67,7 @@ void Middleware::initialize(int stage)
         mFacilities.register_const(&mStationType);
         mFacilities.register_const(mMultiChannelPolicy.get());
         mFacilities.register_const(&mNetworkInterfaceTable);
-        mFacilities.register_const(mRouter);
+        // mFacilities.register_const(mRouter);
 
         initializeServices(InitStages::Self);
 
@@ -162,6 +160,7 @@ void Middleware::setStationType(const StationType& type)
 
 void Middleware::registerNetworkInterface(std::shared_ptr<NetworkInterface> ifc)
 {
+    std::cout << "registerNetworkInterface: channel "<< ifc->channel << std::endl;
     mNetworkInterfaceTable.insert(ifc);
 }
 
