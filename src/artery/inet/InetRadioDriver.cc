@@ -10,6 +10,7 @@
 #include <inet/linklayer/common/UserPriorityTag_m.h>
 #include <inet/linklayer/ieee80211/mac/Ieee80211Mac.h>
 #include <mutex>
+#include <inet/physicallayer/wireless/ieee80211/packetlevel/Ieee80211Radio.h>
 
 using namespace omnetpp;
 
@@ -37,6 +38,8 @@ inet::MacAddress convert(const vanetza::MacAddress& mac)
 std::once_flag register_protocol_flag;
 
 
+static const simsignal_t radioChannelChangedSignal = cComponent::registerSignal("radioChannelChanged");
+
 } // namespace
 
 const inet::Protocol InetRadioDriver::geonet { "GeoNet", "ETSI ITS-G5 GeoNetworking", inet::Protocol::NetworkLayer };
@@ -53,14 +56,19 @@ void InetRadioDriver::initialize(int stage)
 		cModule* host = inet::getContainingNode(this);
 		mLinkLayer = inet::findModuleFromPar<inet::ieee80211::Ieee80211Mac>(par("macModule"), host);
 		mLinkLayer->subscribe(VanetRx::ChannelLoadSignal, this);
+        mRadio = inet::findModuleFromPar<inet::physicallayer::Ieee80211Radio>(par("radioModule"), host);
+		mRadio->subscribe(radioChannelChangedSignal, this);
 
 		// we were allowed to call addProtocol each time but call_once makes more sense to me
 		std::call_once(register_protocol_flag, []() {
 			inet::ProtocolGroup::ethertype.addProtocol(0x8947, &geonet);
 		});
 	} else if (stage == inet::InitStages::INITSTAGE_LINK_LAYER) {
+
+		ASSERT(mChannelNumber > 0);
 		auto properties = new RadioDriverProperties();
 		properties->LinkLayerAddress = convert(mLinkLayer->getAddress());
+		properties->ServingChannel = mChannelNumber;
 		indicateProperties(properties);
 	}
 }
@@ -69,6 +77,13 @@ void InetRadioDriver::receiveSignal(cComponent* source, simsignal_t signal, doub
 {
 	if (signal == VanetRx::ChannelLoadSignal) {
 		emit(RadioDriverBase::ChannelLoadSignal, value);
+	}
+}
+
+void InetRadioDriver::receiveSignal(cComponent* source, simsignal_t signal, long value, cObject*)
+{
+	if (signal == radioChannelChangedSignal) {
+		mChannelNumber = value;
 	}
 }
 

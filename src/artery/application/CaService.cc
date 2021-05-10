@@ -1,7 +1,14 @@
+/*
+* Artery V2X Simulation Framework
+* Copyright 2014-2019 Raphael Riebl et al.
+* Licensed under GPLv2, see COPYING file for detailed license and warranty terms.
+*/
+
 #include "artery/application/CaObject.h"
 #include "artery/application/CaService.h"
 #include "artery/application/Asn1PacketVisitor.h"
 #include "artery/application/MovingNodeDataProvider.h"
+#include "artery/application/MultiChannelPolicy.h"
 #include "artery/utility/simtime_cast.h"
 #include "veins/base/utils/Coord.h"
 #include <boost/units/cmath.hpp>
@@ -52,12 +59,15 @@ void CaService::initialize()
 {
 	ItsG5BaseService::initialize();
 	mNodeDataProvider = &getFacilities().get_const<MovingNodeDataProvider>();
+	mNetworkInterfaceTable = &getFacilities().get_const<NetworkInterfaceTable>();
 	mTimer = &getFacilities().get_const<Timer>();
+	mLocalDynamicMap = &getFacilities().get_mutable<artery::LocalDynamicMap>();
+
 	// avoid unreasonable high elapsed time values for newly inserted vehicles
 	mLastCamTimestamp = simTime();
+
 	// first generated CAM shall include the low frequency container
 	mLastLowCamTimestamp = mLastCamTimestamp - artery::simtime_cast(scLowFrequencyContainerInterval);
-	mLocalDynamicMap = &getFacilities().get_mutable<artery::LocalDynamicMap>();
 
 	// generation rate boundaries
 	mGenCamMin = par("minInterval");
@@ -70,15 +80,21 @@ void CaService::initialize()
 
 	mDccRestriction = par("withDccRestriction");
 	mFixedRate = par("fixedRate");
+
+	// look up primary channel for CA
+	ChannelNumber mPrimaryChannel = getFacilities().get_const<MultiChannelPolicy>().primaryChannel(vanetza::aid::CA);
 }
 
 void CaService::trigger()
 {
+	Enter_Method("trigger");
 	checkTriggeringConditions(simTime());
 }
 
 void CaService::indicate(const vanetza::btp::DataIndication& ind, std::unique_ptr<vanetza::UpPacket> packet)
 {
+	Enter_Method("indicate");
+
 	Asn1PacketVisitor<vanetza::asn1::Cam> visitor;
 	const vanetza::asn1::Cam* cam = boost::apply_visitor(visitor, *packet);
 	if (cam && cam->validate()) {
@@ -163,9 +179,15 @@ void CaService::sendCam(const SimTime& T_now)
 
 SimTime CaService::genCamDcc()
 {
+	// network interface may not be ready yet during initialization, so look it up at this later point
+	auto netifc = mNetworkInterfaceTable->select(mPrimaryChannel);
+	vanetza::dcc::TransmitRateThrottle* trc = netifc ? netifc->getDccEntity().getTransmitRateThrottle() : nullptr;
+	if (!trc) {
+		throw cRuntimeError("No DCC TRC found for CA's primary channel %i", mPrimaryChannel);
+	}
+
 	static const vanetza::dcc::TransmissionLite ca_tx(vanetza::dcc::Profile::DP2, 0);
-	auto& trc = getFacilities().get_mutable<vanetza::dcc::TransmitRateThrottle>();
-	vanetza::Clock::duration delay = trc.delay(ca_tx);
+	vanetza::Clock::duration delay = trc->delay(ca_tx);
 	SimTime dcc { std::chrono::duration_cast<std::chrono::milliseconds>(delay).count(), SIMTIME_MS };
 	return std::min(mGenCamMax, std::max(mGenCamMin, dcc));
 }

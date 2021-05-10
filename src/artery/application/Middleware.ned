@@ -27,4 +27,5 @@ simple Middleware extends MiddlewareBase
 		double updateInterval = default(0.1s) @unit(s);
 		string datetime;
 		xml services;
+		xml mcoPolicy = default(xml("<mco default=\"CCH\" />"));
 }

@@ -13,12 +13,17 @@ add_library(core SHARED
     application/LocalDynamicMap.cc
     application/MiddlewareBase.cc
     application/Middleware.cc
+    application/MultiChannelPolicy.cc
+    application/NetworkInterface.cc
+    application/NetworkInterfaceTable.cc
     application/MovingNodeDataProvider.cc
     application/StationaryMiddleware.cc
     application/StoryboardSignal.cc
     application/Timer.cc
+    application/TransportDispatcher.cc
     application/VehicleDataProvider.cc
     application/VehicleMiddleware.cc
+    application/XmlMultiChannelPolicy.cc
     application/den/ImpactReductionUseCase.cc
     application/den/Memory.cc
     application/den/SuspendableUseCase.cc
@@ -44,6 +49,7 @@ add_library(core SHARED
     traci/VehicleType.cc
     utility/AsioScheduler.cc
     utility/AsioTask.cc
+    utility/Channel.cc
     utility/Identity.cc
     utility/IdentityRegistry.cc
     utility/FilterRules.cc

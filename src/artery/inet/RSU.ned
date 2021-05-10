@@ -35,30 +35,31 @@ module RSU like INetworkNode
                 radio.antenna.mobilityModule = absPath("^.mobility");
         }
 
-        mobility: <default("inet.mobility.static.StationaryMobility")> like IMobility {
-            parameters:
-                @display("p=53,200");
-        }
-
         radioDriver[numRadios]: RadioDriver {
             parameters:
                 macModule = ".wlan[" + string(index) + "].mac";
+                radioModule = ".wlan[" + string(index) + "].radio";
         }
 
-        vanetza: <default("Vanetza")> like IVanetza {
+        vanetza[numRadios]: <default("Vanetza")> like IVanetza {
             parameters:
                 *.middlewareModule = absPath("^.middleware");
                 *.mobilityModule = absPath("^.mobility");
-                *.radioDriverModule = absPath("^.radioDriver[0]");
+                *.radioDriverModule = absPath("^.radioDriver[" + string(index) + "]");
                 *.traciCoreModule = "traci.core";
                 position.typename = default("StationaryPositionProvider");
                 runtime.datetime = middleware.datetime;
                 router.isMobile = false;
         }
 
+        mobility: <default("inet.mobility.static.StationaryMobility")> like IMobility {
+            parameters:
+                @display("p=53,200");
+        }
+
         middleware: StationaryMiddleware {
             parameters:
-                routerModule = ".vanetza.router";
+                @display("p=50,100");
         }
 
     connections:
@@ -67,8 +68,8 @@ module RSU like INetworkNode
 
             wlan[i].upperLayerOut --> radioDriver[i].lowerLayerIn;
             wlan[i].upperLayerIn <-- radioDriver[i].lowerLayerOut;
+            
+            radioDriver[i].upperLayer <--> vanetza[i].radioDriverData;
+            radioDriver[i].properties --> vanetza[i].radioDriverProperties;
         }
-
-        radioDriver[0].upperLayer <--> vanetza.radioDriverData;
-        radioDriver[0].properties --> vanetza.radioDriverProperties;
 }
