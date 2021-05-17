@@ -1,6 +1,6 @@
 package artery.inet;
 
-import inet.physicallayer.pathloss.FreeSpacePathLoss;
+import inet.physicallayer.wireless.common.pathloss.FreeSpacePathLoss;
 
 //
 // VanetNakagamiFading is a Nakagami-m fast fading model designed for VANETs
