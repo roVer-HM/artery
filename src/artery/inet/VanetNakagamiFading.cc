@@ -112,7 +112,7 @@ double VanetNakagamiFading::lookUpShapeFactor(inet::m dist) const
     return shapeFactor;
 }
 
-std::ostream& VanetNakagamiFading::printToStream(std::ostream& os, int level) const
+std::ostream& VanetNakagamiFading::printToStream(std::ostream& os, int level, int evFlags) const
 {
     os << "VanetNakagamiFading";
     if (level <= PRINT_LEVEL_TRACE) {

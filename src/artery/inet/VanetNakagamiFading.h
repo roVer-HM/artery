@@ -7,7 +7,7 @@
 #ifndef ARTERY_VANETNAKAGAMIFADING_H_KRHFTXO9
 #define ARTERY_VANETNAKAGAMIFADING_H_KRHFTXO9
 
-#include <inet/physicallayer/pathloss/FreeSpacePathLoss.h>
+#include <inet/physicallayer/wireless/common/pathloss/FreeSpacePathLoss.h>
 #include <map>
 
 namespace artery
@@ -19,7 +19,7 @@ public:
     VanetNakagamiFading();
 
     double computePathLoss(inet::mps propagationSpeed, inet::Hz freq, inet::m dist) const override;
-    std::ostream& printToStream(std::ostream&, int level) const override;
+    virtual std::ostream& printToStream(std::ostream& stream, int level, int evFlags = 0) const override;
 
 protected:
     void initialize(int stage) override;

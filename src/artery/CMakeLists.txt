@@ -40,7 +40,7 @@ add_library(core SHARED
     networking/SecurityEntity.cc
     networking/StationaryPositionProvider.cc
     networking/VehiclePositionProvider.cc
-    nic/ChannelLoadMeasurements.cc
+    nic/ChannelLoadSampler.cc
     nic/RadioDriverBase.cc
     traci/ControllableVehicle.cc
     traci/MobilityBase.cc
