@@ -160,7 +160,6 @@ void Middleware::setStationType(const StationType& type)
 
 void Middleware::registerNetworkInterface(std::shared_ptr<NetworkInterface> ifc)
 {
-    std::cout << "registerNetworkInterface: channel "<< ifc->channel << std::endl;
     mNetworkInterfaceTable.insert(ifc);
 }
 

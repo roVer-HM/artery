@@ -25,12 +25,12 @@ void VariableCache::invalidate(const int key)
 }
 
 SimulationCache::SimulationCache(LiteAPI& api) :
-    VariableCache(api, CMD_GET_SIM_VARIABLE, "")
+    VariableCache(api, libsumo::CMD_GET_SIM_VARIABLE, "")
 {
 }
 
 VehicleCache::VehicleCache(LiteAPI& api, const std::string& vehicleID) :
-    VariableCache(api, CMD_GET_VEHICLE_VARIABLE, vehicleID)
+    VariableCache(api, libsumo::CMD_GET_VEHICLE_VARIABLE, vehicleID)
 {
 }
 
