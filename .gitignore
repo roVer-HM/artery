@@ -1,3 +1,4 @@
+ansible/*.retry
 scenarios/**/*.pyc
 scenarios/*/results/*
 scenarios/*/.tkenvrc
@@ -11,4 +12,5 @@ tags
 cmake-build-debug/
 build/
 .settings
+.vagrant/
 

@@ -14,6 +14,8 @@ set(SOURCES
     NodeManager.cc
     Position.cc
     PosixLauncher.cc
+    RegionsOfInterest.cc
+    RegionOfInterestNodeManager.cc
     TestbedModuleMapper.cc
     TestbedNodeManager.cc
     ValueUtils.cc
