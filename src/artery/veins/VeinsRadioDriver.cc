@@ -3,6 +3,7 @@
 #include "artery/networking/GeoNetIndication.h"
 #include "artery/networking/GeoNetRequest.h"
 #include "artery/nic/RadioDriverProperties.h"
+#include "artery/veins/VeinsMacFrame.h"
 #include "artery/veins/VeinsRadioDriver.h"
 #include "veins/base/utils/FindModule.h"
 #include "veins/base/utils/SimpleAddress.h"

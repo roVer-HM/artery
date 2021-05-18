@@ -40,20 +40,6 @@ const std::map<MovingNodeDataProvider::AngularAcceleration, double> MovingNodeDa
     { AngularAcceleration(std::numeric_limits<double>::infinity() * degree_per_second_squared), 0.0 }
 };
 
-vanetza::units::Angle convertMobilityAngle(Angle angle)
-{
-    using vanetza::units::si::radians;
-    // change rotation ccw -> cw
-    angle.value *= -1.0;
-    // rotate zero from east to north
-    angle.value += 0.5 * pi * radians;
-    // normalize angle to [0; 2*pi[
-    angle.value -= 2.0 * pi * radians * std::floor(angle.value / (2.0 * pi * radians));
-
-    assert(angle.value >= 0.0 * radians);
-    assert(angle.value < 2.0 * pi * radians);
-    return angle.value;
-}
 
 MovingNodeDataProvider::MovingNodeDataProvider() :
         MovingNodeDataProvider(rand()){}
@@ -148,7 +134,7 @@ void MovingNodeDataProvider::update(const traci::MovingNodeController* controlle
         mAccel = (new_speed - mSpeed) / delta;
         mSpeed = new_speed;
 
-        auto new_heading = convertMobilityAngle(controller->getHeading());
+        auto new_heading = controller->getHeading().getTrueNorth();
         auto diff_heading = mHeading - new_heading; // left turn positive
         if (diff_heading > pi * radian) {
             diff_heading -= 2.0 * pi * radians;
@@ -161,7 +147,7 @@ void MovingNodeDataProvider::update(const traci::MovingNodeController* controlle
     } else if (delta < 0.0 * seconds) {
         // initialization
         mSpeed = controller->getSpeed();
-        mHeading = convertMobilityAngle(controller->getHeading());
+        mHeading = controller->getHeading().getTrueNorth();
     } else {
         // update has been called for this time step already before
         return;
