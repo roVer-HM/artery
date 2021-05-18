@@ -85,6 +85,7 @@ if(TARGET INET)
     message(STATUS "Enable INET integration")
     set_property(TARGET core APPEND PROPERTY SOURCES
         inet/AntennaMobility.cc
+        inet/ChannelLoadRx.cc
         inet/DistanceSwitchPathLoss.cc
         inet/InetRadioDriver.cc
         inet/InetMobility.cc
@@ -97,8 +98,11 @@ if(TARGET INET)
         inet/gemv2/SmallScaleVariation.cc
         inet/gemv2/VehicleIndex.cc
         inet/gemv2/Visualizer.cc
+        inet/PowerLevelRx.cc
         inet/VanetNakagamiFading.cc
-        inet/VanetRx.cc)
+        inet/VanetRadio.cc
+        inet/VanetReceiver.cc
+    )
     target_link_libraries(core PUBLIC INET)
 endif()
 
