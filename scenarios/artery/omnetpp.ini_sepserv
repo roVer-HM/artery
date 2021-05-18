@@ -11,10 +11,11 @@ cmdenv-autoflush = true
 
 *.traci.core.version = -1
 # *.traci.launcher.typename = "PosixLauncher"   # regular artery launcher
-*.traci.launcher.sumocfg = "../../extern/veins/examples/veins/erlangen.sumo.cfg"
 *.traci.launcher.typename = "ConnectLauncher"   # connection to separate host
 *.traci.launcher.hostname = "sumo"              #    separate host: hostname
 *.traci.launcher.port = 9999                    #    separate host: port
+
+*.traci.launcher.sumocfg = "../../extern/veins/examples/veins/erlangen.sumo.cfg"
 
 # separate random number generator for vehicle penetration rate
 num-rngs = 2
@@ -70,6 +71,7 @@ extends = inet
 
 [Config inet_security]
 extends = inet
+
 *.node[*].vanetza.security.typename = "SecurityEntity"
 
 
@@ -79,11 +81,6 @@ extends = inet
 seed-1-mt = ${seed=0, 23, 42, 1337, 0815, 4711}
 *.traci.mapper.typename = "traci.MultiTypeModuleMapper"
 *.traci.mapper.vehicleTypes = xmldoc("vehicles.xml")
-
-
-[Config inet_nakagami]
-extends = inet
-*.radioMedium.pathLossType = "VanetNakagamiFading"
 
 
 [Config envmod]

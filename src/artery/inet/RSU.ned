@@ -15,6 +15,7 @@ module RSU like INetworkNode
         @networkNode;
         @labels(node,ethernet-node,wireless-node);
         int numRadios = default(1);
+        bool withAntennaMobility = default(false);
         *.interfaceTableModule = default(absPath(".interfaceTable"));
         mobility.visualRepresentation = "^";
 
@@ -32,7 +33,14 @@ module RSU like INetworkNode
         wlan[numRadios]: <default("VanetNic")> like IWirelessInterface {
             parameters:
                 @display("p=216,406,row,60;q=queue");
-                radio.antenna.mobilityModule = absPath("^.mobility");
+                radio.antenna.mobilityModule = withAntennaMobility ?
+                    ".antennaMobility[" + string(index) + "]" : ".mobility";
+        }
+
+        antennaMobility[numRadios]: AntennaMobility if withAntennaMobility == true {
+            parameters:
+                @display("p=100,200");
+                mobilityModule = "^.mobility";
         }
 
         radioDriver[numRadios]: RadioDriver {
@@ -68,7 +76,7 @@ module RSU like INetworkNode
 
             wlan[i].upperLayerOut --> radioDriver[i].lowerLayerIn;
             wlan[i].upperLayerIn <-- radioDriver[i].lowerLayerOut;
-            
+
             radioDriver[i].upperLayer <--> vanetza[i].radioDriverData;
             radioDriver[i].properties --> vanetza[i].radioDriverProperties;
         }
