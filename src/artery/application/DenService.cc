@@ -84,7 +84,7 @@ void DenService::receiveSignal(cComponent*, simsignal_t signal, cObject* obj, cO
 {
     if (signal == storyboardSignal) {
         StoryboardSignal* storyboardSignalObj = check_and_cast<StoryboardSignal*>(obj);
-        for (auto& use_case : mUseCases) {
+        for (auto use_case : mUseCases) {
             use_case->handleStoryboardTrigger(*storyboardSignalObj);
         }
     }
@@ -101,7 +101,7 @@ void DenService::indicate(const vanetza::btp::DataIndication& indication, std::u
         mMemory->received(obj);
         emit(denmReceivedSignal, &obj);
 
-        for (auto& use_case : mUseCases) {
+        for (auto use_case : mUseCases) {
             use_case->indicate(obj);
         }
     }
@@ -111,7 +111,7 @@ void DenService::trigger()
 {
     mMemory->drop();
 
-    for (auto& use_case : mUseCases) {
+    for (auto use_case : mUseCases) {
         use_case->check();
     }
 }

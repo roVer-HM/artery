@@ -7,7 +7,8 @@ set(SOURCES
     CheckTimeSync.cc
     Core.cc
     ConnectLauncher.cc
-    InsertionDelayNodeManager.cc
+    ExtensibleNodeManager.cc
+    InsertionDelayVehiclePolicy.cc
     Listener.cc
     LiteAPI.cc
     MultiTypeModuleMapper.cc
@@ -15,7 +16,7 @@ set(SOURCES
     Position.cc
     PosixLauncher.cc
     RegionsOfInterest.cc
-    RegionOfInterestNodeManager.cc
+    RegionOfInterestVehiclePolicy.cc
     TestbedModuleMapper.cc
     TestbedNodeManager.cc
     ValueUtils.cc
