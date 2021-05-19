@@ -86,6 +86,7 @@ void CaService::initialize()
 	// generation rate boundaries
 	mGenCamMin = par("minInterval");
 	mGenCamMax = par("maxInterval");
+	mGenCam = mGenCamMax;
 
 	// vehicle dynamics thresholds
 	mHeadingDelta = vanetza::units::Angle { par("headingDelta").doubleValue() * vanetza::units::degree };
@@ -201,8 +202,8 @@ SimTime CaService::genCamDcc()
 	}
 
 	static const vanetza::dcc::TransmissionLite ca_tx(vanetza::dcc::Profile::DP2, 0);
-	vanetza::Clock::duration delay = trc->delay(ca_tx);
-	SimTime dcc { std::chrono::duration_cast<std::chrono::milliseconds>(delay).count(), SIMTIME_MS };
+	vanetza::Clock::duration interval = trc->interval(ca_tx);
+	SimTime dcc { std::chrono::duration_cast<std::chrono::milliseconds>(interval).count(), SIMTIME_MS };
 	return std::min(mGenCamMax, std::max(mGenCamMin, dcc));
 }
 

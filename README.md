@@ -1,4 +1,4 @@
-# Artery
+![Artery V2X Simulation Framework](https://raw.githubusercontent.com/riebl/artery/master/logo.png)
 
 Artery enables V2X simulations based on ETSI ITS-G5 protocols like GeoNetworking and BTP.
 Single vehicles can be equipped with multiple ITS-G5 services through Artery's middleware, which also provides common Facilities for these services.
@@ -79,3 +79,4 @@ You can, however, specify which SUMO executable shall be used explicilty.
 If you want Artery to start SUMO with a graphical user interface, you can put the following line in your *omnetpp.ini*:
 
     *.traci.launcher.sumo = "sumo-gui"
+
