@@ -23,6 +23,7 @@ add_library(core SHARED
     application/Timer.cc
     application/TransportDispatcher.cc
     application/VehicleDataProvider.cc
+    application/VehicleKinematics.cc
     application/VehicleMiddleware.cc
     application/XmlMultiChannelPolicy.cc
     application/den/ImpactReductionUseCase.cc
@@ -105,6 +106,16 @@ if(TARGET INET)
         inet/VanetReceiver.cc
     )
     target_link_libraries(core PUBLIC INET)
+endif()
+
+if(TARGET ots)
+    message(STATUS "Enable OpenTrafficSim integration")
+    set_property(TARGET core APPEND PROPERTY SOURCES
+        ots/GtuMiddleware.cc
+        ots/GtuPositionProvider.cc
+        ots/GtuInetMobility.cc
+    )
+    target_link_libraries(core PUBLIC ots)
 endif()
 
 macro(add_artery_feature name)

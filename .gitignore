@@ -12,5 +12,6 @@ tags
 cmake-build-debug/
 build/
 .settings
+www/
 .vagrant/
 

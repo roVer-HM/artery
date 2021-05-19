@@ -97,7 +97,7 @@ void CaService::initialize()
 	mFixedRate = par("fixedRate");
 
 	// look up primary channel for CA
-	ChannelNumber mPrimaryChannel = getFacilities().get_const<MultiChannelPolicy>().primaryChannel(vanetza::aid::CA);
+	mPrimaryChannel = getFacilities().get_const<MultiChannelPolicy>().primaryChannel(vanetza::aid::CA);
 }
 
 void CaService::trigger()
@@ -255,7 +255,7 @@ vanetza::asn1::Cam createCooperativeAwarenessMessage(const MovingNodeDataProvide
 	bvc.curvature.curvatureConfidence = CurvatureConfidence_unavailable;
 	bvc.curvatureCalculationMode = CurvatureCalculationMode_yawRateUsed;
 	bvc.yawRate.yawRateValue = round(vdp.yaw_rate(), degree_per_second) * YawRateValue_degSec_000_01ToLeft * 100.0;
-	if (abs(bvc.yawRate.yawRateValue) >= YawRateValue_unavailable) {
+	if (bvc.yawRate.yawRateValue < -32766 || bvc.yawRate.yawRateValue > 32766) {
 		bvc.yawRate.yawRateValue = YawRateValue_unavailable;
 	}
 	bvc.vehicleLength.vehicleLengthValue = VehicleLengthValue_unavailable;

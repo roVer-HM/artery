@@ -1,5 +1,5 @@
-project(Artery)
 cmake_minimum_required(VERSION 3.1)
+project(Artery)
 if(POLICY CMP0076)
     cmake_policy(SET CMP0076 NEW)
 endif()
@@ -101,6 +101,11 @@ option(WITH_ENVMOD "Build Artery with environment model feature" ON)
 option(WITH_STORYBOARD "Build Artery with storyboard feature" ON)
 option(WITH_TRANSFUSION "Build Artery with transfusion feature" OFF)
 option(WITH_TESTBED "Build Artery with testbed feature" OFF)
+
+option(WITH_OTS "Build Artery with support for OpenTrafficSim" OFF)
+if(WITH_OTS)
+    add_subdirectory(src/ots)
+endif()
 
 add_subdirectory(src/artery)
 add_subdirectory(src/traci)
