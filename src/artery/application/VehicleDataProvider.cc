@@ -18,7 +18,6 @@
 
 #include "artery/application/VehicleDataProvider.h"
 
-
 namespace artery
 {
 

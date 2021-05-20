@@ -63,40 +63,40 @@ MovingNodeDataProvider::~MovingNodeDataProvider() {
 void MovingNodeDataProvider::calculateCurvature()
 {
     using namespace vanetza::units::si;
-    static const vanetza::units::Frequency f_cut = 0.33 * hertz;
-    static const vanetza::units::Duration t_sample = 0.1 * seconds;
-    static const vanetza::units::Curvature lower_threshold = 1.0 / 2500.0 * vanetza::units::reciprocal_metre;
-    static const vanetza::units::Curvature upper_threshold = 1.0 * vanetza::units::reciprocal_metre;
-    static const double damping = 1.0;
+        static const vanetza::units::Frequency f_cut = 0.33 * hertz;
+        static const vanetza::units::Duration t_sample = 0.1 * seconds;
+        static const vanetza::units::Curvature lower_threshold = 1.0 / 2500.0 * vanetza::units::reciprocal_metre;
+        static const vanetza::units::Curvature upper_threshold = 1.0 * vanetza::units::reciprocal_metre;
+        static const double damping = 1.0;
 
-    if (fabs(mVehicleKinematics.speed) < 1.0 * meter_per_second) {
-        // assume straight road below minimum speed
-        mCurvature = 0.0 * vanetza::units::reciprocal_metre;
-    } else {
-        // curvature calculation algorithm
-        mCurvature = (mVehicleKinematics.yaw_rate / radians) / mVehicleKinematics.speed;
-
-        if (!mCurvatureOutput.full()) {
-            // save first two values for initialization
-            mCurvatureOutput.push_front(mCurvature);
+        if (fabs(mVehicleKinematics.speed) < 1.0 * meter_per_second) {
+            // assume straight road below minimum speed
             mCurvature = 0.0 * vanetza::units::reciprocal_metre;
         } else {
-            static const auto omega = 2.0 * pi * f_cut;
-            mCurvature = - mCurvatureOutput[1] +
-                (2.0 + 2.0 * omega * damping * t_sample) * mCurvatureOutput[0] +
-                omega * omega * t_sample * t_sample * mCurvature;
-            mCurvature /= 1.0 + 2.0 * omega * damping * t_sample + omega * omega * t_sample * t_sample;
-            mCurvatureOutput.push_front(mCurvature);
+            // curvature calculation algorithm
+            mCurvature = (mVehicleKinematics.yaw_rate / radians) / mVehicleKinematics.speed;
 
-            // assume straight road below threshold
-            if (fabs(mCurvature) < lower_threshold) {
+            if (!mCurvatureOutput.full()) {
+                // save first two values for initialization
+                mCurvatureOutput.push_front(mCurvature);
                 mCurvature = 0.0 * vanetza::units::reciprocal_metre;
-            } else if (fabs(mCurvature) > upper_threshold) {
-                // clamp minimum radius to 1 meter
-                mCurvature = upper_threshold;
+            } else {
+                static const auto omega = 2.0 * pi * f_cut;
+                mCurvature = - mCurvatureOutput[1] +
+                    (2.0 + 2.0 * omega * damping * t_sample) * mCurvatureOutput[0] +
+                    omega * omega * t_sample * t_sample * mCurvature;
+                mCurvature /= 1.0 + 2.0 * omega * damping * t_sample + omega * omega * t_sample * t_sample;
+                mCurvatureOutput.push_front(mCurvature);
+
+                // assume straight road below threshold
+                if (fabs(mCurvature) < lower_threshold) {
+                    mCurvature = 0.0 * vanetza::units::reciprocal_metre;
+                } else if (fabs(mCurvature) > upper_threshold) {
+                    // clamp minimum radius to 1 meter
+                    mCurvature = upper_threshold;
+                }
             }
         }
-    }
 }
 
 void MovingNodeDataProvider::calculateCurvatureConfidence()
