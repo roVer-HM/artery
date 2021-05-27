@@ -88,6 +88,9 @@ public:
     /// @brief Let sumo load a simulation using the given command line like options.
     void load(const std::vector<std::string>& args);
 
+    /// @brief Create response command
+    void createResponse(tcpip::Storage& response, int cmd, int result = RTYPE_OK, std::string description = "");
+
     /// @name Atomar getter
     /// @{
     int getUnsignedByte(int cmd, int var, const std::string& id, tcpip::Storage* add = 0);

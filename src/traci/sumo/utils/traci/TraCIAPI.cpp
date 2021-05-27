@@ -706,6 +706,16 @@ TraCIAPI::load(const std::vector<std::string>& args) {
     check_resultState(inMsg, CMD_LOAD);
 }
 
+void
+TraCIAPI::createResponse(tcpip::Storage& response, int cmd, int result, std::string description) {
+    response.writeUnsignedByte(0);
+    // 5 (lenght field), 1 cmd, 1 result, 4 (string int), length of description
+    response.writeInt(5 + 1 + 1 + 4 + description.size());
+    response.writeUnsignedByte(cmd);
+    response.writeUnsignedByte(result);
+    response.writeString(description);
+}
+
 
 // ---------------------------------------------------------------------------
 // TraCIAPI::EdgeScope-methods
