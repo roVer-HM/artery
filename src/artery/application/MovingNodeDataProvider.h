@@ -41,7 +41,6 @@ public:
     void update(const VehicleKinematics& dynamics);
     omnetpp::SimTime updated() const { return mLastUpdate; }
 
-    uint32_t station_id() const { return mStationId; }
     const Position& position() const { return mVehicleKinematics.position; }
     vanetza::units::GeoAngle longitude() const { return mVehicleKinematics.geo_position.longitude; } // positive for east
     vanetza::units::GeoAngle latitude() const { return mVehicleKinematics.geo_position.latitude; } // positive for north
@@ -52,7 +51,9 @@ public:
     vanetza::units::Curvature curvature() const { return mCurvature; } // 1/m radius, left turn positive
     double curvature_confidence() const { return mConfidence; } // percentage value
 
-
+    void setStationId(uint32_t id);
+    uint32_t getStationId() const { return mStationId; }
+    uint32_t station_id() const { return mStationId; } /*< deprecated, use getStationId */
     void setStationType(StationType);
     StationType getStationType() const;
 

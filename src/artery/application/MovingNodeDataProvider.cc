@@ -59,6 +59,10 @@ MovingNodeDataProvider::MovingNodeDataProvider(uint32_t id) :
 MovingNodeDataProvider::~MovingNodeDataProvider() {
 }
 
+void MovingNodeDataProvider::setStationId(uint32_t id)
+{
+    mStationId = id;
+}
 
 void MovingNodeDataProvider::calculateCurvature()
 {
