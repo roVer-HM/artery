@@ -6,6 +6,11 @@ Single vehicles can be equipped with multiple ITS-G5 services through Artery's m
 Artery started as an extension of the [Veins framework](http://veins.car2x.org) but can be used independently nowadays.
 Please refer to its [documentation](http://veins.car2x.org/documentation) for details about Veins.
 
+## INET 4 Port: TODO
+* per-packet mode control is currently not implemented (see VanetMgmnt, etc.)
+* frame capturing needs to be checked (see VanetReceiver.cc)
+* VanetHcf: set mode individually for every frame not implemented (artery/inet/VanetHcf.cpp)
+
 ## Documentation
 
 We have started to extend the available documentation about Artery and created a website for this purpose.

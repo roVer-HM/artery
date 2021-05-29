@@ -5,8 +5,10 @@ import inet.linklayer.ieee80211.Ieee80211Interface;
 module VanetNic extends Ieee80211Interface
 {
     parameters:
-        mgmt.typename = "Ieee80211MgmtAdhoc";
+
         agent.typename = "";
+        mgmt.typename = "VanetMgmt";
+        mac.typename = default("VanetMac");
         opMode = "p";
 
         mac.qosStation = true;

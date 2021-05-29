@@ -1,4 +1,6 @@
 #include "artery/inet/InetRadioDriver.h"
+//#include "artery/inet/VanetRxControl.h"
+//#include "artery/inet/VanetTxControl.h"
 #include "artery/networking/GeoNetIndication.h"
 #include "artery/networking/GeoNetRequest.h"
 #include "artery/nic/RadioDriverProperties.h"
@@ -110,6 +112,7 @@ void InetRadioDriver::handleDataRequest(cMessage* msg)
 	assert(request->ether_type.host() == inet::ProtocolGroup::ethertype.findProtocolNumber(&geonet));
 
 	auto up_tag = packet->addTag<inet::UserPriorityReq>();
+
 	switch (request->access_category) {
 		case vanetza::access::AccessCategory::VO:
 			up_tag->setUserPriority(7);
@@ -138,6 +141,7 @@ void InetRadioDriver::handleDataIndication(cMessage* msg)
 	auto gn_packet = chunk->getPacket()->dup();
 
 	auto addr_tag = packet->getTag<inet::MacAddressInd>();
+//	auto* info = check_and_cast<VanetRxControl*>(packet->removeControlInfo());
 	auto* indication = new GeoNetIndication();
 	indication->source = convert(addr_tag->getSrcAddress());
 	indication->destination = convert(addr_tag->getDestAddress());
