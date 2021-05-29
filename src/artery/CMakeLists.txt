@@ -123,6 +123,12 @@ if(TARGET ots)
     target_link_libraries(core PUBLIC ots)
 endif()
 
+if(TARGET lte)
+    # SimuLTE is a non-integral feature: add it to "artery" but not "core"
+    message(STATUS "Enable SimuLTE integration")
+    target_link_libraries(artery INTERFACE lte)
+endif()
+
 macro(add_artery_feature name)
     add_library(${name} SHARED ${ARGN})
     add_library(Artery::${name} ALIAS ${name})
@@ -131,6 +137,7 @@ macro(add_artery_feature name)
         OMNETPP_LIBRARY ON)
     target_link_libraries(${name} PRIVATE core)
     target_link_libraries(artery INTERFACE Artery::${name})
+    install(TARGETS ${name} LIBRARY DESTINATION lib)
 endmacro()
 
 if(WITH_STORYBOARD)
@@ -149,3 +156,11 @@ endif()
 if(WITH_TESTBED)
     add_subdirectory(testbed)
 endif()
+
+install(TARGETS core LIBRARY DESTINATION lib)
+set_property(TARGET core APPEND PROPERTY INSTALL_NED_FOLDERS share/ned/artery)
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/ DESTINATION share/ned/artery FILES_MATCHING PATTERN "*.ned")
+
+generate_run_script(TARGET artery FILE ${PROJECT_BINARY_DIR}/run_artery.sh)
+generate_run_script(TARGET artery FILE ${PROJECT_BINARY_DIR}/run_artery.sh.install INSTALL)
+install(PROGRAMS ${PROJECT_BINARY_DIR}/run_artery.sh.install DESTINATION bin RENAME run_artery.sh)
