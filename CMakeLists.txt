@@ -1,101 +1,122 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.4)
 project(Artery)
+
 if(POLICY CMP0076)
     cmake_policy(SET CMP0076 NEW)
 endif()
 if(POLICY CMP0079)
-    cmake_policy(SET CMP0079 OLD)
+    if (CMAKE_VERSION VERSION_LESS 3.17)
+        cmake_policy(SET CMP0079 OLD)
+    else()
+        cmake_policy(SET CMP0079 NEW)
+    endif()
 endif()
+
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 enable_testing()
-add_compile_options(-fPIC)
 
-find_package(OmnetPP 5.4 REQUIRED)
-include(cmake/ImportOppTarget.cmake)
-include(cmake/GenerateOppMessage.cmake)
-include(cmake/GetNedFolders.cmake)
-include(cmake/AddOppBuildTarget.cmake)
-include(cmake/AddOppRun.cmake)
-include(ProcessorCount)
+find_package(OmnetPP 5.5.1 MODULE REQUIRED)
+include(AddOppRun)
+include(AddOppTarget)
+include(ImportOppTarget)
+include(CheckGitSubmodule)
+include(GenerateOppMessage)
+include(GNUInstallDirs)
 
-set(VANETZA_PATH  ${PROJECT_SOURCE_DIR}/extern/vanetza CACHE STRING "Path to dependency")
-set(VEINS_PATH  ${PROJECT_SOURCE_DIR}/../veins CACHE STRING "Path to dependency default in extern/*")
-set(INET_PATH ${PROJECT_SOURCE_DIR}/../inet4 CACHE STRING "Path to dependency")
-set(SIMULTE_PATH ${PROJECT_SOURCE_DIR}/../simulte CACHE STRING "Path to dependency")
+find_package(Boost 1.59 COMPONENTS date_time system REQUIRED)
+if (Boost_VERSION_STRING VERSION_GREATER_EQUAL "1.75")
+    # Boost.Geometry requires C++14 starting with Boost 1.75
+    set(CMAKE_CXX_STANDARD 14)
+endif()
 
-# Postifx
-set(CMAKE_DEBUG_POSTFIX "_dbg")
+# running simulations with opp_run requires shared libraries
+set(BUILD_SHARED_LIBS ON CACHE INTERNAL "Cached for propagation to sub-projects with older CMake versions")
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib/static)
-
-
-if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
-    set(CMAKE_BUILD_TYPE Release)
-    set(MAKE_MODE release)
+# check if we are run within the crowNet framework - in this case, inet, veins and simulte are built outside
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/../vadere)
+	message("found vadere submodule in parent directory - assuming crowNet framework is used.")
+	set(CROWNET_FRAMEWORK ON)
 else()
-	set(CMAKE_BUILD_TYPE Debug)
-	set(MAKE_MODE debug)
+	set(CROWNET_FRAMEWORK OFF)
 endif()
 
-set(VANETZA_BINARY_DIR ${VANETZA_PATH}/build/${CMAKE_BUILD_TYPE})
+check_git_submodule(PATH extern/vanetza REQUIRED_FILES CMakeLists.txt)
+set(VANETZA_INSTALL ON)
+add_subdirectory(${PROJECT_SOURCE_DIR}/extern/vanetza)
+mark_as_advanced(BUILD_BENCHMARK BUILD_CERTIFY BUILD_SOCKTAP BUILD_TESTS BUILD_USING_CONAN)
+mark_as_advanced(VANETZA_ASN1_WITH_ASN1C VANETZA_EXPORT_PACKAGE VANETZA_NET_WITH_POSIX)
 
-find_package(Vanetza CONFIG PATHS ${VANETZA_BINARY_DIR} REQUIRED NO_CMAKE_PACKAGE_REGISTRY)
+if(NOT CROWNET_FRAMEWORK)
+	check_git_submodule(PATH extern/veins REQUIRED_FILES src/veins/package.ned)
+	find_path(Veins_DIR NAMES src/veins/package.ned PATHS extern/veins DOC "Veins root directory")
+	mark_as_advanced(Veins_DIR)
+	add_opp_target(TARGET veins ROOT_DIR ${Veins_DIR})
 
-find_path(Veins_DIR NAMES src/veins/package.ned PATHS ${VEINS_PATH} DOC "Veins root directory")
-import_opp_target(veins ${Veins_DIR}/src/Makefile)
-
-find_path(INET_DIR NAMES src/inet/package.ned PATHS ${INET_PATH} DOC "INET root directory")
-import_opp_target(INET ${INET_DIR}/src/Makefile)
-
-option(WITH_SIMULTE "Build Artery with SimuLTE integration" OFF)
-if(WITH_SIMULTE)
-    message(SEND_ERROR "SimuLTE is not yet compatible with INET4. Please turn off WITH_SIMULTE.")
-    find_path(SimuLTE_DIR NAMES src/package.ned PATHS ${SIMULTE_PATH} DOC "SimuLTE root directory")
-    import_opp_target(lte ${SimuLTE_DIR}/src/Makefile)
+	check_git_submodule(PATH extern/inet REQUIRED_FILES src/inet/package.ned)
+	find_path(INET_DIR NAMES src/inet/package.ned PATHS extern/inet DOC "INET root directory")
+	mark_as_advanced(INET_DIR)
+	set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${INET_DIR}/.oppfeaturestate ${INET_DIR}/.nedexclusions)
+	
+	# collect INET's opp_makemake options
+	execute_process(COMMAND ./inet_featuretool options -l -f
+	    WORKING_DIRECTORY ${INET_DIR}
+	    OUTPUT_VARIABLE INET_OPP_MAKEMAKE)
+	separate_arguments(INET_OPP_MAKEMAKE UNIX_COMMAND ${INET_OPP_MAKEMAKE})
+	
+	# generate INET's features and opp_defines header
+	set(INET_GEN_DIR ${PROJECT_BINARY_DIR}/INET_gen)
+	file(MAKE_DIRECTORY ${INET_GEN_DIR}/inet)
+	add_custom_command(OUTPUT ${INET_DIR}/.oppfeaturestate
+	    COMMAND ./inet_featuretool repair
+	    DEPENDS ${INET_DIR}/.oppfeatures ${INET_DIR}/inet_featuretool
+	    WORKING_DIRECTORY ${INET_DIR})
+	add_custom_command(OUTPUT ${INET_GEN_DIR}/inet/features.h
+	    COMMAND ./inet_featuretool defines >${INET_GEN_DIR}/inet/features.h
+	    DEPENDS ${INET_DIR}/.oppfeaturestate
+	    WORKING_DIRECTORY ${INET_DIR}
+	    COMMENT "Generate INET features.h")
+	add_custom_command(OUTPUT ${INET_GEN_DIR}/inet/opp_defines.h
+	    COMMAND ${CMAKE_COMMAND} -E touch ${INET_GEN_DIR}/inet/opp_defines.h
+	    COMMENT "Generate INET opp_defines.h")
+	
+	add_opp_target(TARGET INET ROOT_DIR ${INET_DIR}
+	    DEPENDS ${INET_GEN_DIR}/inet/features.h ${INET_GEN_DIR}/inet/opp_defines.h
+	    OPP_MAKEMAKE ${INET_OPP_MAKEMAKE})
+	
+	
+	check_git_submodule(PATH extern/simulte REQUIRED_FILES src/package.ned)
+	find_path(SimuLTE_DIR NAMES src/package.ned PATHS extern/simulte DOC "SimuLTE root directory")
+	mark_as_advanced(SimuLTE_DIR)
+	option(WITH_SIMULTE "Build Artery with SimuLTE integration" OFF)
+	if(WITH_SIMULTE)
+	    add_opp_target(TARGET lte ROOT_DIR ${SimuLTE_DIR})
+	    target_link_libraries(lte PUBLIC INET)
+	else()
+	    message(STATUS "SimuLTE integration disabled")
+	endif()
 else()
-    message(STATUS "SimuLTE integration disabled")
+	# in CrowNet, the veins, inet and simulte modules are built outsinde
+	set(VEINS_PATH  ${PROJECT_SOURCE_DIR}/../veins CACHE STRING "Path to dependency")
+	set(INET_PATH ${PROJECT_SOURCE_DIR}/../inet4 CACHE STRING "Path to dependency")
+	set(SIMULTE_PATH ${PROJECT_SOURCE_DIR}/../simulte CACHE STRING "Path to dependency")
+	
+	find_path(Veins_DIR NAMES src/veins/package.ned PATHS ${VEINS_PATH} DOC "Veins root directory")
+	import_opp_target(veins ${Veins_DIR}/src/Makefile)
+	
+	find_path(INET_DIR NAMES src/inet/package.ned PATHS ${INET_PATH} DOC "INET root directory")
+	import_opp_target(INET ${INET_DIR}/src/Makefile)
+	
+	option(WITH_SIMULTE "Build Artery with SimuLTE integration" OFF)
+	if(WITH_SIMULTE)
+	    find_path(SimuLTE_DIR NAMES src/package.ned PATHS ${SIMULTE_PATH} DOC "SimuLTE root directory")
+	    import_opp_target(lte ${SimuLTE_DIR}/src/Makefile)
+	else()
+	    message(STATUS "SimuLTE integration disabled")
+	endif()
 endif()
 
-find_program(MAKE_COMMAND NAMES make gmake HINTS ${CMAKE_MAKE_COMMAND} DOC "Makefile processor")
-ProcessorCount(N)
-if(NOT N EQUAL 0)
-    set(MAKE_ARGUMENTS "-j${N};MODE=${MAKE_MODE}" CACHE STRING "Additional arguments passed to Makefile processor")
-else()
-    set(MAKE_ARGUMENTS ";MODE=${MAKE_MODE}" CACHE STRING "Additional arguments passed to Makefile processor")
-endif()
-
-string(REPLACE " " ";" MAKE_ARGUMENTS "${MAKE_ARGUMENTS}")
-
-if("${Vanetza_DIR}" STREQUAL "${VANETZA_BINARY_DIR}")
-    set(_make_command ${MAKE_COMMAND})
-    if(CMAKE_GENERATOR MATCHES "Makefiles")
-        set(_make_command \$\(MAKE\))
-    endif()
-    add_custom_target(build_vanetza
-        COMMAND ${_make_command} ${MAKE_ARGUMENTS} vanetza
-        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-        COMMENT "Building Vanetza (external dependency)"
-        VERBATIM)
-    add_dependencies(Vanetza::vanetza build_vanetza)
-endif()
-
-if("${Veins_DIR}" STREQUAL "${PROJECT_SOURCE_DIR}/extern/veins")
-    add_opp_build_target(Veins)
-    add_dependencies(veins build_veins)
-endif()
-
-if("${INET_DIR}" STREQUAL "${PROJECT_SOURCE_DIR}/extern/inet4")
-    add_opp_build_target(INET)
-    add_dependencies(INET build_inet)
-endif()
-
-if("${SimuLTE_DIR}" STREQUAL "${PROJECT_SOURCE_DIR}/extern/simulte" AND WITH_SIMULTE)
-    add_opp_build_target(SimuLTE)
-    add_dependencies(lte build_simulte)
-endif()
 
 option(WITH_ENVMOD "Build Artery with environment model feature" ON)
 option(WITH_STORYBOARD "Build Artery with storyboard feature" ON)
@@ -106,16 +127,11 @@ option(WITH_OTS "Build Artery with support for OpenTrafficSim" OFF)
 if(WITH_OTS)
     add_subdirectory(src/ots)
 endif()
+add_subdirectory(src/traci)
 
 add_subdirectory(src/artery)
-add_subdirectory(src/traci)
-add_subdirectory(scenarios)
 
-# sumo-launchd should be run from root directory for correct file look-up
-set(SUMO_LAUNCHD_ARGUMENTS "--daemon --kill" CACHE STRING "Additional arguments passed to sumo-launchd")
-string(REPLACE " " ";" _sumo_launchd_args "${SUMO_LAUNCHD_ARGUMENTS}")
-add_custom_target(launch_sumo
-    COMMAND ${Veins_DIR}/sumo-launchd.py ${_sumo_launchd_args}
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-    COMMENT "Launching SUMO"
-    VERBATIM)
+# scenarios directory is part of repository but omitted for Docker build context
+if(EXISTS ${PROJECT_SOURCE_DIR}/scenarios)
+    add_subdirectory(scenarios)
+endif()
