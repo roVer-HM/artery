@@ -102,6 +102,23 @@ else()
 	set(INET_PATH ${PROJECT_SOURCE_DIR}/../inet4 CACHE STRING "Path to dependency")
 	set(SIMULTE_PATH ${PROJECT_SOURCE_DIR}/../simulte CACHE STRING "Path to dependency")
 	
+	# Postifx
+	set(CMAKE_DEBUG_POSTFIX "_dbg")
+	
+	# CrowNet expects the libraries to be located in the lib folder
+	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
+	set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
+	set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib/static)
+	
+	if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+	    set(CMAKE_BUILD_TYPE Release)
+	    set(MAKE_MODE release)
+	else()
+		set(CMAKE_BUILD_TYPE Debug)
+		set(MAKE_MODE debug)
+	endif()
+	
+	
 	find_path(Veins_DIR NAMES src/veins/package.ned PATHS ${VEINS_PATH} DOC "Veins root directory")
 	import_opp_target(veins ${Veins_DIR}/src/Makefile)
 	

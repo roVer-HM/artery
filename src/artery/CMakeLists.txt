@@ -1,5 +1,3 @@
-find_package(Boost 1.59 COMPONENTS date_time system REQUIRED)
-
 add_library(artery INTERFACE)
 add_library(core SHARED
     StaticNodeManager.cc
@@ -46,6 +44,7 @@ add_library(core SHARED
     nic/ChannelLoadSampler.cc
     nic/RadioDriverBase.cc
     traci/ControllableVehicle.cc
+    traci/Cast.cc
     traci/MobilityBase.cc
     traci/MovingNodeController.cc
     traci/VehicleController.cc

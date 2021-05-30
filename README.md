@@ -7,6 +7,7 @@ Artery started as an extension of the [Veins framework](http://veins.car2x.org) 
 Please refer to its [documentation](http://veins.car2x.org/documentation) for details about Veins.
 
 ## INET 4 Port: TODO
+* main project's CMakeLists.txt contains redundant parts for building with/without crowNet - should be cleaned up
 * per-packet mode control is currently not implemented (see VanetMgmnt, etc.)
 * frame capturing needs to be checked (see VanetReceiver.cc)
 * VanetHcf: set mode individually for every frame not implemented (artery/inet/VanetHcf.cpp)
