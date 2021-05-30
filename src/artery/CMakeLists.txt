@@ -6,17 +6,27 @@ add_library(core SHARED
     application/DenmObject.cc
     application/DenService.cc
     application/ExampleService.cc
+    application/GbcMockMessage.cc
+    application/GbcMockService.cc
+    application/InfrastructureMockMessage.cc
+    application/InfrastructureMockReceiver.cc
+    application/InfrastructureMockService.cc
     application/ItsG5BaseService.cc
     application/ItsG5PromiscuousService.cc
     application/ItsG5Service.cc
     application/LocalDynamicMap.cc
     application/MiddlewareBase.cc
+    application/LocationTableLogger.cc
     application/Middleware.cc
     application/MultiChannelPolicy.cc
     application/NetworkInterface.cc
     application/NetworkInterfaceTable.cc
     application/MovingNodeDataProvider.cc
+    application/PeriodicLoadService.cc
     application/RsuCaService.cc
+    application/RtcmMockMessage.cc
+    application/RtcmMockReceiver.cc
+    application/RtcmMockService.cc
     application/StationType.cc
     application/StationaryMiddleware.cc
     application/StoryboardSignal.cc
@@ -26,9 +36,11 @@ add_library(core SHARED
     application/VehicleKinematics.cc
     application/VehicleMiddleware.cc
     application/XmlMultiChannelPolicy.cc
+    application/den/EmergencyBrakeLight.cc
     application/den/ImpactReductionUseCase.cc
     application/den/Memory.cc
     application/den/SuspendableUseCase.cc
+    application/den/TractionLoss.cc
     application/den/TrafficJamUseCase.cc
     application/den/UseCase.cc
     networking/AccessInterface.cc
@@ -101,6 +113,7 @@ if(TARGET INET)
         inet/gemv2/SmallScaleVariation.cc
         inet/gemv2/VehicleIndex.cc
         inet/gemv2/Visualizer.cc
+        inet/PassiveLogger.cc
         inet/PowerLevelRx.cc
         inet/VanetHcf.cc
         inet/VanetMgmt.cc

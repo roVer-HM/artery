@@ -17,7 +17,7 @@ using namespace omnetpp;
 namespace traci
 {
 
-Define_Module(InsertionDelayVehiclePolicy);
+Define_Module(InsertionDelayVehiclePolicy)
 
 InsertionDelayVehiclePolicy::InsertionDelayVehiclePolicy() :
     m_insert_event(new omnetpp::cMessage("TraCI vehicle insertion"))

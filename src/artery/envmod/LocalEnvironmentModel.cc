@@ -19,7 +19,7 @@ using namespace omnetpp;
 namespace artery
 {
 
-Define_Module(LocalEnvironmentModel);
+Define_Module(LocalEnvironmentModel)
 
 static const simsignal_t EnvironmentModelRefreshSignal = cComponent::registerSignal("EnvironmentModel.refresh");
 
@@ -73,7 +73,7 @@ void LocalEnvironmentModel::complementObjects(const SensorDetection& detection, 
          Tracking& tracking = foundObject->second;
          tracking.tap(&sensor);
       } else {
-         mObjects.emplace(detectedObject, Tracking { &sensor });
+         mObjects.emplace(detectedObject, Tracking { ++mTrackingCounter, &sensor });
       }
    }
 }
@@ -129,7 +129,7 @@ void LocalEnvironmentModel::initializeSensors()
 }
 
 
-LocalEnvironmentModel::Tracking::Tracking(const Sensor* sensor)
+LocalEnvironmentModel::Tracking::Tracking(int id, const Sensor* sensor) : mId(id)
 {
     mSensors.emplace(sensor, TrackingTime {});
 }

@@ -9,6 +9,7 @@
 #include "artery/application/ItsG5Service.h"
 #include "artery/application/XmlMultiChannelPolicy.h"
 #include "artery/utility/InitStages.h"
+#include "artery/networking/PositionProvider.h"
 #include "artery/networking/Router.h"
 #include "artery/utility/Channel.h"
 #include "artery/utility/PointerCheck.h"
@@ -68,6 +69,7 @@ void Middleware::initialize(int stage)
         mFacilities.register_const(mMultiChannelPolicy.get());
         mFacilities.register_const(&mNetworkInterfaceTable);
         // mFacilities.register_const(mRouter);
+        mFacilities.register_const(inet::getModuleFromPar<PositionProvider>(par("positionProviderModule"), findHost()));
 
         initializeServices(InitStages::Self);
 
