@@ -17,6 +17,7 @@ add_library(core SHARED
     application/NetworkInterfaceTable.cc
     application/MovingNodeDataProvider.cc
     application/RsuCaService.cc
+    application/StationType.cc
     application/StationaryMiddleware.cc
     application/StoryboardSignal.cc
     application/Timer.cc
@@ -117,6 +118,7 @@ if(TARGET ots)
     set_property(TARGET core APPEND PROPERTY SOURCES
         ots/GtuMiddleware.cc
         ots/GtuPositionProvider.cc
+        ots/GtuProxyService.cc
         ots/GtuInetMobility.cc
     )
     target_link_libraries(core PUBLIC ots)
@@ -160,6 +162,11 @@ install(TARGETS core LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 set_property(TARGET core APPEND PROPERTY INSTALL_NED_FOLDERS ${CMAKE_INSTALL_DATADIR}/ned/artery)
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/ DESTINATION share/ned/artery FILES_MATCHING PATTERN "*.ned")
 
-generate_run_script(TARGET artery FILE ${PROJECT_BINARY_DIR}/run_artery.sh)
-generate_run_script(TARGET artery FILE ${PROJECT_BINARY_DIR}/run_artery.sh.install INSTALL)
-install(PROGRAMS ${PROJECT_BINARY_DIR}/run_artery.sh.install DESTINATION ${CMAKE_INSTALL_BINDIR} RENAME run_artery.sh)
+get_property(is_multi_config GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+if(NOT is_multi_config)
+    generate_run_script(TARGET artery FILE ${PROJECT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/run_artery.sh)
+    generate_run_script(TARGET artery FILE ${PROJECT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/run_artery.sh.install INSTALL)
+    install(
+        PROGRAMS ${PROJECT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/run_artery.sh.install
+        DESTINATION ${CMAKE_INSTALL_BINDIR} RENAME run_artery.sh)
+endif()
