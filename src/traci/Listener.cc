@@ -9,6 +9,7 @@ namespace traci
 namespace
 {
 
+const simsignal_t connectedSignal = cComponent::registerSignal("traci.connected");
 const simsignal_t initSignal = cComponent::registerSignal("traci.init");
 const simsignal_t stepSignal = cComponent::registerSignal("traci.step");
 const simsignal_t closeSignal = cComponent::registerSignal("traci.close");
@@ -25,6 +26,7 @@ void Listener::subscribeTraCI(cComponent* publisher)
 
     unsubscribeTraCI();
     m_publisher = publisher;
+    m_publisher->subscribe(connectedSignal, this);
     m_publisher->subscribe(initSignal, this);
     m_publisher->subscribe(stepSignal, this);
     m_publisher->subscribe(closeSignal, this);
@@ -33,6 +35,7 @@ void Listener::subscribeTraCI(cComponent* publisher)
 void Listener::unsubscribeTraCI()
 {
     if (m_publisher) {
+        m_publisher->unsubscribe(connectedSignal, this);
         m_publisher->unsubscribe(initSignal, this);
         m_publisher->unsubscribe(stepSignal, this);
         m_publisher->unsubscribe(closeSignal, this);
@@ -47,7 +50,13 @@ void Listener::receiveSignal(cComponent*, simsignal_t signal, const SimTime&, cO
         traciInit();
     } else if (signal == closeSignal) {
         traciClose();
+    } else if (signal == connectedSignal){
+        traciConnected();
     }
+}
+
+void Listener::traciConnected(){
+    // before first Subscription call
 }
 
 void Listener::traciInit()

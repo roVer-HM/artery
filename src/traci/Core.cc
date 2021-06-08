@@ -12,10 +12,11 @@ using std::endl;
 
 namespace
 {
+const simsignal_t connectedSignal = cComponent::registerSignal("traci.connected");
 const simsignal_t initSignal = cComponent::registerSignal("traci.init");
 const simsignal_t stepSignal = cComponent::registerSignal("traci.step");
 const simsignal_t closeSignal = cComponent::registerSignal("traci.close");
-}
+}  // namespace
 
 namespace traci
 {
@@ -69,6 +70,7 @@ void Core::handleMessage(cMessage* msg)
         m_traci->connect(m_launcher->launch());
         checkVersion();
         syncTime();
+        emit(connectedSignal, simTime()); // pre subscribe
         emit(initSignal, simTime());
         m_updateInterval = Time { m_traci->simulation.getDeltaT() };
         scheduleAt(simTime() + m_updateInterval, m_updateEvent);

@@ -16,9 +16,11 @@ public:
     void receiveSignal(omnetpp::cComponent*, omnetpp::simsignal_t, const omnetpp::SimTime&, omnetpp::cObject*) override;
 
 private:
+    virtual void traciConnected();
     virtual void traciInit();
     virtual void traciStep();
     virtual void traciClose();
+
 
     omnetpp::cComponent* m_publisher;
 };
