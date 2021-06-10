@@ -70,7 +70,10 @@ void Core::handleMessage(cMessage* msg)
         m_traci->connect(m_launcher->launch());
         checkVersion();
         syncTime();
-        emit(connectedSignal, simTime()); // pre subscribe
+        // pre subscribe
+        m_launcher->initializeServer(m_lite.get());
+        emit(connectedSignal, simTime());
+        // send initSignal to setup subscriptions
         emit(initSignal, simTime());
         m_updateInterval = Time { m_traci->simulation.getDeltaT() };
         scheduleAt(simTime() + m_updateInterval, m_updateEvent);

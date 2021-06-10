@@ -23,6 +23,11 @@ public:
 
     virtual ~Launcher() = default;
     virtual ServerEndpoint launch() = 0;
+    /**
+     * called after connect to initialize server before first subscribe call.
+     * Nothing by default.
+     */
+    virtual void initializeServer(LiteAPI* m_lite) {};
 };
 
 } // namespace traci
