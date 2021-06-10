@@ -21,11 +21,12 @@ class CamSensor : public BaseSensor, public omnetpp::cListener
 public:
     void measurement() override;
     void receiveSignal(omnetpp::cComponent*, omnetpp::simsignal_t, omnetpp::cObject*, omnetpp::cObject* = nullptr) override;
-    void setVisualization(const SensorVisualizationConfig&) override {}
-    const FieldOfView* getFieldOfView() const override { return nullptr; }
     omnetpp::SimTime getValidityPeriod() const override;
     SensorPosition position() const override { return SensorPosition::VIRTUAL; }
     const std::string& getSensorCategory() const override;
+    const std::string getSensorName() const override {  return mSensorName; }
+    void setSensorName(const std::string& name) override { mSensorName = name; }
+    SensorDetection detectObjects(ObstacleRtree&, PreselectionMethod&) const override;
 
 protected:
     void initialize() override;
@@ -33,6 +34,8 @@ protected:
 
 private:
     IdentityRegistry* mIdentityRegistry;
+    omnetpp::SimTime mValidityPeriod;
+    std::string mSensorName;
 };
 
 } // namespace artery

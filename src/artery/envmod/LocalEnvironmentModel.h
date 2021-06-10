@@ -103,7 +103,7 @@ public:
     const TrackedObjects& allObjects() const { return mObjects; }
 
     /**
-     * Get local sensors
+     * Get list of all sensors attached to this local entity
      *
      * Sensor pointers are only valid as long as this LocalEnvironmentModel exists!
      */
@@ -124,6 +124,7 @@ using TrackedObjectsFilterIterator = boost::filter_iterator<TrackedObjectsFilter
 using TrackedObjectsFilterRange = boost::iterator_range<TrackedObjectsFilterIterator>;
 
 TrackedObjectsFilterRange filterBySensorCategory(const LocalEnvironmentModel::TrackedObjects&, const std::string&);
+TrackedObjectsFilterRange filterBySensorName(const LocalEnvironmentModel::TrackedObjects&, const std::string&);
 
 } // namespace artery
 

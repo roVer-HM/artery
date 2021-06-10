@@ -4,20 +4,20 @@
  * Licensed under GPLv2, see COPYING file for detailed license and warranty terms.
  */
 
-#ifndef ENVMOD_REARRADAR_H_
-#define ENVMOD_REARRADAR_H_
+#ifndef ENVMOD_SEETHROUGHSENSOR_H_
+#define ENVMOD_SEETHROUGHSENSOR_H_
 
-#include "artery/envmod/sensor/RadarSensor.h"
+#include "artery/envmod/sensor/FovSensor.h"
 
 namespace artery
 {
 
-class RearRadar : public RadarSensor
+class SeeThroughSensor : public FovSensor
 {
 public:
-    void initialize() override;
+    const std::string& getSensorCategory() const override;
 };
 
 } // namespace artery
 
-#endif /* ENVMOD_REARRADAR_H_ */
+#endif /* ENVMOD_SEETHROUGHSENSOR_H_ */

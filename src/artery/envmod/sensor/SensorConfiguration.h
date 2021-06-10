@@ -7,7 +7,6 @@
 #ifndef SENSORCONFIGURATION_H_
 #define SENSORCONFIGURATION_H_
 
-#include "artery/envmod/sensor/SensorVisualizationConfig.h"
 #include "artery/envmod/sensor/FieldOfView.h"
 #include "artery/envmod/sensor/SensorPosition.h"
 #include "artery/utility/Geometry.h"
@@ -21,16 +20,16 @@ class EnvironmentModelObject;
 struct SensorConfig
 {
         std::string egoID; /*< ego ID of the vehicle carrying this sensor */
-        unsigned int sensorID = 0; /*< uniqu sensor ID */
+        unsigned int sensorID = 0; /*< unique sensor ID */
+        std::string sensorName;
 };
 
-struct SensorConfigRadar : public SensorConfig
+struct SensorConfigFov : public SensorConfig
 {
         FieldOfView fieldOfView;
         SensorPosition sensorPosition = SensorPosition::FRONT;
         unsigned numSegments = 0; /*< number of sensor cone segments (0 build a triangle) */
         bool doLineOfSightCheck = true; /*< false for simple "object in sensor cone" tests */
-        SensorVisualizationConfig visualizationConfig;
 };
 
 
@@ -42,8 +41,8 @@ struct SensorConfigRadar : public SensorConfig
  * @param config radar sensor configuration describing the cone geometry
  * @return polygon approximating cone
  */
-std::vector<Position> createSensorArc(const SensorConfigRadar&, const Position&, const Angle&);
-std::vector<Position> createSensorArc(const SensorConfigRadar&, const EnvironmentModelObject&);
+std::vector<Position> createSensorArc(const SensorConfigFov&, const Position&, const Angle&);
+std::vector<Position> createSensorArc(const SensorConfigFov&, const EnvironmentModelObject&);
 
 } // namespace artery
 

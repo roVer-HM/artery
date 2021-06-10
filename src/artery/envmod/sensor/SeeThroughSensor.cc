@@ -4,20 +4,17 @@
  * Licensed under GPLv2, see COPYING file for detailed license and warranty terms.
  */
 
-#ifndef ENVMOD_FRONTRADAR_H_
-#define ENVMOD_FRONTRADAR_H_
-
-#include "artery/envmod/sensor/RadarSensor.h"
+#include "artery/envmod/sensor/SeeThroughSensor.h"
 
 namespace artery
 {
 
-class FrontRadar : public RadarSensor
+Define_Module(SeeThroughSensor);
+
+const std::string& SeeThroughSensor::getSensorCategory() const
 {
-public:
-    void initialize() override;
-};
+    static const std::string category = "see-through";
+    return category;
+}
 
 } // namespace artery
-
-#endif /* ENVMOD_FRONTRADAR_H_ */

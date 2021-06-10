@@ -8,7 +8,7 @@
 namespace artery
 {
 
-std::vector<Position> createSensorArc(const SensorConfigRadar& config, const Position& egoPos, const Angle& egoHeading)
+std::vector<Position> createSensorArc(const SensorConfigFov& config, const Position& egoPos, const Angle& egoHeading)
 {
     namespace gm = boost::geometry;
     using rotation = gm::strategy::transform::rotate_transformer<gm::degree, double, 2, 2>;
@@ -19,13 +19,17 @@ std::vector<Position> createSensorArc(const SensorConfigRadar& config, const Pos
     const double egoHeadingDeg = -1.0 * (egoHeading.degree() - 90.0);
     const unsigned segments = std::max(config.numSegments, 1u);
     const double segmentAngle = openingAngleDeg / segments;
-    const double sensorPositionDeg = relativeAngle(config.sensorPosition) / boost::units::degree::degrees;
+    const double sensorPositionDeg = relativeAngle(config.sensorPosition).degree();
 
     std::vector<Position> points;
-    points.push_back(Position {0.0, 0.0});
+
+    // if sensor cone is 360 deg omit center point
+    if (config.fieldOfView.angle != 360.0 * boost::units::degree::degrees) {
+        points.push_back(Position {0.0, 0.0});
+    }
 
     Position sensorBoundary(config.fieldOfView.range / boost::units::si::meters, 0.0);
-    rotation rotateSensorBoundary(sensorPositionDeg - 0.5 * openingAngleDeg + egoHeadingDeg);
+    rotation rotateSensorBoundary(egoHeadingDeg - sensorPositionDeg - 0.5 * openingAngleDeg);
     gm::transform(sensorBoundary, sensorBoundary, rotateSensorBoundary);
     points.push_back(sensorBoundary);
 
@@ -45,7 +49,7 @@ std::vector<Position> createSensorArc(const SensorConfigRadar& config, const Pos
     return points;
 }
 
-std::vector<Position> createSensorArc(const SensorConfigRadar& config, const EnvironmentModelObject& egoObj)
+std::vector<Position> createSensorArc(const SensorConfigFov& config, const EnvironmentModelObject& egoObj)
 {
     Position sensorPos = egoObj.getAttachmentPoint(config.sensorPosition);
     return createSensorArc(config, sensorPos, egoObj.getVehicleData().heading());

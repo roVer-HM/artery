@@ -7,10 +7,12 @@
 #ifndef GLOBALENVIRONMENTMODEL_H_
 #define GLOBALENVIRONMENTMODEL_H_
 
-#include "artery/envmod/sensor/SensorConfiguration.h"
+
+// #include "artery/envmod/sensor/Sensor.h"
 #include "artery/envmod/sensor/SensorDetection.h"
 #include "artery/envmod/Geometry.h"
 #include "artery/envmod/EnvironmentModelObject.h"
+#include "artery/envmod/EnvironmentModelObstacle.h"
 #include "artery/utility/Geometry.h"
 #include <omnetpp/ccanvas.h>
 #include <omnetpp/clistener.h>
@@ -62,17 +64,18 @@ public:
     std::shared_ptr<EnvironmentModelObject> getObject(const std::string& objId);
 
     /**
-     * Returns GSDE of all objects in a sensor area defined by the sensor configuration
-     * @param config
+     * Get an obstacle by its id
+     * @param obsId obstacle id
+     * @return obstacle model matching the id or nullptr
+     */
+    std::shared_ptr<EnvironmentModelObstacle> getObstacle(const std::string& obsId);
+
+    /**
+     * Returns GSDE of all objects in based on the detection logic of the sensor
+     * @param detect
      * @return
      */
-    SensorDetection detectObjects(const SensorConfigRadar&);
-
-    using ObjectDB = boost::multi_index_container<
-        std::shared_ptr<EnvironmentModelObject>,
-        boost::multi_index::indexed_by<
-            boost::multi_index::ordered_unique<
-                boost::multi_index::const_mem_fun<EnvironmentModelObject, std::string, &EnvironmentModelObject::getExternalId>>>>;
+    SensorDetection detectObjects(std::function<SensorDetection(ObstacleRtree&, PreselectionMethod&)> detect);
 
 private:
     /**
@@ -131,12 +134,9 @@ private:
      */
     virtual traci::VehicleController* getVehicleController(omnetpp::cModule* mod);
 
-    using ObstacleDB = std::map<std::string, std::shared_ptr<EnvironmentModelObstacle>>;
-    using ObstacleRtreeValue = std::pair<geometry::Box, std::string>;
-
     ObjectDB mObjects;
     ObstacleDB mObstacles;
-    boost::geometry::index::rtree<ObstacleRtreeValue, boost::geometry::index::rstar<16>> mObstacleRtree;
+    ObstacleRtree mObstacleRtree;
     std::unique_ptr<PreselectionMethod> mPreselector;
     IdentityRegistry* mIdentityRegistry;
     bool mTainted;
