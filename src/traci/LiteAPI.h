@@ -14,6 +14,8 @@ public:
 
     TraCIGeoPosition convertGeo(const TraCIPosition& pos) const { return m_api.convertGeo(pos); }
     TraCIPosition convert2D(const TraCIGeoPosition& pos) const { return m_api.convert2D(pos); }
+    void sendFile(const std::string& path, const std::string& content) const { m_api.sendFile(path, content);}
+
 
     API::EdgeScope& edge() { return m_api.edge; }
     const API::EdgeScope& edge() const { return m_api.edge; }

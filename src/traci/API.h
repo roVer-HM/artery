@@ -23,6 +23,7 @@ public:
     virtual TraCIGeoPosition convertGeo(const TraCIPosition&) const;
     virtual TraCIPosition convert2D(const TraCIGeoPosition&) const;
 
+    void sendFile(std::string path, std::string content);
     void connect(const ServerEndpoint&);
 };
 
