@@ -34,13 +34,13 @@ protected:
 
     void processVehicles() override;
     void addVehicle(const std::string&) override;
-    void updateVehicle(const std::string&, MovingObjectSink*) override;
+    void updateVehicle(const std::string&, VehicleSink*) override;
     void removeVehicle(const std::string&) override;
 
     friend class VehicleLifecycle;
     void addVehicle(const VehiclePolicy* omit, const std::string&);
     void removeVehicle(const VehiclePolicy* omit, const std::string&);
-    void updateVehicle(const VehiclePolicy* omit, const std::string&, MovingObjectSink*);
+    void updateVehicle(const VehiclePolicy* omit, const std::string&, VehicleSink*);
 
 private:
     class VehicleLifecycle : public traci::VehicleLifecycle

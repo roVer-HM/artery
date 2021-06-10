@@ -10,7 +10,8 @@ class TestbedModuleMapper : public BasicModuleMapper
 {
 public:
     void initialize() override;
-    omnetpp::cModuleType* getMovingObjectType(NodeManager& manager, const std::string& id) override;
+    omnetpp::cModuleType* person(NodeManager& manager, const std::string& id) override;
+    omnetpp::cModuleType* vehicle(NodeManager& manager, const std::string& id) override;
 
 private:
     std::string m_twinId;

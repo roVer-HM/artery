@@ -7,19 +7,18 @@
 #ifndef VARIABLECACHE_H_GJG2APIF
 #define VARIABLECACHE_H_GJG2APIF
 
-#include "traci/LiteAPI.h"
+#include "traci/API.h"
 #include "traci/ValueUtils.h"
 #include "traci/VariableTraits.h"
+#include <memory>
 #include <string>
 
 namespace traci
 {
 
-class VariableCache
+class VariableCache : private TraCIAPI::TraCIScopeWrapper
 {
 public:
-    virtual ~VariableCache() = default;
-    LiteAPI& getLiteAPI() { return m_api; }
     const std::string& getId() const { return m_id; }
 
     /**
@@ -69,29 +68,35 @@ public:
     void invalidate(const int key);
 
 protected:
-    VariableCache(LiteAPI& api, int command, const std::string& id);
+    VariableCache(std::shared_ptr<API> api, int command, const std::string& id);
 
     template<typename T>
     T retrieve(int var);
 
 private:
-    LiteAPI& m_api;
+    std::shared_ptr<API> m_api;
     const std::string m_id;
-    const int m_command;
     libsumo::TraCIResults m_values;
+};
+
+class PersonCache : public VariableCache
+{
+public:
+    PersonCache(std::shared_ptr<API> api, const std::string& personID);
+    const std::string& getPersonId() const { return getId(); }
 };
 
 class VehicleCache : public VariableCache
 {
 public:
-    VehicleCache(LiteAPI& api, const std::string& vehicleID);
+    VehicleCache(std::shared_ptr<API> api, const std::string& vehicleID);
     const std::string& getVehicleId() const { return getId(); }
 };
 
 class SimulationCache : public VariableCache
 {
 public:
-    SimulationCache(LiteAPI& api);
+    SimulationCache(std::shared_ptr<API> api);
 };
 
 template<>

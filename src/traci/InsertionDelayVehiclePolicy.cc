@@ -74,8 +74,6 @@ VehiclePolicy::Decision InsertionDelayVehiclePolicy::addVehicle(const std::strin
     return Decision::Discard;
 }
 
-
-//void InsertionDelayNodeManager::updateVehicle(const std::string& id, MovingObjectSink* sink)
 VehiclePolicy::Decision InsertionDelayVehiclePolicy::updateVehicle(const std::string& id)
 {
     Enter_Method_Silent();

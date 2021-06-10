@@ -1,6 +1,6 @@
 #include "artery/networking/Runtime.h"
 #include "artery/networking/VehiclePositionProvider.h"
-#include "artery/traci/MobilityBase.h"
+#include "artery/traci/VehicleMobility.h"
 #include "artery/utility/InitStages.h"
 #include "inet/common/ModuleAccess.h"
 
@@ -19,10 +19,10 @@ void VehiclePositionProvider::initialize(int stage)
         auto* mobilityModule = getModuleByPath(mobilityPar);
         if (mobilityModule) {
             mobilityModule->subscribe(MobilityBase::stateChangedSignal, this);
-            if (auto mobilityBase = dynamic_cast<MobilityBase*>(mobilityModule)) {
-                mVehicleController = mobilityBase->getController<traci::VehicleController>();
+            if (auto mobilityBase = dynamic_cast<VehicleMobility*>(mobilityModule)) {
+                mVehicleController = mobilityBase->getVehicleController();
             } else {
-                error("Module on path '%s' is not a MobilityBase", mobilityModule->getFullPath().c_str());
+                error("Module on path '%s' is not a VehicleMobility", mobilityModule->getFullPath().c_str());
             }
         } else {
             error("Module not found on path '%s' defined by par '%s'",

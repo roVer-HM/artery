@@ -1,7 +1,7 @@
 #ifndef ARTERY_VEINSMOBILITY_H_JFWG67L1
 #define ARTERY_VEINSMOBILITY_H_JFWG67L1
 
-#include "artery/traci/MobilityBase.h"
+#include "artery/traci/VehicleMobility.h"
 #include <veins/base/modules/BaseMobility.h>
 #include <veins/base/utils/Coord.h>
 
@@ -9,6 +9,7 @@ namespace artery
 {
 
 class VeinsMobility : public veins::BaseMobility /* Veins */, public ControllableVehicle, public MobilityBase /* Artery */
+//class VeinsMobility : public veins::BaseMobility, public artery::VehicleMobility
 {
 public:
     void initialize(int stage) override;
@@ -18,7 +19,7 @@ private:
     void update(const Position&, Angle, double speed) override;
 
     // artery::MobilityBase
-    void initializeSink(traci::LiteAPI*, const std::string& id, const traci::Boundary&, std::shared_ptr<traci::VariableCache> cache) override;
+    // void initializeSink(traci::LiteAPI*, const std::string& id, const traci::Boundary&, std::shared_ptr<traci::VariableCache> cache) override;
 
 
 

@@ -5,12 +5,12 @@
 #include <omnetpp/ccomponent.h>
 #include "traci/Position.h"
 #include "traci/Angle.h"
-
+#include <memory>
 
 namespace traci
 {
 
-class LiteAPI;
+class API;
 
 class ITraciNodeVisitor {
 public:
@@ -45,10 +45,10 @@ public:
     virtual std::size_t getNumberOfNodes() const = 0;
 
     /**
-     * Access to lite API interface
+     * Access to TraCI API interface
      * \return API object
      */
-    virtual LiteAPI* getLiteAPI() = 0;
+    virtual std::shared_ptr<API> getAPI() = 0;
 
     virtual ~NodeManager() = default;
 

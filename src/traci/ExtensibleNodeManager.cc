@@ -108,12 +108,12 @@ void ExtensibleNodeManager::removeVehicle(const VehiclePolicy* omit, const std::
     }
 }
 
-void ExtensibleNodeManager::updateVehicle(const std::string& id, MovingObjectSink* sink)
+void ExtensibleNodeManager::updateVehicle(const std::string& id, VehicleSink* sink)
 {
     updateVehicle(nullptr, id, sink);
 }
 
-void ExtensibleNodeManager::updateVehicle(const VehiclePolicy* omit, const std::string& id, MovingObjectSink* sink)
+void ExtensibleNodeManager::updateVehicle(const VehiclePolicy* omit, const std::string& id, VehicleSink* sink)
 {
     for (VehiclePolicy* policy : m_policies) {
         if (policy != omit && policy->updateVehicle(id) == VehiclePolicy::Decision::Discard) {

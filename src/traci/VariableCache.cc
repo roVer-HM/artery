@@ -9,8 +9,8 @@
 namespace traci
 {
 
-VariableCache::VariableCache(LiteAPI& api, int command, const std::string& id) :
-    m_api(api), m_id(id), m_command(command)
+VariableCache::VariableCache(std::shared_ptr<API> api, int command, const std::string& id) :
+    TraCIScopeWrapper(*api, command, 0, 0, 0), m_api(api), m_id(id)
 {
 }
 
@@ -24,12 +24,17 @@ void VariableCache::invalidate(const int key)
     m_values.erase(key);
 }
 
-SimulationCache::SimulationCache(LiteAPI& api) :
+SimulationCache::SimulationCache(std::shared_ptr<API> api) :
     VariableCache(api, libsumo::CMD_GET_SIM_VARIABLE, "")
 {
 }
 
-VehicleCache::VehicleCache(LiteAPI& api, const std::string& vehicleID) :
+PersonCache::PersonCache(std::shared_ptr<API> api, const std::string& personID) :
+    VariableCache(api, libsumo::CMD_GET_PERSON_VARIABLE, personID)
+{
+}
+
+VehicleCache::VehicleCache(std::shared_ptr<API> api, const std::string& vehicleID) :
     VariableCache(api, libsumo::CMD_GET_VEHICLE_VARIABLE, vehicleID)
 {
 }
@@ -37,31 +42,31 @@ VehicleCache::VehicleCache(LiteAPI& api, const std::string& vehicleID) :
 template<>
 double VariableCache::retrieve<double>(int var)
 {
-    return m_api.getDouble(m_command, var, m_id);
+    return TraCIScopeWrapper::getDouble(var, m_id);
 }
 
 template<>
 libsumo::TraCIPosition VariableCache::retrieve<libsumo::TraCIPosition>(int var)
 {
-    return m_api.getPosition(m_command, var, m_id);
+    return TraCIScopeWrapper::getPos(var, m_id);
 }
 
 template<>
 std::string VariableCache::retrieve<std::string>(int var)
 {
-    return m_api.getString(m_command, var, m_id);
+    return TraCIScopeWrapper::getString(var, m_id);
 }
 
 template<>
 std::vector<std::string> VariableCache::retrieve<std::vector<std::string>>(int var)
 {
-    return m_api.getStringVector(m_command, var, m_id);
+    return TraCIScopeWrapper::getStringVector(var, m_id);
 }
 
 template<>
 int VariableCache::retrieve<int>(int var)
 {
-    return m_api.getInt(m_command, var, m_id);
+    return TraCIScopeWrapper::getInt(var, m_id);
 }
 
 } // namespace traci

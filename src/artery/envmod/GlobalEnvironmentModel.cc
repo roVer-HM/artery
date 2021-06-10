@@ -321,7 +321,7 @@ void GlobalEnvironmentModel::receiveSignal(cComponent* source, simsignal_t signa
 {
     if (signal == traciInitSignal) {
         auto core = check_and_cast<traci::Core*>(source);
-        fetchObstacles(core->getLiteAPI());
+        fetchObstacles(*core->getAPI());
     } else if (signal == traciCloseSignal) {
         clear();
     }
@@ -349,10 +349,10 @@ void GlobalEnvironmentModel::receiveSignal(cComponent*, simsignal_t signal, unsi
     }
 }
 
-void GlobalEnvironmentModel::fetchObstacles(traci::LiteAPI& traci)
+void GlobalEnvironmentModel::fetchObstacles(const traci::API& traci)
 {
-    auto& polygons = traci.polygon();
-    const traci::Boundary boundary { traci.simulation().getNetBoundary() };
+    auto& polygons = traci.polygon;
+    const traci::Boundary boundary { traci.simulation.getNetBoundary() };
     for (const std::string& id : polygons.getIDList()) {
         if (!mObstacleTypes.empty()) {
             std::string type = polygons.getType(id);
@@ -364,7 +364,7 @@ void GlobalEnvironmentModel::fetchObstacles(traci::LiteAPI& traci)
         }
 
         std::vector<Position> shape;
-        for (const traci::TraCIPosition& traci_point : polygons.getShape(id)) {
+        for (const traci::TraCIPosition& traci_point : polygons.getShape(id).value) {
             shape.push_back(traci::position_cast(boundary, traci_point));
         }
         if (shape.size() >= 3) {

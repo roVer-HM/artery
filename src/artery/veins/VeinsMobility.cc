@@ -35,13 +35,13 @@ void VeinsMobility::initialize(const Position& pos, Angle heading, double speed)
     mDirection = veins::Coord { cos(heading.radian()), -sin(heading.radian()) };
     move.setDirectionByVector(mDirection);
 }
-
+/*
 void VeinsMobility::initializeSink(traci::LiteAPI* api, const std::string& id, const traci::Boundary& boundary, std::shared_ptr<traci::VariableCache> cache)
 {
     ASSERT(api);
     ASSERT(cache);
     ASSERT(cache->getId() == id);
-    ASSERT(&cache->getLiteAPI() == api);
+    ASSERT(&cache->getAPI() == api);
     mTraci = api;
     mObjectId= id;
     mNetBoundary = boundary;
@@ -52,6 +52,7 @@ void VeinsMobility::initializeSink(traci::LiteAPI* api, const std::string& id, c
     }
     mController.reset(new traci::VehicleController(vehicleCache));
 }
+*/
 
 void VeinsMobility::update(const Position& pos, Angle heading, double speed)
 {

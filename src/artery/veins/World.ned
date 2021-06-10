@@ -40,8 +40,11 @@ network World
 
         traci: Manager {
             parameters:
-                mapper.objectType = default("artery.veins.Car");
-                nodes.objectSinkModule = default(".mobility");
+                mapper.vehicleType = default("artery.veins.Car");
+                nodes.vehicleSinkModule = default(".mobility");
+                // persons are not (yet) supported with Veins-based setup
+                mapper.personType = default("");
+                nodes.personSinkModule = default("");
                 @display("p=20,20");
         }
 

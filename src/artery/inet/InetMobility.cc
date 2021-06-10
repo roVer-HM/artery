@@ -14,7 +14,8 @@
 namespace artery
 {
 
-Define_Module(InetMobility)
+Define_Module(InetPersonMobility)
+Define_Module(InetVehicleMobility)
 
 
 int InetMobility::numInitStages() const
@@ -40,7 +41,8 @@ void InetMobility::initialize(int stage)
     }
 }
 
-void InetMobility::initializeSink(traci::LiteAPI* api, const std::string& id, const traci::Boundary& boundary, std::shared_ptr<traci::VariableCache> cache)
+/*
+void InetMobility::initializeSink(traci::API* api, const std::string& id, const traci::Boundary& boundary, std::shared_ptr<traci::VariableCache> cache)
 {
     ASSERT(api);
     ASSERT(cache);
@@ -62,6 +64,7 @@ void InetMobility::initializeSink(traci::LiteAPI* api, const std::string& id, co
     }
     mController.reset(new traci::VehicleController(vehicleCache));
 }
+*/
 
 double InetMobility::getMaxSpeed() const
 {
@@ -140,6 +143,24 @@ void InetMobility::refreshDisplay() const
         buf[sizeof(buf) - 1] = 0;
         mVisualRepresentation->getDisplayString().setTagArg("p", 1, buf);
     }
+}
+
+void InetPersonMobility::initialize(int stage)
+{
+    if (stage == 0) {
+        WATCH(mPersonId);
+    }
+
+    InetMobility::initialize(stage);
+}
+
+void InetVehicleMobility::initialize(int stage)
+{
+    if (stage == 0) {
+        WATCH(mVehicleId);
+    }
+
+    InetMobility::initialize(stage);
 }
 
 } // namespace artery

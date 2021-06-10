@@ -23,6 +23,7 @@ add_library(core SHARED
     application/NetworkInterfaceTable.cc
     application/MovingNodeDataProvider.cc
     application/PeriodicLoadService.cc
+    application/PersonMiddleware.cc
     application/RsuCaService.cc
     application/RtcmMockMessage.cc
     application/RtcmMockReceiver.cc
@@ -49,6 +50,7 @@ add_library(core SHARED
     networking/GeoNetPacket.cc
     networking/LimericDccEntity.cc
     networking/NoRateControlDccEntity.cc
+    networking/PersonPositionProvider.cc
     networking/Router.cc
     networking/Runtime.cc
     networking/SecurityEntity.cc
@@ -60,7 +62,9 @@ add_library(core SHARED
     traci/Cast.cc
     traci/MobilityBase.cc
     traci/MovingNodeController.cc
+    traci/PersonMobility.cc
     traci/VehicleController.cc
+    traci/VehicleMobility.cc
     traci/VehicleType.cc
     utility/AsioScheduler.cc
     utility/AsioTask.cc
