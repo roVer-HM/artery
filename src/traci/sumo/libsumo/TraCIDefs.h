@@ -31,6 +31,7 @@
 #include <sstream>
 #include <memory>
 #include <cstring>
+#include <omnetpp/cexception.h>
 
 
 // ===========================================================================
@@ -127,22 +128,22 @@ namespace libsumo {
  * @class TraCIException
  * @brief An error which allows to continue
  */
-class TraCIException : public std::runtime_error {
+class TraCIException : public omnetpp::cRuntimeError {
 public:
     /** constructor */
     TraCIException(std::string what)
-        : std::runtime_error(what) {}
+        : omnetpp::cRuntimeError(what.c_str()) {}
 };
 
 /**
  * @class FatalTraCIError
  * @brief An error which is not recoverable
  */
-class FatalTraCIError : public std::runtime_error {
+class FatalTraCIError : public omnetpp::cRuntimeError {
 public:
     /** constructor */
     FatalTraCIError(std::string what)
-        : std::runtime_error(what) {}
+        : omnetpp::cRuntimeError (what.c_str()) {}
 };
 
 /// @name Structures definitions

@@ -30,9 +30,18 @@
 #include <string>
 #include <stdexcept>
 #include <iostream>
+#include <omnetpp/cexception.h>
 
 namespace tcpip
 {
+
+class StorageInvalidArg : public omnetpp::cRuntimeError {
+public:
+    /** constructor */
+    StorageInvalidArg(std::string what)
+        : omnetpp::cRuntimeError(what.c_str()) {}
+};
+
 
 class Storage
 {

@@ -91,7 +91,7 @@ namespace tcpip
 	    if (pos < 0 || pos >= size()){
 	        std::stringstream os;
 	        os << "Storage::resetPosition(): position out of range. expected: [0, " << size() << " got " << pos;
-	        throw std::invalid_argument(os.str().c_str());
+	        throw StorageInvalidArg(os.str().c_str());
 	    }
 	    iter_ = store.begin();
 	    if (pos > 0){
@@ -122,7 +122,7 @@ namespace tcpip
 	{
 		if ( !valid_pos() )
 		{
-			throw std::invalid_argument("Storage::readChar(): invalid position");
+			throw StorageInvalidArg("Storage::readChar(): invalid position");
 		}
 		return readCharUnsafe();
 	}
@@ -160,7 +160,7 @@ namespace tcpip
 	{
 		if (value < -128 || value > 127)
 		{
-			throw std::invalid_argument("Storage::writeByte(): Invalid value, not in [-128, 127]");
+			throw StorageInvalidArg("Storage::writeByte(): Invalid value, not in [-128, 127]");
 		}
 		writeChar( static_cast<unsigned char>( (value+256) % 256 ) );
 	}
@@ -185,7 +185,7 @@ namespace tcpip
 	{
 		if (value < 0 || value > 255)
 		{
-			throw std::invalid_argument("Storage::writeUnsignedByte(): Invalid value, not in [0, 255]");
+			throw StorageInvalidArg("Storage::writeUnsignedByte(): Invalid value, not in [0, 255]");
 		}
 		writeChar( static_cast<unsigned char>( value ));
 	}
@@ -323,7 +323,7 @@ namespace tcpip
 	{
 		if (value < -32768 || value > 32767)
 		{
-			throw std::invalid_argument("Storage::writeShort(): Invalid value, not in [-32768, 32767]");
+			throw StorageInvalidArg("Storage::writeShort(): Invalid value, not in [-32768, 32767]");
 		}
 
 		short svalue = static_cast<short>(value);
@@ -445,7 +445,7 @@ namespace tcpip
 			std::ostringstream msg;
 			msg << "tcpip::Storage::readIsSafe: want to read "  << num << " bytes from Storage, "
 				<< "but only " << std::distance(iter_, store.end()) << " remaining";
-			throw std::invalid_argument(msg.str());
+			throw StorageInvalidArg(msg.str());
 		}
 	}
 
