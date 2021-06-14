@@ -167,6 +167,10 @@ struct TraCIPosition : TraCIResult {
         os << "TraCIPosition(" << x << "," << y << "," << z << ")";
         return os.str();
     }
+    TraCIPosition(){};
+    TraCIPosition(double x, double y, double z =0.0)
+        : x(x), y(y), z(z) {}
+
     double x = INVALID_DOUBLE_VALUE, y = INVALID_DOUBLE_VALUE, z = INVALID_DOUBLE_VALUE;
 };
 
@@ -214,6 +218,8 @@ struct TraCIPositionVector : TraCIResult {
         os << "]";
         return os.str();
     }
+    TraCIPositionVector(){}
+    TraCIPositionVector(std::vector<TraCIPosition> vec): value(vec){}
     std::vector<TraCIPosition> value;
 };
 

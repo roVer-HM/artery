@@ -2,6 +2,7 @@
 #define LAUNCHER_H_NAC0X8JG
 
 #include <string>
+#include <memory>
 #include"traci/TraCIApiProvider.h"
 
 namespace traci
@@ -23,6 +24,7 @@ public:
 
     virtual ~Launcher() = default;
     virtual ServerEndpoint launch() = 0;
+    virtual std::shared_ptr<API> createAPI() override { return std::make_shared<API>(); }
 };
 
 } // namespace traci

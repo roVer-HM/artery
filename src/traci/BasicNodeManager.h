@@ -51,13 +51,10 @@ public:
         virtual std::shared_ptr<VehicleCache> getCache() const = 0;
     };
 
-    class PersonObject : public omnetpp::cObject
+    class PersonObject : public NodeManager::MovingObject
     {
     public:
         virtual std::shared_ptr<PersonCache> getCache() const = 0;
-        virtual const TraCIPosition& getPosition() const = 0;
-        virtual TraCIAngle getHeading() const = 0;
-        virtual double getSpeed() const = 0;
     };
 
 protected:

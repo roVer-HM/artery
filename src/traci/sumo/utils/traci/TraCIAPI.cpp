@@ -482,6 +482,15 @@ TraCIAPI::load(const std::vector<std::string>& args) {
     check_resultState(inMsg, libsumo::CMD_LOAD);
 }
 
+void
+TraCIAPI::createResponse(tcpip::Storage& response, int cmd, int result, std::string description) {
+    response.writeUnsignedByte(0);
+    // 5 (lenght field), 1 cmd, 1 result, 4 (string int), length of description
+    response.writeInt(5 + 1 + 1 + 4 + description.size());
+    response.writeUnsignedByte(cmd);
+    response.writeUnsignedByte(result);
+    response.writeString(description);
+}
 
 std::pair<int, std::string>
 TraCIAPI::getVersion() {
@@ -3723,6 +3732,23 @@ TraCIAPI::TraCIScopeWrapper::setStringVector(int var, const std::string& id, con
     }
     myParent.createCommand(myCmdSetID, var, id, &content);
     myParent.processSet(myCmdSetID);
+}
+
+void
+TraCIAPI::TraCIScopeWrapper::createSetCommand(int varID, const std::string& objID, tcpip::Storage* add) const{
+    myParent.createCommand(myCmdSetID, varID, objID, add);
+}
+bool TraCIAPI::TraCIScopeWrapper::processSet() const{
+    return myParent.processSet(myCmdSetID);
+}
+
+void
+TraCIAPI::TraCIScopeWrapper::createGetCommand(int varID, const std::string& objID, tcpip::Storage* add) const{
+    myParent.createCommand(myCmdGetID, varID, objID, add);
+}
+
+tcpip::Storage& TraCIAPI::TraCIScopeWrapper::getInput() const{
+    return myParent.myInput;
 }
 
 

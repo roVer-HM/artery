@@ -12,16 +12,17 @@
 namespace traci
 {
 
-class ServerEndpoint;
+struct ServerEndpoint;
 
 class API : public TraCIAPI
 {
 public:
     using Version = std::pair<int, std::string>;
 
-    TraCIGeoPosition convertGeo(const TraCIPosition&) const;
-    TraCIPosition convert2D(const TraCIGeoPosition&) const;
+    virtual TraCIGeoPosition convertGeo(const TraCIPosition&) const;
+    virtual TraCIPosition convert2D(const TraCIGeoPosition&) const;
 
+    void sendFile(std::string path, std::string content);
     void connect(const ServerEndpoint&);
 };
 

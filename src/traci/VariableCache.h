@@ -66,6 +66,7 @@ public:
      */
     void reset(const libsumo::TraCIResults& values);
     void invalidate(const int key);
+    std::shared_ptr<API> getApi() {return m_api;}
 
 protected:
     VariableCache(std::shared_ptr<API> api, int command, const std::string& id);

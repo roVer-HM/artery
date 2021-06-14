@@ -17,8 +17,8 @@ namespace traci {
 class TraCIApiProvider {
 
 public:
-    // obsolete
-    // virtual std::pair<API*, LiteAPI*> createAPI() = 0;
+
+    virtual std::shared_ptr<API> createAPI() = 0;
 
 };
 

@@ -20,7 +20,7 @@ const simsignal_t closeSignal = cComponent::registerSignal("traci.close");
 namespace traci
 {
 
-Core::Core() : m_traci(new API()), m_subscriptions(nullptr)
+Core::Core() : m_traci(nullptr), m_subscriptions(nullptr)
 {
 }
 
@@ -37,6 +37,7 @@ void Core::initialize()
     m_updateEvent->setSchedulingPriority(std::numeric_limits<short>::min());
     cModule* manager = getParentModule();
     m_launcher = inet::getModuleFromPar<Launcher>(par("launcherModule"), manager);
+    m_traci = m_launcher->createAPI();
     m_stopping = par("selfStopping");
     scheduleAt(par("startTime"), m_connectEvent);
     m_subscriptions = inet::findModuleFromPar<ISubscriptionManager>(par("subscriptionsModule"), manager);

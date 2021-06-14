@@ -77,6 +77,9 @@ public:
     /// @brief Let sumo load a simulation using the given command line like options.
     void load(const std::vector<std::string>& args);
 
+    /// @brief Create response command
+    void createResponse(tcpip::Storage& response, int cmd, int result = libsumo::RTYPE_OK, std::string description = "");
+
     /// @brief return TraCI API and SUMO version
     std::pair<int, std::string> getVersion();
 
@@ -144,6 +147,12 @@ public:
         void setDouble(int var, const std::string& id, double value) const;
         void setString(int var, const std::string& id, const std::string& value) const;
         void setStringVector(int var, const std::string& id, const std::vector<std::string>& value) const;
+
+        void createSetCommand(int varID, const std::string& objID, tcpip::Storage* add= nullptr) const;
+        bool processSet() const;
+        void createGetCommand(int varID, const std::string& objID, tcpip::Storage* add= nullptr) const;
+        tcpip::Storage& getInput() const;
+
 
     protected:
         /// @brief The parent TraCI client which offers the connection

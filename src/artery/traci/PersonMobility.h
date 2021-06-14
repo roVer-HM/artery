@@ -16,9 +16,9 @@ class PersonMobility :
 {
 public:
     // traci::PersonSink interface
-    void initializeSink(std::shared_ptr<traci::API>, std::shared_ptr<traci::PersonCache>, const traci::Boundary&) override;
-    void initializePerson(const traci::TraCIPosition&, traci::TraCIAngle, double speed) override;
-    void updatePerson(const traci::TraCIPosition&, traci::TraCIAngle, double speed) override;
+    virtual void initializeSink(std::shared_ptr<traci::API>, std::shared_ptr<traci::PersonCache>, const traci::Boundary&) override;
+    virtual void initializePerson(const traci::TraCIPosition&, traci::TraCIAngle, double speed) override;
+    virtual void updatePerson(const traci::TraCIPosition&, traci::TraCIAngle, double speed) override;
 
     const std::string& getPersonId() const { return mPersonId; }
     double getSpeed() const { return mSpeed; }

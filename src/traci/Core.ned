@@ -5,6 +5,7 @@ simple Core like ICore
 {
     parameters:
         @class(traci::Core);
+        @signal[traci.connected](type=simtime_t);
         @signal[traci.init](type=simtime_t);
         @signal[traci.step](type=simtime_t);
         @signal[traci.close](type=simtime_t);
