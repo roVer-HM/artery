@@ -3747,6 +3747,11 @@ TraCIAPI::TraCIScopeWrapper::createGetCommand(int varID, const std::string& objI
     myParent.createCommand(myCmdGetID, varID, objID, add);
 }
 
+bool
+TraCIAPI::TraCIScopeWrapper::processGet(int expectedType, bool ignoreCommandId) const{
+    return myParent.processGet(myCmdGetID, expectedType, ignoreCommandId);
+}
+
 tcpip::Storage& TraCIAPI::TraCIScopeWrapper::getInput() const{
     return myParent.myInput;
 }

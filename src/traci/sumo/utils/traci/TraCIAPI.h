@@ -151,6 +151,7 @@ public:
         void createSetCommand(int varID, const std::string& objID, tcpip::Storage* add= nullptr) const;
         bool processSet() const;
         void createGetCommand(int varID, const std::string& objID, tcpip::Storage* add= nullptr) const;
+        bool processGet(int expectedType, bool ignoreCommandId = false) const;
         tcpip::Storage& getInput() const;
 
 
