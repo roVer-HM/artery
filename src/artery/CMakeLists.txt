@@ -24,6 +24,7 @@ add_library(core SHARED
     application/MovingNodeDataProvider.cc
     application/PeriodicLoadService.cc
     application/PersonMiddleware.cc
+    application/PersonMiddlewareEmpty.cc
     application/RsuCaService.cc
     application/RtcmMockMessage.cc
     application/RtcmMockReceiver.cc
