@@ -12,6 +12,7 @@ using std::endl;
 
 namespace
 {
+const simsignal_t connectedSignal = cComponent::registerSignal("traci.connected");
 const simsignal_t initSignal = cComponent::registerSignal("traci.init");
 const simsignal_t stepSignal = cComponent::registerSignal("traci.step");
 const simsignal_t closeSignal = cComponent::registerSignal("traci.close");
@@ -66,6 +67,9 @@ void Core::handleMessage(cMessage* msg)
     } else if (msg == m_connectEvent) {
         m_traci->connect(m_launcher->launch());
         checkVersion();
+        // pre subscribe
+        m_launcher->initializeServer(m_traci);
+        emit(connectedSignal, simTime());
         syncTime();
         emit(initSignal, simTime());
         m_updateInterval = Time { m_traci->simulation.getDeltaT() };

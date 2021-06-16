@@ -25,6 +25,7 @@ public:
     virtual ~Launcher() = default;
     virtual ServerEndpoint launch() = 0;
     virtual std::shared_ptr<API> createAPI() override { return std::make_shared<API>(); }
+    virtual void initializeServer(std::shared_ptr<API> api) {}; // call after connect
 };
 
 } // namespace traci
