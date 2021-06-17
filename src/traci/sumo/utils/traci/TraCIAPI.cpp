@@ -286,6 +286,9 @@ TraCIAPI::check_resultState(tcpip::Storage& inMsg, int command, bool ignoreComma
     }
     switch (resultType) {
         case libsumo::RTYPE_ERR:
+            if (msg == "Simulation end reached."){
+                throw omnetpp::cTerminationException("TraCI server reported Simulation end reached.");
+            }
             throw libsumo::TraCIException(".. Answered with error to command (" + toString(command) + "), [description: " + msg + "]");
         case libsumo::RTYPE_NOTIMPLEMENTED:
             throw libsumo::TraCIException(".. Sent command is not implemented (" + toString(command) + "), [description: " + msg + "]");
