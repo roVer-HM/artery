@@ -17,7 +17,7 @@ simple MiddlewareBase like IMiddleware {
 }
 
 // Middleware for ITS G5 services
-simple Middleware extends MiddlewareBase
+simple Middleware extends MiddlewareBase like IMiddleware
 {
 	parameters:
 		@class(Middleware);
