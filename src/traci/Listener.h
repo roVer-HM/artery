@@ -21,6 +21,7 @@ private:
     virtual void traciStep();
     virtual void traciClose();
 
+
     omnetpp::cComponent* m_publisher;
 };
 
