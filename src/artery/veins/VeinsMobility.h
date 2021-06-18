@@ -9,7 +9,6 @@ namespace artery
 {
 
 class VeinsMobility : public veins::BaseMobility /* Veins */, public ControllableVehicle, public MobilityBase /* Artery */
-//class VeinsMobility : public veins::BaseMobility, public artery::VehicleMobility
 {
 public:
     void initialize(int stage) override;
@@ -17,10 +16,6 @@ public:
 private:
     void initialize(const Position&, Angle, double speed) override;
     void update(const Position&, Angle, double speed) override;
-
-    // artery::MobilityBase
-    // void initializeSink(traci::LiteAPI*, const std::string& id, const traci::Boundary&, std::shared_ptr<traci::VariableCache> cache) override;
-
 
 
     traci::MovingNodeController* getControllerBase() override {

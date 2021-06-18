@@ -41,30 +41,6 @@ void InetMobility::initialize(int stage)
     }
 }
 
-/*
-void InetMobility::initializeSink(traci::API* api, const std::string& id, const traci::Boundary& boundary, std::shared_ptr<traci::VariableCache> cache)
-{
-    ASSERT(api);
-    ASSERT(cache);
-    ASSERT(cache->getId() == id);
-    ASSERT(&cache->getLiteAPI() == api);
-    mTraci = api;
-    mObjectId= id;
-    mNetBoundary = boundary;
-
-    const auto& max = mNetBoundary.upperRightPosition();
-    mConstrainedAreaMax = inet::Coord { max.x, max.y, max.z };
-
-    const auto& min = mNetBoundary.lowerLeftPosition();
-    mConstrainedAreaMin = inet::Coord { min.x, min.y, min.z };
-
-    std::shared_ptr<traci::VehicleCache> vehicleCache =  std::dynamic_pointer_cast<traci::VehicleCache> (cache);
-    if (!vehicleCache){
-        //todo
-    }
-    mController.reset(new traci::VehicleController(vehicleCache));
-}
-*/
 
 double InetMobility::getMaxSpeed() const
 {
