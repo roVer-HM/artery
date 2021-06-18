@@ -5,70 +5,18 @@
 namespace traci
 {
 
-API::Version API::getVersion() const
-{
-    using constants::CMD_GETVERSION;
-
-    tcpip::Storage outMsg;
-    outMsg.writeUnsignedByte(1 + 1);
-    outMsg.writeUnsignedByte(CMD_GETVERSION);
-    mySocket->sendExact(outMsg);
-
-    tcpip::Storage inMsg;
-    check_resultState(inMsg, CMD_GETVERSION);
-    int cmdId = check_commandGetResult(inMsg, 0, -1, true);
-    if (cmdId != constants::CMD_GETVERSION) {
-        throw tcpip::SocketException("#Error: rceived status response to command: " + toString(cmdId) + " but expected: " + toString(CMD_GETVERSION));
-    }
-
-    Version v;
-    v.first = inMsg.readInt();
-    v.second = inMsg.readString();
-    return v;
-}
-
 TraCIGeoPosition API::convertGeo(const TraCIPosition& pos) const
 {
-    using namespace constants;
-
-    tcpip::Storage addParams;
-    addParams.writeUnsignedByte(TYPE_COMPOUND);
-    addParams.writeInt(2);
-    addParams.writeUnsignedByte(POSITION_2D);
-    addParams.writeDouble(pos.x);
-    addParams.writeDouble(pos.y);
-    addParams.writeUnsignedByte(TYPE_UBYTE);
-    addParams.writeUnsignedByte(POSITION_LON_LAT);
-    send_commandGetVariable(CMD_GET_SIM_VARIABLE, POSITION_CONVERSION, "", &addParams);
-
-    tcpip::Storage inMsg;
-    processGET(inMsg, CMD_GET_SIM_VARIABLE, POSITION_LON_LAT);
+    libsumo::TraCIPosition result = simulation.convertGeo(pos.x, pos.y, false);
     TraCIGeoPosition geo;
-    geo.longitude = inMsg.readDouble();
-    geo.latitude = inMsg.readDouble();
+    geo.longitude = result.x;
+    geo.latitude = result.y;
     return geo;
 }
 
 TraCIPosition API::convert2D(const TraCIGeoPosition& pos) const
 {
-    using namespace constants;
-
-    tcpip::Storage addParams;
-    addParams.writeUnsignedByte(TYPE_COMPOUND);
-    addParams.writeInt(2);
-    addParams.writeUnsignedByte(POSITION_LON_LAT);
-    addParams.writeDouble(pos.longitude);
-    addParams.writeDouble(pos.latitude);
-    addParams.writeUnsignedByte(TYPE_UBYTE);
-    addParams.writeUnsignedByte(POSITION_2D);
-    send_commandGetVariable(CMD_GET_SIM_VARIABLE, POSITION_CONVERSION, "", &addParams);
-
-    tcpip::Storage inMsg;
-    processGET(inMsg, CMD_GET_SIM_VARIABLE, POSITION_2D);
-    TraCIPosition xyPos;
-    xyPos.x = inMsg.readDouble();
-    xyPos.y = inMsg.readDouble();
-    return xyPos;
+    return simulation.convertGeo(pos.longitude, pos.latitude, true);
 }
 
 void API::sendFile(std::string path, std::string content){

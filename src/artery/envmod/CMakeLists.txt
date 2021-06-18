@@ -7,11 +7,12 @@ add_artery_feature(envmod
     PreselectionRtree.cc
     sensor/BaseSensor.cc
     sensor/CamSensor.cc
-    sensor/FrontRadar.cc
+    sensor/FovSensor.cc
     sensor/RadarSensor.cc
-    sensor/RearRadar.cc
+    sensor/SeeThroughSensor.cc
     sensor/SensorConfiguration.cc
     sensor/SensorPosition.cc
-    sensor/SensorVisualizationConfig.cc
+    service/CollectivePerceptionMockMessage.cc
+    service/CollectivePerceptionMockService.cc
     service/EnvmodPrinter.cc
 )

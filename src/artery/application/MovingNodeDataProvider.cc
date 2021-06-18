@@ -40,20 +40,6 @@ const std::map<MovingNodeDataProvider::AngularAcceleration, double> MovingNodeDa
     { AngularAcceleration(std::numeric_limits<double>::infinity() * degree_per_second_squared), 0.0 }
 };
 
-vanetza::units::Angle convertMobilityAngle(Angle angle)
-{
-    using vanetza::units::si::radians;
-    // change rotation ccw -> cw
-    angle.value *= -1.0;
-    // rotate zero from east to north
-    angle.value += 0.5 * pi * radians;
-    // normalize angle to [0; 2*pi[
-    angle.value -= 2.0 * pi * radians * std::floor(angle.value / (2.0 * pi * radians));
-
-    assert(angle.value >= 0.0 * radians);
-    assert(angle.value < 2.0 * pi * radians);
-    return angle.value;
-}
 
 MovingNodeDataProvider::MovingNodeDataProvider() :
         MovingNodeDataProvider(rand()){}
@@ -71,47 +57,50 @@ MovingNodeDataProvider::MovingNodeDataProvider(uint32_t id) :
 }
 
 MovingNodeDataProvider::~MovingNodeDataProvider() {
-    // TODO Auto-generated destructor stub
 }
 
+void MovingNodeDataProvider::setStationId(uint32_t id)
+{
+    mStationId = id;
+}
 
 void MovingNodeDataProvider::calculateCurvature()
 {
     using namespace vanetza::units::si;
-    static const vanetza::units::Frequency f_cut = 0.33 * hertz;
-    static const vanetza::units::Duration t_sample = 0.1 * seconds;
-    static const vanetza::units::Curvature lower_threshold = 1.0 / 2500.0 * vanetza::units::reciprocal_metre;
-    static const vanetza::units::Curvature upper_threshold = 1.0 * vanetza::units::reciprocal_metre;
-    static const double damping = 1.0;
+        static const vanetza::units::Frequency f_cut = 0.33 * hertz;
+        static const vanetza::units::Duration t_sample = 0.1 * seconds;
+        static const vanetza::units::Curvature lower_threshold = 1.0 / 2500.0 * vanetza::units::reciprocal_metre;
+        static const vanetza::units::Curvature upper_threshold = 1.0 * vanetza::units::reciprocal_metre;
+        static const double damping = 1.0;
 
-    if (fabs(mSpeed) < 1.0 * meter_per_second) {
-        // assume straight road below minimum speed
-        mCurvature = 0.0 * vanetza::units::reciprocal_metre;
-    } else {
-        // curvature calculation algorithm
-        mCurvature = (mYawRate / radians) / mSpeed;
-
-        if (!mCurvatureOutput.full()) {
-            // save first two values for initialization
-            mCurvatureOutput.push_front(mCurvature);
+        if (fabs(mVehicleKinematics.speed) < 1.0 * meter_per_second) {
+            // assume straight road below minimum speed
             mCurvature = 0.0 * vanetza::units::reciprocal_metre;
         } else {
-            static const auto omega = 2.0 * pi * f_cut;
-            mCurvature = - mCurvatureOutput[1] +
-                (2.0 + 2.0 * omega * damping * t_sample) * mCurvatureOutput[0] +
-                omega * omega * t_sample * t_sample * mCurvature;
-            mCurvature /= 1.0 + 2.0 * omega * damping * t_sample + omega * omega * t_sample * t_sample;
-            mCurvatureOutput.push_front(mCurvature);
+            // curvature calculation algorithm
+            mCurvature = (mVehicleKinematics.yaw_rate / radians) / mVehicleKinematics.speed;
 
-            // assume straight road below threshold
-            if (fabs(mCurvature) < lower_threshold) {
+            if (!mCurvatureOutput.full()) {
+                // save first two values for initialization
+                mCurvatureOutput.push_front(mCurvature);
                 mCurvature = 0.0 * vanetza::units::reciprocal_metre;
-            } else if (fabs(mCurvature) > upper_threshold) {
-                // clamp minimum radius to 1 meter
-                mCurvature = upper_threshold;
+            } else {
+                static const auto omega = 2.0 * pi * f_cut;
+                mCurvature = - mCurvatureOutput[1] +
+                    (2.0 + 2.0 * omega * damping * t_sample) * mCurvatureOutput[0] +
+                    omega * omega * t_sample * t_sample * mCurvature;
+                mCurvature /= 1.0 + 2.0 * omega * damping * t_sample + omega * omega * t_sample * t_sample;
+                mCurvatureOutput.push_front(mCurvature);
+
+                // assume straight road below threshold
+                if (fabs(mCurvature) < lower_threshold) {
+                    mCurvature = 0.0 * vanetza::units::reciprocal_metre;
+                } else if (fabs(mCurvature) > upper_threshold) {
+                    // clamp minimum radius to 1 meter
+                    mCurvature = upper_threshold;
+                }
             }
         }
-    }
 }
 
 void MovingNodeDataProvider::calculateCurvatureConfidence()
@@ -125,52 +114,60 @@ void MovingNodeDataProvider::calculateCurvatureConfidence()
 
     AngularAcceleration filter = -mCurvatureConfidenceOutput[1] +
         (2.0 + 2.0 * omega * damping * t_sample) * mCurvatureConfidenceOutput[0] +
-        omega * omega * t_sample * mYawRate -
+        omega * omega * t_sample * mVehicleKinematics.yaw_rate -
         omega * omega * t_sample * mCurvatureConfidenceInput;
     filter /= 1.0 + 2.0 * omega * damping * t_sample + omega * omega * t_sample * t_sample;
     mCurvatureConfidenceOutput.push_front(filter);
-    mCurvatureConfidenceInput = mYawRate;
+    mCurvatureConfidenceInput = mVehicleKinematics.yaw_rate;
     mConfidence = mapOntoConfidence(abs(filter));
+
 }
 
-void MovingNodeDataProvider::update(const traci::MovingNodeController* controller)
+void MovingNodeDataProvider::update(const VehicleKinematics& dynamics)
 {
     using namespace omnetpp;
     using namespace vanetza::units::si;
-    using boost::units::si::milli;
+    using boost::units::isnan;
+
     const vanetza::units::Duration delta {
-        (simTime() - mLastUpdate).inUnit(SIMTIME_MS) * milli * seconds
+        (simTime() - mLastUpdate).inUnit(SIMTIME_MS) * boost::units::si::milli * seconds
     };
 
-    if (delta > 0.0 * seconds) {
-        using boost::units::abs;
-        auto new_speed = controller->getSpeed();
-        mAccel = (new_speed - mSpeed) / delta;
-        mSpeed = new_speed;
 
-        auto new_heading = convertMobilityAngle(controller->getHeading());
-        auto diff_heading = mHeading - new_heading; // left turn positive
-        if (diff_heading > pi * radian) {
-            diff_heading -= 2.0 * pi * radians;
-        } else if (diff_heading < -pi * radians) {
-            diff_heading += 2.0 * pi * radians;
+    if (delta > 0.0 * seconds) {
+        const auto old_heading = mVehicleKinematics.heading;
+        const auto old_speed = mVehicleKinematics.speed;
+        mVehicleKinematics = dynamics;
+
+        if (isnan(mVehicleKinematics.acceleration)) {
+            mVehicleKinematics.acceleration = (mVehicleKinematics.speed - old_speed) / delta;
         }
 
-        mYawRate = diff_heading / delta;
-        mHeading = new_heading;
+        if (isnan(mVehicleKinematics.yaw_rate)) {
+            auto diff_heading = old_heading - mVehicleKinematics.heading; // left turn positive
+            if (diff_heading > pi * radian) {
+                diff_heading -= 2.0 * pi * radians;
+            } else if (diff_heading < -pi * radians) {
+                diff_heading += 2.0 * pi * radians;
+            }
+             mVehicleKinematics.yaw_rate = diff_heading / delta;
+        }
     } else if (delta < 0.0 * seconds) {
         // initialization
-        mSpeed = controller->getSpeed();
-        mHeading = convertMobilityAngle(controller->getHeading());
+        mVehicleKinematics = dynamics;
+
+        if (isnan(mVehicleKinematics.acceleration)) {
+            mVehicleKinematics.acceleration = vanetza::units::Acceleration::from_value(0.0);
+        }
+        if (isnan(mVehicleKinematics.yaw_rate)) {
+            mVehicleKinematics.yaw_rate = vanetza::units::AngularVelocity::from_value(0.0);
+        }
     } else {
         // update has been called for this time step already before
         return;
     }
 
-    mPosition = controller->getPosition();
-    mGeoPosition = controller->getGeoPosition();
     mLastUpdate = simTime();
-
     calculateCurvature();
     calculateCurvatureConfidence();
 }

@@ -4,7 +4,7 @@
 namespace traci
 {
 
-Define_Module(TestbedModuleMapper);
+Define_Module(TestbedModuleMapper)
 
 void TestbedModuleMapper::initialize()
 {
@@ -13,9 +13,14 @@ void TestbedModuleMapper::initialize()
     BasicModuleMapper::initialize();
 }
 
-omnetpp::cModuleType* TestbedModuleMapper::getMovingObjectType(NodeManager& manager, const std::string& id)
+omnetpp::cModuleType* TestbedModuleMapper::vehicle(NodeManager& manager, const std::string& id)
 {
-    return m_twinId == id ? m_twinType : BasicModuleMapper::getMovingObjectType(manager, id);
+    return m_twinId == id ? m_twinType : BasicModuleMapper::vehicle(manager, id);
+}
+
+omnetpp::cModuleType* TestbedModuleMapper::person(NodeManager& manager, const std::string& id)
+{
+    return m_twinId == id ? m_twinType : BasicModuleMapper::person(manager, id);
 }
 
 } /* namespace traci */

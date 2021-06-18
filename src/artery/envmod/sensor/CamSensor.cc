@@ -19,10 +19,11 @@ namespace artery
 
 static const simsignal_t CamReceivedSignal = cComponent::registerSignal("CamReceived");
 
-Define_Module(CamSensor);
+Define_Module(CamSensor)
 
 void CamSensor::initialize()
 {
+    mValidityPeriod = par("validityPeriod");
     BaseSensor::initialize();
     mIdentityRegistry = inet::getModuleFromPar<IdentityRegistry>(par("identityRegistryModule"), this);
     getMiddleware().subscribe(CamReceivedSignal, this);
@@ -62,13 +63,20 @@ void CamSensor::receiveSignal(cComponent*, simsignal_t signal, cObject *obj, cOb
 
 omnetpp::SimTime CamSensor::getValidityPeriod() const
 {
-    return omnetpp::SimTime { 1100, SIMTIME_MS };
+    return mValidityPeriod;
 }
 
 const std::string& CamSensor::getSensorCategory() const
 {
     static const std::string category = "CA";
     return category;
+}
+
+SensorDetection CamSensor::detectObjects(ObstacleRtree&, PreselectionMethod&) const
+{
+    // return empty sensor detection because CAM objects are added upon CAM reception signal
+    SensorDetection detection;
+    return detection;
 }
 
 } // namespace artery

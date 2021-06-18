@@ -1,5 +1,7 @@
 #include "artery/networking/GeoNetPacket.h"
 
+Register_Class(artery::GeoNetPacket)
+
 namespace artery
 {
 
@@ -10,10 +12,13 @@ GeoNetPacket::GeoNetPacket(const GeoNetPacket& other)
 
 GeoNetPacket& GeoNetPacket::operator=(const GeoNetPacket& other)
 {
-    if (other.mPayload) {
-        mPayload.reset(new vanetza::PacketVariant(*other.mPayload));
-    } else {
-        mPayload.reset();
+    if (&other != this) {
+        cPacket::operator=(other);
+        if (other.mPayload) {
+            mPayload.reset(new vanetza::PacketVariant(*other.mPayload));
+        } else {
+            mPayload.reset();
+        }
     }
     return *this;
 }

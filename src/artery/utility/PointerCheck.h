@@ -18,7 +18,13 @@ T* notNullPtr(T* ptr)
 }
 
 template<typename T>
-T* notNullPtr(std::unique_ptr<T>& ptr)
+T* notNullPtr(const std::unique_ptr<T>& ptr)
+{
+    return notNullPtr(ptr.get());
+}
+
+template<typename T>
+T* notNullPtr(const std::shared_ptr<T>& ptr)
 {
     return notNullPtr(ptr.get());
 }

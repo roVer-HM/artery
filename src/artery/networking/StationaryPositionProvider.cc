@@ -1,6 +1,7 @@
 #include "artery/networking/StationaryPositionProvider.h"
+#include "artery/traci/Cast.h"
+#include "traci/API.h"
 #include "traci/Core.h"
-#include "traci/LiteAPI.h"
 #include "traci/Position.h"
 #include <inet/mobility/contract/IMobility.h>
 #include <inet/common/ModuleAccess.h>
@@ -23,8 +24,8 @@ void StationaryPositionProvider::initialize(int stage)
 
 void StationaryPositionProvider::traciInit()
 {
-    auto pos = getInitialPosition();
-    initializePosition(pos);
+    mCartesianPosition = getInitialPosition();
+    initializePosition(mCartesianPosition);
 }
 
 Position StationaryPositionProvider::getInitialPosition()
@@ -34,7 +35,7 @@ Position StationaryPositionProvider::getInitialPosition()
         inet::Coord inet_pos = mobility->getCurrentPosition();
         return Position { inet_pos.x, inet_pos.y };
     } else if (auto mobility = dynamic_cast<veins::BaseMobility*>(mobilityModule)) {
-        veins::Coord veins_pos = mobility->getPositionAt(simTime());
+        veins::Coord veins_pos = mobility->getPositionAt(omnetpp::simTime());
         return Position { veins_pos.x, veins_pos.y };
     } else {
         error("no suitable mobility module found");
@@ -46,9 +47,11 @@ void StationaryPositionProvider::initializePosition(const Position& pos)
 {
     // TODO inet::IGeographicCoordinateSystem provided by TraCI module would be nice
     auto traci = inet::getModuleFromPar<traci::Core>(par("traciCoreModule"), this);
-    traci::LiteAPI& api = traci->getLiteAPI();
-    const traci::Boundary boundary { api.simulation().getNetBoundary() };
-    traci::TraCIGeoPosition geopos = api.convertGeo(traci::position_cast(boundary, Position { pos.x, pos.y }));
+    auto api = traci->getAPI();
+    const traci::Boundary boundary { api->simulation.getNetBoundary() };
+    traci::TraCIGeoPosition geopos = api->convertGeo(traci::position_cast(boundary, Position { pos.x, pos.y }));
+    mGeodeticPosition.latitude = geopos.latitude * boost::units::degree::degree;
+    mGeodeticPosition.longitude = geopos.longitude * boost::units::degree::degree;
 
     using namespace vanetza::units;
     mPositionFix.timestamp = inet::getModuleFromPar<vanetza::Runtime>(par("runtimeModule"), this)->now();
@@ -56,6 +59,7 @@ void StationaryPositionProvider::initializePosition(const Position& pos)
     mPositionFix.longitude = geopos.longitude * degree;
     mPositionFix.confidence.semi_minor = 1.0 * si::meter;
     mPositionFix.confidence.semi_major = 1.0 * si::meter;
+    mPositionFix.course.assign(TrueNorth {}, TrueNorth {});
     mPositionFix.speed.assign(0.0 * si::meter_per_second, 0.0 * si::meter_per_second);
 
     // prevent signal listeners to modify our position data

@@ -1,5 +1,5 @@
-Submodules inte4, simulte and veins are removed because
-they are provided elsewere in the setup of roVer.
+Submodules inet4, simulte and veins are removed because
+they are provided as crowNet submodule in the crowNet framework.
 See tag *rover_dependency_handling* for devergence of upstream
 artery.
 

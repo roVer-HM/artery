@@ -19,7 +19,7 @@ using namespace omnetpp;
 namespace artery
 {
 
-Define_Module(LocalEnvironmentModel);
+Define_Module(LocalEnvironmentModel)
 
 static const simsignal_t EnvironmentModelRefreshSignal = cComponent::registerSignal("EnvironmentModel.refresh");
 
@@ -73,7 +73,7 @@ void LocalEnvironmentModel::complementObjects(const SensorDetection& detection, 
          Tracking& tracking = foundObject->second;
          tracking.tap(&sensor);
       } else {
-         mObjects.emplace(detectedObject, Tracking { &sensor });
+         mObjects.emplace(detectedObject, Tracking { ++mTrackingCounter, &sensor });
       }
    }
 }
@@ -113,23 +113,27 @@ void LocalEnvironmentModel::initializeSensors()
                 sensor_name = module_type->getName();
             }
 
-            cModule* module = module_type->createScheduleInit(sensor_name, this);
+            cModule* module = module_type->create(sensor_name, this);
+            module->finalizeParameters();
+            module->buildInside();
             auto sensor = dynamic_cast<artery::Sensor*>(module);
 
             if (sensor != nullptr) {
-                cXMLElement* vis_cfg = sensor_cfg->getFirstChildWithTag("visualization");
-                sensor->setVisualization(SensorVisualizationConfig(vis_cfg));
+                // set sensor name at very early stage so it is available during sensor initialization
+                sensor->setSensorName(sensor_name);
             } else {
                 throw cRuntimeError("%s is not of type Sensor", module_type->getFullName());
             }
 
+            module->scheduleStart(simTime());
+            module->callInitialize();
             mSensors.push_back(sensor);
         }
     }
 }
 
 
-LocalEnvironmentModel::Tracking::Tracking(const Sensor* sensor)
+LocalEnvironmentModel::Tracking::Tracking(int id, const Sensor* sensor) : mId(id)
 {
     mSensors.emplace(sensor, TrackingTime {});
 }
@@ -191,6 +195,23 @@ TrackedObjectsFilterRange filterBySensorCategory(const LocalEnvironmentModel::Tr
 
     auto begin = boost::make_filter_iterator(seenByCategory, all.begin(), all.end());
     auto end = boost::make_filter_iterator(seenByCategory, all.end(), all.end());
+    return boost::make_iterator_range(begin, end);
+}
+
+TrackedObjectsFilterRange filterBySensorName(const LocalEnvironmentModel::TrackedObjects& all, const std::string& name)
+{
+    // capture `category` by value because lambda expression will be evaluated after this function's return
+    TrackedObjectsFilterPredicate seenByName = [name](const LocalEnvironmentModel::TrackedObject& obj) {
+        const auto& detections = obj.second.sensors();
+        return std::any_of(detections.begin(), detections.end(),
+                [&name](const LocalEnvironmentModel::Tracking::TrackingMap::value_type& tracking) {
+                    const Sensor* sensor = tracking.first;
+                    return sensor->getSensorName() == name;
+                });
+    };
+
+    auto begin = boost::make_filter_iterator(seenByName, all.begin(), all.end());
+    auto end = boost::make_filter_iterator(seenByName, all.end(), all.end());
     return boost::make_iterator_range(begin, end);
 }
 

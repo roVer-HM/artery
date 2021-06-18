@@ -12,6 +12,7 @@ namespace artery
 {
 
 class Middleware;
+class NetworkInterface;
 class RadioDriverBase;
 
 class Router : public omnetpp::cSimpleModule, public omnetpp::cListener
@@ -30,6 +31,7 @@ class Router : public omnetpp::cSimpleModule, public omnetpp::cListener
         void request(const vanetza::btp::DataRequestB&, std::unique_ptr<vanetza::DownPacket>);
         vanetza::geonet::Address getAddress() const;
         const vanetza::geonet::LocationTable& getLocationTable() const;
+        const vanetza::geonet::LongPositionVector& getEgoPositionVector() const;
 
     protected:
         virtual void initializeManagementInformationBase(vanetza::geonet::ManagementInformationBase&);
@@ -43,6 +45,7 @@ class Router : public omnetpp::cSimpleModule, public omnetpp::cListener
         RadioDriverBase* mRadioDriver;
         omnetpp::cGate* mRadioDriverDataIn;
         omnetpp::cGate* mRadioDriverPropertiesIn;
+        std::shared_ptr<NetworkInterface> mNetworkInterface;
 };
 
 } // namespace artery

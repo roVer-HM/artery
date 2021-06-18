@@ -1,7 +1,14 @@
+/*
+* Artery V2X Simulation Framework
+* Copyright 2014-2019 Raphael Riebl et al.
+* Licensed under GPLv2, see COPYING file for detailed license and warranty terms.
+*/
+
 #include "artery/application/CaObject.h"
 #include "artery/application/CaService.h"
 #include "artery/application/Asn1PacketVisitor.h"
 #include "artery/application/MovingNodeDataProvider.h"
+#include "artery/application/MultiChannelPolicy.h"
 #include "artery/utility/simtime_cast.h"
 #include "veins/base/utils/Coord.h"
 #include <boost/units/cmath.hpp>
@@ -10,6 +17,7 @@
 #include <vanetza/btp/ports.hpp>
 #include <vanetza/dcc/transmission.hpp>
 #include <vanetza/dcc/transmit_rate_control.hpp>
+#include <vanetza/facilities/cam_functions.hpp>
 #include <chrono>
 
 namespace artery
@@ -33,6 +41,20 @@ long round(const boost::units::quantity<T>& q, const U& u)
 	return std::round(v.value());
 }
 
+SpeedValue_t buildSpeedValue(const vanetza::units::Velocity& v)
+{
+	static const vanetza::units::Velocity lower { 0.0 * boost::units::si::meter_per_second };
+	static const vanetza::units::Velocity upper { 163.82 * boost::units::si::meter_per_second };
+
+	SpeedValue_t speed = SpeedValue_unavailable;
+	if (v >= upper) {
+		speed = 16382; // see CDD A.74 (TS 102 894 v1.2.1)
+	} else if (v >= lower) {
+		speed = round(v, centimeter_per_second) * SpeedValue_oneCentimeterPerSec;
+	}
+	return speed;
+}
+
 
 Define_Module(CaService)
 
@@ -51,16 +73,20 @@ void CaService::initialize()
 {
 	ItsG5BaseService::initialize();
 	mNodeDataProvider = &getFacilities().get_const<MovingNodeDataProvider>();
+	mNetworkInterfaceTable = &getFacilities().get_const<NetworkInterfaceTable>();
 	mTimer = &getFacilities().get_const<Timer>();
+	mLocalDynamicMap = &getFacilities().get_mutable<artery::LocalDynamicMap>();
+
 	// avoid unreasonable high elapsed time values for newly inserted vehicles
 	mLastCamTimestamp = simTime();
+
 	// first generated CAM shall include the low frequency container
 	mLastLowCamTimestamp = mLastCamTimestamp - artery::simtime_cast(scLowFrequencyContainerInterval);
-	mLocalDynamicMap = &getFacilities().get_mutable<artery::LocalDynamicMap>();
 
 	// generation rate boundaries
 	mGenCamMin = par("minInterval");
 	mGenCamMax = par("maxInterval");
+	mGenCam = mGenCamMax;
 
 	// vehicle dynamics thresholds
 	mHeadingDelta = vanetza::units::Angle { par("headingDelta").doubleValue() * vanetza::units::degree };
@@ -69,15 +95,21 @@ void CaService::initialize()
 
 	mDccRestriction = par("withDccRestriction");
 	mFixedRate = par("fixedRate");
+
+	// look up primary channel for CA
+	mPrimaryChannel = getFacilities().get_const<MultiChannelPolicy>().primaryChannel(vanetza::aid::CA);
 }
 
 void CaService::trigger()
 {
+	Enter_Method("trigger");
 	checkTriggeringConditions(simTime());
 }
 
 void CaService::indicate(const vanetza::btp::DataIndication& ind, std::unique_ptr<vanetza::UpPacket> packet)
 {
+	Enter_Method("indicate");
+
 	Asn1PacketVisitor<vanetza::asn1::Cam> visitor;
 	const vanetza::asn1::Cam* cam = boost::apply_visitor(visitor, *packet);
 	if (cam && cam->validate()) {
@@ -93,7 +125,7 @@ void CaService::checkTriggeringConditions(const SimTime& T_now)
 	SimTime& T_GenCam = mGenCam;
 	const SimTime& T_GenCamMin = mGenCamMin;
 	const SimTime& T_GenCamMax = mGenCamMax;
-	const SimTime T_GenCamDcc = mDccRestriction ? genCamDcc() : mGenCamMin;
+	const SimTime T_GenCamDcc = mDccRestriction ? genCamDcc() : T_GenCamMin;
 	const SimTime T_elapsed = T_now - mLastCamTimestamp;
 
 	if (T_elapsed >= T_GenCamDcc) {
@@ -137,7 +169,7 @@ void CaService::sendCam(const SimTime& T_now)
 	mLastCamHeading = mNodeDataProvider->heading();
 	mLastCamTimestamp = T_now;
 	if (T_now - mLastLowCamTimestamp >= artery::simtime_cast(scLowFrequencyContainerInterval)) {
-		addLowFrequencyContainer(cam);
+		addLowFrequencyContainer(cam, par("pathHistoryLength"));
 		mLastLowCamTimestamp = T_now;
 	}
 
@@ -162,10 +194,16 @@ void CaService::sendCam(const SimTime& T_now)
 
 SimTime CaService::genCamDcc()
 {
+	// network interface may not be ready yet during initialization, so look it up at this later point
+	auto netifc = mNetworkInterfaceTable->select(mPrimaryChannel);
+	vanetza::dcc::TransmitRateThrottle* trc = netifc ? netifc->getDccEntity().getTransmitRateThrottle() : nullptr;
+	if (!trc) {
+		throw cRuntimeError("No DCC TRC found for CA's primary channel %i", mPrimaryChannel);
+	}
+
 	static const vanetza::dcc::TransmissionLite ca_tx(vanetza::dcc::Profile::DP2, 0);
-	auto& trc = getFacilities().get_mutable<vanetza::dcc::TransmitRateThrottle>();
-	vanetza::Clock::duration delay = trc.delay(ca_tx);
-	SimTime dcc { std::chrono::duration_cast<std::chrono::milliseconds>(delay).count(), SIMTIME_MS };
+	vanetza::Clock::duration interval = trc->interval(ca_tx);
+	SimTime dcc { std::chrono::duration_cast<std::chrono::milliseconds>(interval).count(), SIMTIME_MS };
 	return std::min(mGenCamMax, std::max(mGenCamMin, dcc));
 }
 
@@ -174,7 +212,7 @@ vanetza::asn1::Cam createCooperativeAwarenessMessage(const MovingNodeDataProvide
 	vanetza::asn1::Cam message;
 
 	ItsPduHeader_t& header = (*message).header;
-	header.protocolVersion = 1;
+	header.protocolVersion = 2;
 	header.messageID = ItsPduHeader__messageID_cam;
 	header.stationID = vdp.station_id();
 
@@ -198,7 +236,7 @@ vanetza::asn1::Cam createCooperativeAwarenessMessage(const MovingNodeDataProvide
 	BasicVehicleContainerHighFrequency& bvc = hfc.choice.basicVehicleContainerHighFrequency;
 	bvc.heading.headingValue = round(vdp.heading(), decidegree);
 	bvc.heading.headingConfidence = HeadingConfidence_equalOrWithinOneDegree;
-	bvc.speed.speedValue = round(vdp.speed(), centimeter_per_second) * SpeedValue_oneCentimeterPerSec;
+	bvc.speed.speedValue = buildSpeedValue(vdp.speed());
 	bvc.speed.speedConfidence = SpeedConfidence_equalOrWithinOneCentimeterPerSec * 3;
 	bvc.driveDirection = vdp.speed().value() >= 0.0 ?
 			DriveDirection_forward : DriveDirection_backward;
@@ -217,7 +255,7 @@ vanetza::asn1::Cam createCooperativeAwarenessMessage(const MovingNodeDataProvide
 	bvc.curvature.curvatureConfidence = CurvatureConfidence_unavailable;
 	bvc.curvatureCalculationMode = CurvatureCalculationMode_yawRateUsed;
 	bvc.yawRate.yawRateValue = round(vdp.yaw_rate(), degree_per_second) * YawRateValue_degSec_000_01ToLeft * 100.0;
-	if (abs(bvc.yawRate.yawRateValue) >= YawRateValue_unavailable) {
+	if (bvc.yawRate.yawRateValue < -32766 || bvc.yawRate.yawRateValue > 32766) {
 		bvc.yawRate.yawRateValue = YawRateValue_unavailable;
 	}
 	bvc.vehicleLength.vehicleLengthValue = VehicleLengthValue_unavailable;
@@ -233,8 +271,13 @@ vanetza::asn1::Cam createCooperativeAwarenessMessage(const MovingNodeDataProvide
 	return message;
 }
 
-void addLowFrequencyContainer(vanetza::asn1::Cam& message)
+void addLowFrequencyContainer(vanetza::asn1::Cam& message, unsigned pathHistoryLength)
 {
+	if (pathHistoryLength > 40) {
+		EV_WARN << "path history can contain 40 elements at maximum";
+		pathHistoryLength = 40;
+	}
+
 	LowFrequencyContainer_t*& lfc = message->cam.camParameters.lowFrequencyContainer;
 	lfc = vanetza::asn1::allocate<LowFrequencyContainer_t>();
 	lfc->present = LowFrequencyContainer_PR_basicVehicleContainerLowFrequency;
@@ -244,7 +287,16 @@ void addLowFrequencyContainer(vanetza::asn1::Cam& message)
 	assert(nullptr != bvc.exteriorLights.buf);
 	bvc.exteriorLights.size = 1;
 	bvc.exteriorLights.buf[0] |= 1 << (7 - ExteriorLights_daytimeRunningLightsOn);
-	// TODO: add pathHistory
+
+	for (unsigned i = 0; i < pathHistoryLength; ++i) {
+		PathPoint* pathPoint = vanetza::asn1::allocate<PathPoint>();
+		pathPoint->pathDeltaTime = vanetza::asn1::allocate<PathDeltaTime_t>();
+		*(pathPoint->pathDeltaTime) = 0;
+		pathPoint->pathPosition.deltaLatitude = DeltaLatitude_unavailable;
+		pathPoint->pathPosition.deltaLongitude = DeltaLongitude_unavailable;
+		pathPoint->pathPosition.deltaAltitude = DeltaAltitude_unavailable;
+		ASN_SEQUENCE_ADD(&bvc.pathHistory, pathPoint);
+	}
 
 	std::string error;
 	if (!message.validate(error)) {

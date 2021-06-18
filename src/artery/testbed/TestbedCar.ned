@@ -36,7 +36,7 @@ module TestbedCar like INetworkNode
                 @display("p=250,400,row,100;q=queue");
         }
 
-        mobility: <default("artery.inet.Mobility")> like IMobility {
+        mobility: <default("artery.inet.VehicleMobility")> like IMobility {
             parameters:
                 @display("p=50,200");
         }
@@ -45,6 +45,7 @@ module TestbedCar like INetworkNode
             parameters:
                 @display("p=250,300,row,100");
                 macModule = ".wlan[" + string(index) + "].mac";
+                radioModule = ".wlan[" + string(index) + "].radio";
         }
 
         otaInterfaceLayer: OtaInterfaceLayer {

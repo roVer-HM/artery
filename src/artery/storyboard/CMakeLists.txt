@@ -3,8 +3,12 @@ add_artery_feature(storyboard
     Binding.cc
     CarSetCondition.cc
     ConditionResult.cc
+    DeferringCondition.cc
     Effect.cc
     EffectStack.cc
+    EmergencyStopEffect.cc
+    GenericEffectFactory.cc
+    LikelihoodCondition.cc
     LimitCondition.cc
     OrCondition.cc
     PolygonCondition.cc
@@ -23,5 +27,9 @@ add_artery_feature(storyboard
 )
 
 find_package(PythonLibs REQUIRED)
-add_subdirectory(${PROJECT_SOURCE_DIR}/extern/pybind11 pybind11)
-target_link_libraries(storyboard PRIVATE pybind11::embed)
+add_library(pybind11 INTERFACE)
+target_include_directories(pybind11 INTERFACE
+    ${PROJECT_SOURCE_DIR}/extern/pybind11/include
+    ${PYTHON_INCLUDE_DIRS})
+target_link_libraries(pybind11 INTERFACE ${PYTHON_LIBRARIES})
+target_link_libraries(storyboard PRIVATE pybind11)

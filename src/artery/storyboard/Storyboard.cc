@@ -1,8 +1,11 @@
 #include "artery/storyboard/Storyboard.h"
 #include "artery/storyboard/Story.h"
 #include "artery/storyboard/Effect.h"
+#include "artery/traci/Cast.h"
 #include "artery/traci/VehicleController.h"
 #include "inet/common/ModuleAccess.h"
+#include "traci/Core.h"
+#include "traci/Position.h"
 #include <omnetpp/ccomponent.h>
 #include <omnetpp/cexception.h>
 #include <pybind11/embed.h>
@@ -20,16 +23,17 @@ namespace
 
 const auto traciAddNodeSignal = omnetpp::cComponent::registerSignal("traci.node.add");
 const auto traciRemoveNodeSignal = omnetpp::cComponent::registerSignal("traci.node.remove");
+const auto traciInitSignal = omnetpp::cComponent::registerSignal("traci.init");
 const auto traciStepSignal = omnetpp::cComponent::registerSignal("traci.step");
 
 class PythonContextImpl : public Storyboard::PythonContext
 {
 public:
-    pybind11::module& module() override { return m_module; }
+    py::module& module() override { return m_module; }
 
 private:
-    pybind11::scoped_interpreter m_interpreter;
-    pybind11::module m_module;
+    py::scoped_interpreter m_interpreter;
+    py::module m_module;
 };
 
 } // namespace
@@ -52,6 +56,7 @@ void Storyboard::initialize(int stage)
         traci->subscribe(traciAddNodeSignal, this);
         traci->subscribe(traciRemoveNodeSignal, this);
         traci->subscribe(traciStepSignal, this);
+        traci->subscribe(traciInitSignal, this);
 
         try {
             // Append directory containing omnetpp.ini to Python import path
@@ -63,8 +68,6 @@ void Storyboard::initialize(int stage)
 
             // Load module containing storyboard description
             m_python->module() = py::module::import(par("python").stringValue());
-            m_python->module().attr("createStories")(this);
-
         } catch (const py::error_already_set&) {
             PyErr_Print();
             throw;
@@ -108,12 +111,25 @@ void Storyboard::receiveSignal(cComponent* source, simsignal_t signalId, const c
     }
 }
 
-void Storyboard::receiveSignal(cComponent*, simsignal_t signalId, const simtime_t&, cObject*)
+void Storyboard::receiveSignal(cComponent* source, simsignal_t signalId, const simtime_t&, cObject*)
 {
     if (signalId == traciStepSignal) {
         updateStoryboard();
         if(mDrawConditions) {
             drawConditions();
+        }
+    }
+    else if (signalId == traciInitSignal) {
+        traci::Core* core = check_and_cast<traci::Core*>(source);
+        const libsumo::TraCIPositionVector& boundary = core->getAPI()->simulation.getNetBoundary();
+        mNetworkBoundary = traci::Boundary { boundary };
+
+        try {
+            py::object board = py::cast(this, py::return_value_policy::reference);
+            m_python->module().attr("createStories")(board);
+        } catch (const py::error_already_set&) {
+            PyErr_Print();
+            throw;
         }
     }
 }
@@ -163,6 +179,15 @@ void Storyboard::checkCar(Vehicle& car, ConditionResult& conditionResult, Story*
 void Storyboard::registerStory(std::shared_ptr<Story> story)
 {
     m_stories.push_back(story);
+}
+
+Position Storyboard::convertTraciPosition(double x, double y)
+{
+    libsumo::TraCIPosition traci;
+    traci.x = x;
+    traci.y = y;
+    traci.z = 0.0;
+    return position_cast(mNetworkBoundary, traci);
 }
 
 bool Storyboard::storyApplied(Vehicle* car, const Story* story)

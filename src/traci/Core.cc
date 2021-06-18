@@ -1,9 +1,9 @@
 #include "traci/Core.h"
 #include "traci/Launcher.h"
-#include "traci/LiteAPI.h"
 #include "traci/API.h"
 #include "traci/SubscriptionManager.h"
 #include <inet/common/ModuleAccess.h>
+#include <limits>
 
 Define_Module(traci::Core)
 
@@ -21,7 +21,7 @@ const simsignal_t closeSignal = cComponent::registerSignal("traci.close");
 namespace traci
 {
 
-Core::Core() : m_subscriptions(nullptr)
+Core::Core() : m_traci(nullptr), m_subscriptions(nullptr)
 {
 }
 
@@ -35,12 +35,10 @@ void Core::initialize()
 {
     m_connectEvent = new cMessage("connect TraCI");
     m_updateEvent = new cMessage("TraCI step");
+    m_updateEvent->setSchedulingPriority(std::numeric_limits<short>::min());
     cModule* manager = getParentModule();
     m_launcher = inet::getModuleFromPar<Launcher>(par("launcherModule"), manager);
-    auto api = m_launcher->createAPI();
-
-    m_traci.reset(api.first);
-    m_lite.reset(api.second);
+    m_traci = m_launcher->createAPI();
     m_stopping = par("selfStopping");
     scheduleAt(par("startTime"), m_connectEvent);
     m_subscriptions = inet::findModuleFromPar<ISubscriptionManager>(par("subscriptionsModule"), manager);
@@ -69,10 +67,10 @@ void Core::handleMessage(cMessage* msg)
     } else if (msg == m_connectEvent) {
         m_traci->connect(m_launcher->launch());
         checkVersion();
-        syncTime();
         // pre subscribe
-        m_launcher->initializeServer(m_lite.get());
+        m_launcher->initializeServer(m_traci);
         emit(connectedSignal, simTime());
+        syncTime();
         // send initSignal to setup subscriptions
         emit(initSignal, simTime());
         m_updateInterval = Time { m_traci->simulation.getDeltaT() };
@@ -84,7 +82,7 @@ void Core::checkVersion()
 {
     int expected = par("version");
     if (expected == 0) {
-        expected = constants::TRACI_VERSION;
+        expected = libsumo::TRACI_VERSION;
         EV_INFO << "Defaulting expected TraCI API level to client API version " << expected << endl;
     }
 
@@ -104,15 +102,16 @@ void Core::checkVersion()
 
 void Core::syncTime()
 {
+    SimTime offset { m_traci->simulation.getCurrentTime(), SIMTIME_MS };
     const SimTime now = simTime();
     if (!now.isZero()) {
-        m_traci->simulationStep(now.dbl());
+        m_traci->simulationStep((now + offset).dbl());
     }
 }
 
-LiteAPI& Core::getLiteAPI()
+std::shared_ptr<API> Core::getAPI()
 {
-    return *m_lite;
+    return m_traci;
 }
 
 } // namespace traci

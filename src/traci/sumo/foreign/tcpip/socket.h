@@ -6,8 +6,8 @@
  ** file in the root of the Shawn source tree for further details.     **
  ************************************************************************/
 
-#ifndef __SHAWN_APPS_TCPIP_SOCKET_H
-#define __SHAWN_APPS_TCPIP_SOCKET_H
+#pragma once
+#include <config.h>
 
 #ifdef SHAWN
      #include <shawn_config.h>
@@ -70,6 +70,10 @@ namespace tcpip
 		/// Destructor
 		~Socket();
 
+		/// @brief Returns an free port on the system
+		/// @note This is done by binding a socket with port=0, getting the assigned port, and closing the socket again
+		static int getFreeSocketPort();
+
 		/// Connects to host_:port_
 		void connect();
 
@@ -105,9 +109,9 @@ namespace tcpip
 
 	private:
 		void init();
-		void BailOnSocketError(std::string context) const;
+		static void BailOnSocketError(std::string context);
 #ifdef WIN32
-		std::string GetWinsockErrorString(int err) const;
+		static std::string GetWinsockErrorString(int err);
 #endif
 		bool atoaddr(std::string, struct sockaddr_in& addr);
 		bool datawaiting(int sock) const;
@@ -129,13 +133,3 @@ namespace tcpip
 }	// namespace tcpip
 
 #endif // BUILD_TCPIP
-
-#endif
-
-/*-----------------------------------------------------------------------
-* Source  $Source: $
-* Version $Revision: 612 $
-* Date    $Date: 2011-06-14 15:16:52 +0200 (Tue, 14 Jun 2011) $
-*-----------------------------------------------------------------------
-* $Log:$
-*-----------------------------------------------------------------------*/

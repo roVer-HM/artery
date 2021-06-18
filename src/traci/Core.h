@@ -11,7 +11,6 @@ namespace traci
 
 class API;
 class Launcher;
-class LiteAPI;
 class ISubscriptionManager;
 
 class Core : public omnetpp::cSimpleModule
@@ -20,10 +19,10 @@ public:
     Core();
     virtual ~Core();
 
-    virtual void initialize() override;
-    virtual void finish() override;
-    virtual void handleMessage(omnetpp::cMessage*) override;
-    LiteAPI& getLiteAPI();
+    void initialize() override;
+    void finish() override;
+    void handleMessage(omnetpp::cMessage*) override;
+    std::shared_ptr<API> getAPI();
 
 protected:
     virtual void checkVersion();
@@ -35,7 +34,6 @@ protected:
 
     Launcher* m_launcher;
     std::shared_ptr<API> m_traci;
-    std::shared_ptr<LiteAPI> m_lite;
     bool m_stopping;
     ISubscriptionManager* m_subscriptions;
 };

@@ -2,6 +2,8 @@
 #define ARTERY_INETMOBILITY_H_SKZPGILS
 
 #include "artery/traci/MobilityBase.h"
+#include "artery/traci/PersonMobility.h"
+#include "artery/traci/VehicleMobility.h"
 #include <inet/mobility/contract/IMobility.h>
 #include <omnetpp/csimplemodule.h>
 
@@ -10,12 +12,9 @@ namespace inet { class CanvasProjection; }
 namespace artery
 {
 
-class InetMobility : public inet::IMobility, public MobilityBase, public ControllableVehicle , public omnetpp::cSimpleModule
+class InetMobility : public inet::IMobility, public virtual MobilityBase, public omnetpp::cSimpleModule
 {
 public:
-    // artery::MobilityBase
-    void initializeSink(traci::LiteAPI*, const std::string& id, const traci::Boundary&, std::shared_ptr<traci::VariableCache> cache) override;
-
     // inet::IMobility interface
     virtual int getId() const override { return cSimpleModule::getId(); }
     virtual double getMaxSpeed() const override;
@@ -28,8 +27,8 @@ public:
     virtual const inet::Coord& getConstraintAreaMax() const override;
     virtual const inet::Coord& getConstraintAreaMin() const override;
 
-    //
-    traci::MovingNodeController* getControllerBase() override {
+
+    virtual traci::MovingNodeController* getControllerBase() override {
         return MobilityBase::getControllerBase();
     }
 
@@ -40,10 +39,10 @@ public:
 protected:
     void refreshDisplay() const override;
 
-private:
     void initialize(const Position& pos, Angle heading, double speed) override;
     void update(const Position& pos, Angle heading, double speed) override;
 
+private:
     inet::Coord mPosition;
     inet::Coord mSpeed;
     inet::Quaternion mOrientation;
@@ -53,6 +52,22 @@ private:
     double mAntennaHeight = 0.0;
     omnetpp::cModule* mVisualRepresentation = nullptr;
     const inet::CanvasProjection* mCanvasProjection = nullptr;
+};
+
+class InetVehicleMobility : public InetMobility, public VehicleMobility
+{
+public:
+    void initialize(int stage) override;
+
+    virtual traci::MovingNodeController* getControllerBase() override {
+        return MobilityBase::getControllerBase();
+    }
+};
+
+class InetPersonMobility : public InetMobility, public PersonMobility
+{
+public:
+    void initialize(int stage) override;
 };
 
 } // namespace artery

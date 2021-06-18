@@ -91,7 +91,7 @@ namespace tcpip
 	    if (pos < 0 || pos >= size()){
 	        std::stringstream os;
 	        os << "Storage::resetPosition(): position out of range. expected: [0, " << size() << " got " << pos;
-	        throw std::invalid_argument(os.str().c_str());
+	        throw StorageInvalidArg(os.str().c_str());
 	    }
 	    iter_ = store.begin();
 	    if (pos > 0){
@@ -101,9 +101,14 @@ namespace tcpip
 
 
 	// ----------------------------------------------------------------------
-	void Storage::reset()
-	{
+	void Storage::reset() {
 		store.clear();
+		iter_ = store.begin();
+	}
+
+
+	// ----------------------------------------------------------------------
+	void Storage::resetPos() {
 		iter_ = store.begin();
 	}
 
@@ -117,7 +122,7 @@ namespace tcpip
 	{
 		if ( !valid_pos() )
 		{
-			throw std::invalid_argument("Storage::readChar(): invalid position");
+			throw StorageInvalidArg("Storage::readChar(): invalid position");
 		}
 		return readCharUnsafe();
 	}
@@ -155,7 +160,7 @@ namespace tcpip
 	{
 		if (value < -128 || value > 127)
 		{
-			throw std::invalid_argument("Storage::writeByte(): Invalid value, not in [-128, 127]");
+			throw StorageInvalidArg("Storage::writeByte(): Invalid value, not in [-128, 127]");
 		}
 		writeChar( static_cast<unsigned char>( (value+256) % 256 ) );
 	}
@@ -180,7 +185,7 @@ namespace tcpip
 	{
 		if (value < 0 || value > 255)
 		{
-			throw std::invalid_argument("Storage::writeUnsignedByte(): Invalid value, not in [0, 255]");
+			throw StorageInvalidArg("Storage::writeUnsignedByte(): Invalid value, not in [0, 255]");
 		}
 		writeChar( static_cast<unsigned char>( value ));
 	}
@@ -217,37 +222,70 @@ namespace tcpip
 	}
 
 
-	// -----------------------------------------------------------------------
-	/**
-	* Reads a string list form the array
-	* @return The read string
-	*/
-	std::vector<std::string> Storage::readStringList()
-	{
-		std::vector<std::string> tmp;
-		const int len = readInt();
-		tmp.reserve(len);
-		for (int i = 0; i < len; i++)
-		{
-			tmp.push_back(readString());
-		}
-		return tmp;
-	}
-
-
-	// ----------------------------------------------------------------------
-	/**
-	* Writes a string into the array;
-	* @param s		The string to be written
-	*/
-	void Storage::writeStringList(const std::vector<std::string> &s)
-	{
-		writeInt(static_cast<int>(s.size()));
-        for (std::vector<std::string>::const_iterator it = s.begin(); it!=s.end() ; it++)
-		{
-			writeString(*it);
+    // -----------------------------------------------------------------------
+    /**
+    * Reads a string list form the array
+    * @return The read string
+    */
+    std::vector<std::string> Storage::readStringList()
+    {
+        std::vector<std::string> tmp;
+        const int len = readInt();
+        tmp.reserve(len);
+        for (int i = 0; i < len; i++)
+        {
+            tmp.push_back(readString());
         }
-	}
+        return tmp;
+    }
+
+
+    // -----------------------------------------------------------------------
+    /**
+    * Reads a double list from the array
+    * @return The read double list
+    */
+    std::vector<double> Storage::readDoubleList()
+    {
+        std::vector<double> tmp;
+        const int len = readInt();
+        tmp.reserve(len);
+        for (int i = 0; i < len; i++)
+        {
+            tmp.push_back(readDouble());
+        }
+        return tmp;
+    }
+
+
+    // ----------------------------------------------------------------------
+    /**
+    * Writes a string into the array;
+    * @param s      The string to be written
+    */
+    void Storage::writeStringList(const std::vector<std::string> &s)
+    {
+        writeInt(static_cast<int>(s.size()));
+        for (std::vector<std::string>::const_iterator it = s.begin(); it!=s.end() ; it++)
+        {
+            writeString(*it);
+        }
+    }
+
+
+    // ----------------------------------------------------------------------
+    /**
+    * Writes a double list into the array;
+    * @param s      The double list  to be written
+    */
+    void Storage::writeDoubleList(const std::vector<double> &s)
+    {
+        writeInt(static_cast<int>(s.size()));
+        for (std::vector<double>::const_iterator it = s.begin(); it!=s.end() ; it++)
+        {
+            writeDouble(*it);
+        }
+    }
 
     // ----------------------------------------------------------------------
     /**
@@ -285,7 +323,7 @@ namespace tcpip
 	{
 		if (value < -32768 || value > 32767)
 		{
-			throw std::invalid_argument("Storage::writeShort(): Invalid value, not in [-32768, 32767]");
+			throw StorageInvalidArg("Storage::writeShort(): Invalid value, not in [-32768, 32767]");
 		}
 
 		short svalue = static_cast<short>(value);
@@ -407,7 +445,7 @@ namespace tcpip
 			std::ostringstream msg;
 			msg << "tcpip::Storage::readIsSafe: want to read "  << num << " bytes from Storage, "
 				<< "but only " << std::distance(iter_, store.end()) << " remaining";
-			throw std::invalid_argument(msg.str());
+			throw StorageInvalidArg(msg.str());
 		}
 	}
 

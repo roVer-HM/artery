@@ -3,10 +3,12 @@
 #include "artery/networking/GeoNetIndication.h"
 #include "artery/networking/GeoNetRequest.h"
 #include "artery/nic/RadioDriverProperties.h"
+#include "artery/veins/VeinsMacFrame.h"
 #include "artery/veins/VeinsRadioDriver.h"
 #include "veins/base/utils/FindModule.h"
 #include "veins/base/utils/SimpleAddress.h"
 #include "veins/modules/messages/BaseFrame1609_4_m.h"
+#include "veins/modules/mac/ieee80211p/Mac1609_4.h"
 #include "veins/modules/utility/Consts80211p.h"
 
 using namespace omnetpp;
@@ -68,7 +70,7 @@ int user_priority(vanetza::access::AccessCategory ac)
     return up;
 }
 
-const simsignal_t channelBusySignal = cComponent::registerSignal("sigChannelBusy");
+const simsignal_t channelBusySignal = veins::Mac1609_4::sigChannelBusy;
 
 } // namespace
 
@@ -81,21 +83,23 @@ void VeinsRadioDriver::initialize()
     mLowerLayerOut = gate("lowerLayerOut");
     mLowerLayerIn = gate("lowerLayerIn");
 
-    mChannelLoadMeasurements.reset();
+    mChannelLoadSampler.reset();
     mChannelLoadReport = new cMessage("report channel load");
     mChannelLoadReportInterval = par("channelLoadReportInterval");
     scheduleAt(simTime() + mChannelLoadReportInterval, mChannelLoadReport);
 
     auto properties = new RadioDriverProperties();
     // Mac1609_4 uses index of host as MAC address
-    properties->LinkLayerAddress = vanetza::create_mac_address(mHost->getIndex());
+    properties->LinkLayerAddress = convert(veins::LAddress::L2Type { mHost->getIndex() });
+    // Mac1609_4 can only be fixed to CCH at the moment
+    properties->ServingChannel = channel::CCH;
     indicateProperties(properties);
 }
 
 void VeinsRadioDriver::handleMessage(cMessage* msg)
 {
     if (msg == mChannelLoadReport) {
-        double channel_load = mChannelLoadMeasurements.channel_load().value();
+        double channel_load = mChannelLoadSampler.cbr();
         emit(RadioDriverBase::ChannelLoadSignal, channel_load);
         scheduleAt(simTime() + mChannelLoadReportInterval, mChannelLoadReport);
     } else if (RadioDriverBase::isDataRequest(msg)) {
@@ -139,11 +143,7 @@ void VeinsRadioDriver::handleDataRequest(cMessage* packet)
 void VeinsRadioDriver::receiveSignal(omnetpp::cComponent*, omnetpp::simsignal_t signal, bool busy, omnetpp::cObject*)
 {
     ASSERT(signal == channelBusySignal);
-    if (busy) {
-        mChannelLoadMeasurements.busy();
-    } else {
-        mChannelLoadMeasurements.idle();
-    }
+    mChannelLoadSampler.busy(busy);
 }
 
 } // namespace artery

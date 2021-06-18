@@ -8,3 +8,7 @@
 [submodule "extern/vanetza"]
 	path = extern/vanetza
 	url = ../../rover/vanetza.git
+[submodule "extern/sim0mqpp"]
+	path = extern/sim0mqpp
+	url = ../../rover/sim0mqpp.git
+	

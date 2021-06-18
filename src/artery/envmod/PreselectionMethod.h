@@ -7,7 +7,8 @@
 #ifndef ARTERY_ENVMOD_PRESELECTIONMETHOD_H_
 #define ARTERY_ENVMOD_PRESELECTIONMETHOD_H_
 
-#include "artery/envmod/GlobalEnvironmentModel.h"
+#include "artery/envmod/EnvironmentModelObstacle.h"
+#include "artery/envmod/sensor/SensorConfiguration.h"
 #include <string>
 #include <vector>
 
@@ -15,16 +16,16 @@ namespace artery
 {
 
 class EnvironmentModelObject;
-class SensorConfigRadar;
+class SensorConfigFov;
 
 class PreselectionMethod
 {
 public:
-    using Objects = GlobalEnvironmentModel::ObjectDB;
+    using Objects = ObjectDB;
 
-    PreselectionMethod(const GlobalEnvironmentModel::ObjectDB& objs) : mObjects(objs) {}
+    PreselectionMethod(const ObjectDB& objs) : mObjects(objs) {}
     virtual void update() = 0;
-    virtual std::vector<std::string> select(const EnvironmentModelObject& ego, const SensorConfigRadar&) = 0;
+    virtual std::vector<std::string> select(const EnvironmentModelObject& ego, const SensorConfigFov&) = 0;
 
 protected:
     const Objects& mObjects;

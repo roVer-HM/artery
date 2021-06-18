@@ -2,6 +2,7 @@
 #define LAUNCHER_H_NAC0X8JG
 
 #include <string>
+#include <memory>
 #include"traci/TraCIApiProvider.h"
 
 namespace traci
@@ -23,11 +24,8 @@ public:
 
     virtual ~Launcher() = default;
     virtual ServerEndpoint launch() = 0;
-    /**
-     * called after connect to initialize server before first subscribe call.
-     * Nothing by default.
-     */
-    virtual void initializeServer(LiteAPI* m_lite) {};
+    virtual std::shared_ptr<API> createAPI() override { return std::make_shared<API>(); }
+    virtual void initializeServer(std::shared_ptr<API> api) {}; // call after connect
 };
 
 } // namespace traci

@@ -8,7 +8,6 @@
 #pragma once
 
 #include "traci/API.h"
-#include "traci/LiteAPI.h"
 
 namespace traci {
 
@@ -18,7 +17,8 @@ namespace traci {
 class TraCIApiProvider {
 
 public:
-    virtual std::pair<API*, LiteAPI*> createAPI() = 0;
+
+    virtual std::shared_ptr<API> createAPI() = 0;
 
 };
 

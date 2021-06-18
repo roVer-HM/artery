@@ -6,6 +6,7 @@
 
 #include "artery/utility/Identity.h"
 #include <omnetpp/regmacros.h>
+#include <limits>
 
 namespace artery
 {
@@ -32,11 +33,16 @@ bool Identity::update(const Identity& update, long changes)
     }
 
     if (changes & ChangeGeoNetAddress) {
-        geonet = update.geonet;
+        geonet.insert(update.geonet.begin(), update.geonet.end());
         changed = true;
     }
 
     return changed;
+}
+
+uint32_t Identity::randomStationId(omnetpp::cRNG* rng)
+{
+    return intuniform(rng, 0, std::numeric_limits<uint32_t>::max());
 }
 
 } // namespace artery

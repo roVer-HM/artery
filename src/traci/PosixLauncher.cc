@@ -65,6 +65,7 @@ void PosixLauncher::initialize()
     m_executable = par("sumo").stringValue();
     m_command = par("command").stringValue();
     m_sumocfg = par("sumocfg").stringValue();
+    m_extra_options = par("extraOptions").stringValue();
     m_port = par("port");
     m_seed = par("seed");
 }
@@ -74,17 +75,14 @@ void PosixLauncher::finish()
     kill();
 }
 
-std::pair<API*, LiteAPI*> PosixLauncher::createAPI(){
-    API* api = new API();
-    LiteAPI* liteApi = new LiteAPI(*api);
-    return std::make_pair(api, liteApi);
-}
-
 ServerEndpoint PosixLauncher::launch()
 {
     if (m_port == 0) {
         m_port = lookupPort();
     }
+
+    // workaround: creates <resultdir> before executing SUMO (for logfile output)
+    recordScalar("port", m_port);
 
     ServerEndpoint endpoint;
     endpoint.hostname = "localhost";
@@ -135,15 +133,24 @@ std::string PosixLauncher::command()
     std::regex port("%PORT%");
     std::regex seed("%SEED%");
     std::regex run("%RUN%");
+    std::regex resultdir("%RESULTDIR%");
 
-    const auto run_number = getSimulation()->getEnvir()->getConfigEx()->getVariable(CFGVAR_RUNNUMBER);
+    const auto cfg = getSimulation()->getEnvir()->getConfigEx();
+    const auto cfg_run_number = cfg->getVariable(CFGVAR_RUNNUMBER);
+    const auto cfg_result_dir = cfg->getVariable(CFGVAR_RESULTDIR);
 
     std::string command = m_command;
     command = std::regex_replace(command, executable, m_executable);
     command = std::regex_replace(command, sumocfg, m_sumocfg);
     command = std::regex_replace(command, port, std::to_string(m_port));
     command = std::regex_replace(command, seed, std::to_string(m_seed));
-    command = std::regex_replace(command, run, run_number);
+    command = std::regex_replace(command, run, cfg_run_number);
+    command = std::regex_replace(command, resultdir, cfg_result_dir);
+
+    if (!m_extra_options.empty()) {
+      command.append(1, ' ').append(m_extra_options);
+    }
+
     return command;
 }
 

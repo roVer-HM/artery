@@ -9,6 +9,7 @@
 
 #include "artery/application/Middleware.h"
 #include "artery/application/VehicleDataProvider.h"
+#include "artery/traci/VehicleController.h"
 
 namespace artery
 {
@@ -16,6 +17,7 @@ namespace artery
 class VehicleMiddleware : public Middleware
 {
     public:
+        VehicleMiddleware();
         void initialize(int stage) override;
         void finish() override;
 

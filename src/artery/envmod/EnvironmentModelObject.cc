@@ -5,6 +5,7 @@
  */
 
 #include "artery/traci/VehicleController.h"
+#include "artery/application/StationType.h"
 #include "artery/envmod/EnvironmentModelObject.h"
 #include <boost/geometry/strategies/transform/matrix_transformers.hpp>
 #include <boost/math/constants/constants.hpp>
@@ -82,13 +83,14 @@ EnvironmentModelObject::EnvironmentModelObject(const traci::VehicleController* v
     const auto halfLength = mLength * 0.5;
     mRadius = sqrt(halfWidth * halfWidth + halfLength * halfLength);
 
+    setStationType(deriveStationTypeFromVehicleClass(mVehicleController->getVehicleClass()));
     update();
 }
 
 void EnvironmentModelObject::update()
 {
     // Update the internal vdp
-    VehicleDataProvider::update(mVehicleController);
+    VehicleDataProvider::update(getKinematics(*mVehicleController));
 
     // Recalculate all time and position dependent attributes
     using namespace boost::math::double_constants;

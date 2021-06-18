@@ -8,7 +8,6 @@ namespace traci
 
 namespace
 {
-
 const simsignal_t connectedSignal = cComponent::registerSignal("traci.connected");
 const simsignal_t initSignal = cComponent::registerSignal("traci.init");
 const simsignal_t stepSignal = cComponent::registerSignal("traci.step");
@@ -55,8 +54,9 @@ void Listener::receiveSignal(cComponent*, simsignal_t signal, const SimTime&, cO
     }
 }
 
-void Listener::traciConnected(){
-    // before first Subscription call
+
+void Listener::traciConnected()
+{
 }
 
 void Listener::traciInit()

@@ -56,15 +56,17 @@ public:
     public:
         using TrackingMap = std::map<const Sensor*, TrackingTime>;
 
-        Tracking(const Sensor* sensor);
+        Tracking(int id, const Sensor* sensor);
 
         bool expired() const;
         void update();
         void tap(const Sensor*);
 
+        int id() const { return mId; }
         const TrackingMap& sensors() const { return mSensors; }
 
     private:
+        int mId;
         TrackingMap mSensors;
     };
 
@@ -100,11 +102,19 @@ public:
      */
     const TrackedObjects& allObjects() const { return mObjects; }
 
+    /**
+     * Get list of all sensors attached to this local entity
+     *
+     * Sensor pointers are only valid as long as this LocalEnvironmentModel exists!
+     */
+    const std::vector<Sensor*>& getSensors() const { return mSensors; }
+
 private:
     void initializeSensors();
 
     Middleware* mMiddleware;
     GlobalEnvironmentModel* mGlobalEnvironmentModel;
+    int mTrackingCounter = 0;
     TrackedObjects mObjects;
     std::vector<Sensor*> mSensors;
 };
@@ -114,6 +124,7 @@ using TrackedObjectsFilterIterator = boost::filter_iterator<TrackedObjectsFilter
 using TrackedObjectsFilterRange = boost::iterator_range<TrackedObjectsFilterIterator>;
 
 TrackedObjectsFilterRange filterBySensorCategory(const LocalEnvironmentModel::TrackedObjects&, const std::string&);
+TrackedObjectsFilterRange filterBySensorName(const LocalEnvironmentModel::TrackedObjects&, const std::string&);
 
 } // namespace artery
 

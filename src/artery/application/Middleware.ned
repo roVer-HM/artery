@@ -17,14 +17,16 @@ simple MiddlewareBase like IMiddleware {
 }
 
 // Middleware for ITS G5 services
-simple Middleware extends MiddlewareBase
+simple Middleware extends MiddlewareBase like IMiddleware
 {
 	parameters:
 		@class(Middleware);
 		@signal[StoryboardSignal](type=StoryboardSignal);
 
-		string routerModule;
 		double updateInterval = default(0.1s) @unit(s);
 		string datetime;
 		xml services;
+		xml mcoPolicy = default(xml("<mco default=\"CCH\" />"));
+
+		string positionProviderModule = default(".vanetza[0].position");
 }

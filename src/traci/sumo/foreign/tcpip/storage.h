@@ -10,8 +10,8 @@
  ** \author Bjoern Hendriks <hendriks@ibr.cs.tu-bs.de>                 **
  **                                                                    **
  ************************************************************************/
-#ifndef __SHAWN_APPS_TCPIP_STORAGE_H
-#define __SHAWN_APPS_TCPIP_STORAGE_H
+#pragma once
+#include <config.h>
 
 #ifdef SHAWN
      #include <shawn_config.h>
@@ -30,9 +30,18 @@
 #include <string>
 #include <stdexcept>
 #include <iostream>
+#include <omnetpp/cexception.h>
 
 namespace tcpip
 {
+
+class StorageInvalidArg : public omnetpp::cRuntimeError {
+public:
+    /** constructor */
+    StorageInvalidArg(std::string what)
+        : omnetpp::cRuntimeError(what.c_str()) {}
+};
+
 
 class Storage
 {
@@ -77,6 +86,7 @@ public:
 	virtual void resetPosition(int pos = 0);
 
 	void reset();
+	void resetPos();
 	/// Dump storage content as series of hex values
 	std::string hexDump() const;
 
@@ -93,8 +103,11 @@ public:
 	virtual std::string readString();
 	virtual void writeString(const std::string& s);
 
-	virtual std::vector<std::string> readStringList();
-	virtual void writeStringList(const std::vector<std::string> &s);
+    virtual std::vector<std::string> readStringList();
+    virtual void writeStringList(const std::vector<std::string> &s);
+
+    virtual std::vector<double> readDoubleList();
+    virtual void writeDoubleList(const std::vector<double> &s);
 
 	virtual int readCmdLength();
 
@@ -122,17 +135,11 @@ public:
 	StorageType::const_iterator begin() const { return store.begin(); }
 	StorageType::const_iterator end() const { return store.end(); }
 
+	/// @brief Invalidated assignment operator.
+	Storage& operator=(const Storage&) = delete;
+
 };
 
 } // namespace tcpip
 
 #endif // BUILD_TCPIP
-
-#endif
-/*-----------------------------------------------------------------------
- * Source  $Source: $
- * Version $Revision: 620 $
- * Date    $Date: 2011-07-08 17:39:10 +0200 (Fri, 08 Jul 2011) $
- *-----------------------------------------------------------------------
- * $Log: $
- *-----------------------------------------------------------------------*/

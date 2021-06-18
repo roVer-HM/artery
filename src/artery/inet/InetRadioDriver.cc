@@ -1,5 +1,6 @@
 #include "artery/inet/InetRadioDriver.h"
-#include "artery/inet/VanetRx.h"
+//#include "artery/inet/VanetRxControl.h"
+//#include "artery/inet/VanetTxControl.h"
 #include "artery/networking/GeoNetIndication.h"
 #include "artery/networking/GeoNetRequest.h"
 #include "artery/nic/RadioDriverProperties.h"
@@ -10,6 +11,7 @@
 #include <inet/linklayer/common/UserPriorityTag_m.h>
 #include <inet/linklayer/ieee80211/mac/Ieee80211Mac.h>
 #include <mutex>
+#include <inet/physicallayer/wireless/ieee80211/packetlevel/Ieee80211Radio.h>
 
 using namespace omnetpp;
 
@@ -37,6 +39,9 @@ inet::MacAddress convert(const vanetza::MacAddress& mac)
 std::once_flag register_protocol_flag;
 
 
+static const simsignal_t radioChannelChangedSignal = cComponent::registerSignal("radioChannelChanged");
+static const simsignal_t channelLoadSignal = cComponent::registerSignal("ChannelLoad");
+
 } // namespace
 
 const inet::Protocol InetRadioDriver::geonet { "GeoNet", "ETSI ITS-G5 GeoNetworking", inet::Protocol::NetworkLayer };
@@ -52,23 +57,35 @@ void InetRadioDriver::initialize(int stage)
 		RadioDriverBase::initialize();
 		cModule* host = inet::getContainingNode(this);
 		mLinkLayer = inet::findModuleFromPar<inet::ieee80211::Ieee80211Mac>(par("macModule"), host);
-		mLinkLayer->subscribe(VanetRx::ChannelLoadSignal, this);
+		mLinkLayer->subscribe(channelLoadSignal, this);
+		mRadio = inet::findModuleFromPar<inet::physicallayer::Ieee80211Radio>(par("radioModule"), host);
+		mRadio->subscribe(radioChannelChangedSignal, this);
 
 		// we were allowed to call addProtocol each time but call_once makes more sense to me
 		std::call_once(register_protocol_flag, []() {
 			inet::ProtocolGroup::ethertype.addProtocol(0x8947, &geonet);
 		});
 	} else if (stage == inet::InitStages::INITSTAGE_LINK_LAYER) {
+
+		ASSERT(mChannelNumber > 0);
 		auto properties = new RadioDriverProperties();
 		properties->LinkLayerAddress = convert(mLinkLayer->getAddress());
+		properties->ServingChannel = mChannelNumber;
 		indicateProperties(properties);
 	}
 }
 
 void InetRadioDriver::receiveSignal(cComponent* source, simsignal_t signal, double value, cObject*)
 {
-	if (signal == VanetRx::ChannelLoadSignal) {
+	if (signal == channelLoadSignal) {
 		emit(RadioDriverBase::ChannelLoadSignal, value);
+	}
+}
+
+void InetRadioDriver::receiveSignal(cComponent* source, simsignal_t signal, long value, cObject*)
+{
+	if (signal == radioChannelChangedSignal) {
+		mChannelNumber = value;
 	}
 }
 
@@ -95,6 +112,7 @@ void InetRadioDriver::handleDataRequest(cMessage* msg)
 	assert(request->ether_type.host() == inet::ProtocolGroup::ethertype.findProtocolNumber(&geonet));
 
 	auto up_tag = packet->addTag<inet::UserPriorityReq>();
+
 	switch (request->access_category) {
 		case vanetza::access::AccessCategory::VO:
 			up_tag->setUserPriority(7);
@@ -123,6 +141,7 @@ void InetRadioDriver::handleDataIndication(cMessage* msg)
 	auto gn_packet = chunk->getPacket()->dup();
 
 	auto addr_tag = packet->getTag<inet::MacAddressInd>();
+//	auto* info = check_and_cast<VanetRxControl*>(packet->removeControlInfo());
 	auto* indication = new GeoNetIndication();
 	indication->source = convert(addr_tag->getSrcAddress());
 	indication->destination = convert(addr_tag->getDestAddress());

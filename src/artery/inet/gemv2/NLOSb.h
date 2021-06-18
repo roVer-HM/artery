@@ -60,7 +60,7 @@ protected:
         Length txHeight;
         Length rxHeight;
         ObstacleList obstacles;
-        VehicleList vehicles;
+        VehicleList vehicles; /*< except transmitter and receiver */
         inet::m lambda;
     };
     friend struct Environment;
@@ -163,8 +163,8 @@ protected:
      */
     double computeAngleBetween(const Position& nadir, const Position& a, const Position& b) const;
 
-    const ObstacleIndex* mObstacleIndex;
     const VehicleIndex* mVehicleIndex;
+    const ObstacleIndex* mObstacleIndex;
 
 private:
     double maxRange;
