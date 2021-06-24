@@ -23,6 +23,13 @@ public:
         if (pv.value.size() != 2)
             throw std::runtime_error("TraCI boundary has to consist of exactly two positions");
     }
+    explicit Boundary(const std::vector<double>& pv)
+    {
+        if (pv.size() != 4)
+            throw std::runtime_error("TraCI boundary has to consist of exactly two positions");
+        boundary.value.push_back(libsumo::TraCIPosition(pv[0], pv[1]));
+        boundary.value.push_back(libsumo::TraCIPosition(pv[2], pv[3]));
+    }
 
     operator const libsumo::TraCIPositionVector& () { return boundary; }
 
