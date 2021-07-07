@@ -15,6 +15,7 @@ void PersonMobility::initializeSink(std::shared_ptr<API> api, std::shared_ptr<Pe
     mTraci = api;
     mNetBoundary = boundary;
     mPersonId = cache->getId();
+    mController.reset(new PersonController(api, cache));
 }
 
 void PersonMobility::initializePerson(const TraCIPosition& traci_pos, TraCIAngle traci_heading, double traci_speed)
@@ -42,5 +43,11 @@ GeoPosition PersonMobility::getGeoPosition() const
     result.longitude = geo.longitude * boost::units::degree::degree;
     return result;
 }
+
+traci::PersonController* PersonMobility::getPersonController(){
+    ASSERT(mController);
+     return MobilityBase::getController<PersonController>();
+}
+
 
 } // namespace artery

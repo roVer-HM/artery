@@ -9,6 +9,8 @@
 
 #include "artery/application/Middleware.h"
 #include "artery/traci/PersonMobility.h"
+#include "artery/application/MovingNodeDataProvider.h"
+#include "artery/traci/PersonController.h"
 
 namespace artery
 {
@@ -19,7 +21,12 @@ class PersonMiddleware : public Middleware
         void initialize(int stage) override;
 
     private:
-        PersonMobility* mMobility = nullptr;
+        void initializeStationType(const std::string&);
+        void initializePersonController(omnetpp::cPar&);
+        void receiveSignal(omnetpp::cComponent*, omnetpp::simsignal_t, omnetpp::cObject*, omnetpp::cObject*) override;
+
+        traci::PersonController* mPersonController = nullptr;
+        MovingNodeDataProvider mDataProvider;
 };
 
 } // namespace artery
