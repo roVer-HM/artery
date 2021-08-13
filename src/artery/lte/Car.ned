@@ -9,7 +9,7 @@ import inet.transportlayer.udp.Udp;
 import inet.transportlayer.contract.ITcp;
 import inet.transportlayer.contract.IUdp;
 import inet.common.MessageDispatcher;
-import lte.stack.ILteNic;
+import simu5g.stack.ICellularNic;
 
 module Car extends artery.inet.Car
 {
@@ -47,7 +47,7 @@ module Car extends artery.inet.Car
             @display("p=150,125");
         }
 
-        lteNic: <nicType> like ILteNic {
+        lteNic: <nicType> like ICellularNic {
             @display("p=150,400");
             nodeType = "UE";
         }

@@ -4,10 +4,10 @@ import inet.networklayer.configurator.ipv4.Ipv4NetworkConfigurator;
 import inet.node.ethernet.Eth10G;
 import inet.node.inet.Router;
 import inet.node.inet.StandardHost;
-import lte.corenetwork.binder.LteBinder;
-import lte.corenetwork.nodes.eNodeB;
-import lte.epc.PgwStandardSimplified;
-import lte.world.radio.LteChannelControl;
+import simu5g.common.binder.Binder;
+import simu5g.nodes.eNodeB;
+import simu5g.nodes.PgwStandard;
+import simu5g.world.radio.LteChannelControl;
 
 network World extends artery.inet.World
 {
@@ -21,7 +21,7 @@ network World extends artery.inet.World
                 @display("p=140,20");
         }
 
-        binder: LteBinder {
+        binder: Binder {
             parameters:
                 @display("p=140,60");
         }
@@ -39,10 +39,9 @@ network World extends artery.inet.World
                 **.eNodeBCount = default(numLteBaseStations);
         }
 
-        pgw: PgwStandardSimplified {
+        pgw: PgwStandard {
             parameters:
                 @display("p=220,100");
-                nodeType = "PGW";
         }
 
         server: StandardHost {
