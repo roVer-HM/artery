@@ -57,7 +57,7 @@ private:
 class InetVehicleMobility : public InetMobility, public VehicleMobility
 {
 public:
-    void initialize(int stage) override;
+    virtual void initialize(int stage) override;
 
     virtual traci::MovingNodeController* getControllerBase() override {
         return MobilityBase::getControllerBase();
@@ -67,7 +67,11 @@ public:
 class InetPersonMobility : public InetMobility, public PersonMobility
 {
 public:
-    void initialize(int stage) override;
+    virtual void initialize(int stage) override;
+
+    virtual traci::MovingNodeController* getControllerBase() override {
+        return MobilityBase::getControllerBase();
+    }
 };
 
 } // namespace artery
