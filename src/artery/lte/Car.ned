@@ -47,7 +47,7 @@ module Car extends artery.inet.Car
             @display("p=150,125");
         }
 
-        lteNic: <nicType> like ICellularNic {
+        cellularNic: <nicType> like ICellularNic {
             @display("p=150,400");
             nodeType = "UE";
         }
@@ -82,10 +82,10 @@ module Car extends artery.inet.Car
         }
 
     connections allowunconnected:
-        lteNic.radioIn <-- lteRadioIn;
+        cellularNic.radioIn <-- lteRadioIn;
         
-        lteNic.upperLayerOut --> nl.in++;
-        lteNic.upperLayerIn <-- nl.out++;
+        cellularNic.upperLayerOut --> nl.in++;
+        cellularNic.upperLayerIn <-- nl.out++;
 
         networkLayer.ifIn <-- nl.out++;
         networkLayer.ifOut --> nl.in++;
