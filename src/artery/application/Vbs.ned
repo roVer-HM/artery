@@ -8,6 +8,9 @@ simple Vbs like ItsG5Service
         
         @statistic[reception](source=VamReceived;record=vector(VamStationId)?,vector(VamGenerationDeltaTime)?);
         @statistic[transmission](source=VamSent;record=vector(VamStationId)?,vector(VamGenerationDeltaTime)?);
+        	
+       	// enable Dcc transmission interval restrictions
+        bool withDccRestriction = default(true);
         
         // Vam generation interval boundaries
         double minInterval @unit(s) = default(0.1s);

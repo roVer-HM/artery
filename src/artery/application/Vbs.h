@@ -29,10 +29,12 @@ private:
     bool checkSpeedDelta() const;
     bool checkReferencePositionDelta() const;
     bool checkOrientationDelta() const;
+    bool checkRedundancyMitigation(const omnetpp::SimTime&) const;
+    bool checkRedundancyTimeDelta(const omnetpp::SimTime&) const;
     void sendVam(const omnetpp::SimTime&);
     omnetpp::SimTime genVamDcc();
     vanetza::asn1::Vam generateVam(const MovingNodeDataProvider&, uint16_t genDeltaTime);
-    void addLfContainer(vanetza::asn1::Vam&);
+    void addLowFrequencyContainer(vanetza::asn1::Vam&);
 
     const MovingNodeDataProvider* mDeviceDataProvider;
     const Timer* mTimer;
@@ -58,8 +60,7 @@ private:
     StationType mStationType;
     long mSizeClass;
     long mVruDeviceUsage;
-
-
+    bool mDccRestriction;
     vanetza::units::Length mMinLatDistance;
     vanetza::units::Length mMinLongDistance;
     vanetza::units::length mMinVertDistance;
