@@ -36,6 +36,30 @@ void LocalDynamicMap::updateAwareness(const CaObject& obj)
     }
 }
 
+void LocalDynamicMap::updateAwareness(const VaObject& obj)
+{
+    const vanetza::asn1::Vam& msg = obj.asn1();
+
+    static const omnetpp::SimTime lifetime { 1100, omnetpp::SIMTIME_MS };
+    auto tai = mTimer.reconstructMilliseconds(msg->vam.generationDeltaTime);
+    const omnetpp::SimTime expiry = mTimer.getTimeFor(tai) + lifetime;
+
+    const auto now = omnetpp::simTime();
+    if (expiry < now || expiry > now + 2 * lifetime) {
+        EV_STATICCONTEXT
+        EV_WARN << "Expiry of received CAM is out of bounds";
+        return;
+    }
+
+    AwarenessEntryVru entry(obj, expiry);
+    auto found = mVbsMessages.find(msg->header.stationID);
+    if (found != mVbsMessages.end()) {
+        found->second = std::move(entry);
+    } else {
+        mVbsMessages.emplace(msg->header.stationID, std::move(entry));
+    }
+}
+
 void LocalDynamicMap::dropExpired()
 {
     const auto now = omnetpp::simTime();
@@ -46,6 +70,15 @@ void LocalDynamicMap::dropExpired()
             ++it;
         }
     }
+
+    for (auto it = mVbsMessages.begin(); it != mVbsMessages.end();) {
+        if (it->second.expiry < now) {
+            it = mVbsMessages.erase(it);
+        } else {
+            ++it;
+        }
+   }
+
 }
 
 unsigned LocalDynamicMap::count(const CamPredicate& predicate) const
@@ -57,7 +90,21 @@ unsigned LocalDynamicMap::count(const CamPredicate& predicate) const
             });
 }
 
+unsigned LocalDynamicMap::count(const VamPredicate& predicate) const
+{
+    return std::count_if(mVbsMessages.begin(), mVbsMessages.end(),
+            [&predicate](const std::pair<const StationID, AwarenessEntryVru>& map_entry) {
+                const Vam& vam = map_entry.second.object.asn1();
+                return predicate(vam);
+            });
+}
+
 LocalDynamicMap::AwarenessEntry::AwarenessEntry(const CaObject& obj, omnetpp::SimTime t) :
+    expiry(t), object(obj)
+{
+}
+
+LocalDynamicMap::AwarenessEntryVru::AwarenessEntryVru(const VaObject& obj, omnetpp::SimTime t) :
     expiry(t), object(obj)
 {
 }

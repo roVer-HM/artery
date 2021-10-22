@@ -13,6 +13,26 @@
 namespace artery
 {
 
+/**
+ * Enum for VRU cluster states according to TS 103 300-2 v2.1.1 (section 5.4.2.1)
+ */
+enum class ClusterState
+{
+    VruIdle,
+    VruActiveStandalone,
+    VruActiveClusterLeader,
+    VruPassive
+};
+
+/**
+ * Enum for VRU role according to TS 103 300-2 v2.1.1 (section 4.2)
+ */
+enum class VruRole
+{
+    VruRoleOff,
+    VruRoleOn
+};
+
 class MovingNodeDataProvider;
 class NetworkInterfaceTable;
 
@@ -25,7 +45,7 @@ public:
     void trigger() override;
 
 private:
-    void checkTriggerConditions(const omnetpp::SiTime&);
+    void checkTriggerConditions(const omnetpp::SimTime&);
     bool checkSpeedDelta() const;
     bool checkReferencePositionDelta() const;
     bool checkOrientationDelta() const;
@@ -48,25 +68,25 @@ private:
     omnetpp::SimTime mLastVamLfTimestamp;
     vanetza::units::Angle mOrientationThreshold;
     vanetza::units::Velocity mSpeedThreshold;
-    vanetza::units::Length mReferencePointThreshold;
+    vanetza::units::Length mReferencePositionThreshold;
     vanetza::units::Angle mLastVamOrientation;
     vanetza::units::Velocity mLastVamSpeed;
     Position mLastVamReferencePosition;
     uint8_t mNumSkipVamRedundancy;
-    int mVruProfile;
-    long mVruSubProfile;
-    int mVruRole;
-    int mClusterState;
-    StationType mStationType;
+    VruProfileAndSubprofile_t mVruProfile;
+    long mVruEnvironment;
+    VruRole mVruRole;
+    ClusterState mClusterState;
+    const StationType* mStationType;
     long mSizeClass;
     long mVruDeviceUsage;
     bool mDccRestriction;
     vanetza::units::Length mMinLatDistance;
     vanetza::units::Length mMinLongDistance;
-    vanetza::units::length mMinVertDistance;
-    uint8_t mTrajectoryInterceptionThreshold;
-    uint8_t mLastVamTrajectoryInterception[8];
+    vanetza::units::Length mMinVertDistance;
+    double mTrajectoryInterceptionThreshold;
+    double mLastVamTrajectoryInterception[8];
 };
 }
 
-#endif /*ARTERY_VBS_H
+#endif /* ARTERY_VBS_H */

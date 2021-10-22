@@ -10,9 +10,8 @@
 #include "artery/application/MovingNodeDataProvider.h"
 #include "artery/application/MultiChannelPolicy.h"
 #include "artery/utility/simtime_cast.h"
+#include "artery/utility/Calculations.h"
 #include "veins/base/utils/Coord.h"
-#include <boost/units/cmath.hpp>
-#include <boost/units/systems/si/prefixes.hpp>
 #include <omnetpp/cexception.h>
 #include <vanetza/btp/ports.hpp>
 #include <vanetza/dcc/transmission.hpp>
@@ -25,36 +24,9 @@ namespace artery
 
 using namespace omnetpp;
 
-auto microdegree = vanetza::units::degree * boost::units::si::micro;
-auto decidegree = vanetza::units::degree * boost::units::si::deci;
-auto degree_per_second = vanetza::units::degree / vanetza::units::si::second;
-auto centimeter_per_second = vanetza::units::si::meter_per_second * boost::units::si::centi;
-
 static const simsignal_t scSignalCamReceived = cComponent::registerSignal("CamReceived");
 static const simsignal_t scSignalCamSent = cComponent::registerSignal("CamSent");
 static const auto scLowFrequencyContainerInterval = std::chrono::milliseconds(500);
-
-template<typename T, typename U>
-long round(const boost::units::quantity<T>& q, const U& u)
-{
-	boost::units::quantity<U> v { q };
-	return std::round(v.value());
-}
-
-SpeedValue_t buildSpeedValue(const vanetza::units::Velocity& v)
-{
-	static const vanetza::units::Velocity lower { 0.0 * boost::units::si::meter_per_second };
-	static const vanetza::units::Velocity upper { 163.82 * boost::units::si::meter_per_second };
-
-	SpeedValue_t speed = SpeedValue_unavailable;
-	if (v >= upper) {
-		speed = 16382; // see CDD A.74 (TS 102 894 v1.2.1)
-	} else if (v >= lower) {
-		speed = round(v, centimeter_per_second) * SpeedValue_oneCentimeterPerSec;
-	}
-	return speed;
-}
-
 
 Define_Module(CaService)
 

@@ -2,6 +2,7 @@
 #define ARTERY_LOCALDYNAMICMAP_H_AL7SS9KT
 
 #include "artery/application/CaObject.h"
+#include "artery/application/VaObject.h"
 #include <omnetpp/simtime.h>
 #include <vanetza/asn1/cam.hpp>
 #include <cstdint>
@@ -19,11 +20,15 @@ public:
     using StationID = uint32_t;
     using Cam = vanetza::asn1::Cam;
     using CamPredicate = std::function<bool(const Cam&)>;
+    using Vam = vanetza::asn1::Vam;
+    using VamPredicate = std::function<bool(const Vam&)>;
 
     LocalDynamicMap(const Timer&);
     void updateAwareness(const CaObject&);
+    void updateAwareness(const VaObject&);
     void dropExpired();
     unsigned count(const CamPredicate&) const;
+    unsigned count(const VamPredicate&) const;
 
 private:
     struct AwarenessEntry
@@ -36,8 +41,19 @@ private:
         CaObject object;
     };
 
+    struct AwarenessEntryVru
+    {
+        AwarenessEntryVru(const VaObject&, omnetpp::SimTime);
+        AwarenessEntryVru(AwarenessEntryVru&&) = default;
+        AwarenessEntryVru& operator=(AwarenessEntryVru&&) = default;
+
+        omnetpp::SimTime expiry;
+        VaObject object;
+    };
+
     const Timer& mTimer;
     std::map<StationID, AwarenessEntry> mCaMessages;
+    std::map<StationID, AwarenessEntryVru> mVbsMessages;
 };
 
 } // namespace artery

@@ -20,7 +20,7 @@ simple Vbs like ItsG5Service
         double genLfContainer @unit(s) = default(2.0s);
         
         // Threshold for reference position change between two consecutive VAMs.
-        double referencePointThreshold @unit(m) = default(4.0m);
+        double referencePositionThreshold @unit(m) = default(4.0m);
         
         // Threshold for speed change between two consecutive VAMs.
         double speedThreshold @unit(mps) = default(0.5mps);
