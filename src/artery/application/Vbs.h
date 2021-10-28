@@ -74,7 +74,6 @@ private:
     Position mLastVamReferencePosition;
     uint8_t mNumSkipVamRedundancy;
     VruProfileAndSubprofile_t mVruProfile;
-    long mVruEnvironment;
     VruRole mVruRole;
     ClusterState mClusterState;
     const StationType* mStationType;

@@ -74,7 +74,6 @@ void Vbs::initialize()
     mSizeClass = VruSizeClass_medium;
     mVruProfile.present = VruProfileAndSubprofile_PR_pedestrian;
     mVruProfile.choice.pedestrian = VruSubProfilePedestrian_ordinary_pedestrian;
-    mVruEnvironment = VruEnvironment_unavailable;
     mStationType = &getStationType();
 }
 
@@ -222,7 +221,7 @@ vanetza::asn1::Vam Vbs::generateVam(const MovingNodeDataProvider& ddp, uint16_t 
 {
     vanetza::asn1::Vam message;
 
-    ItsPduHeaderVam_t& header = message->header;
+    ItsPduHeader_t& header = message->header;
     header.protocolVersion = 1;
     header.messageID = ItsPduHeader__messageID_vam;
     header.stationID = ddp.station_id();
@@ -257,12 +256,8 @@ vanetza::asn1::Vam Vbs::generateVam(const MovingNodeDataProvider& ddp, uint16_t 
     }
     hfc->longitudinalAcceleration.longitudinalAccelerationConfidence = AccelerationConfidence_unavailable;
 
-    VruLanePosition_t*& vruLanePos = hfc->vruLanePosition;
-    vruLanePos = vanetza::asn1::allocate<VruLanePosition_t>();
-    vruLanePos->present = VruLanePosition_PR_NOTHING;
-
     hfc->environment = vanetza::asn1::allocate<VruEnvironment_t>();
-    *(hfc->environment) = mVruEnvironment;
+    *(hfc->environment) = VruEnvironment_unavailable;
 
     hfc->deviceUsage = vanetza::asn1::allocate<VruDeviceUsage_t>();
     *(hfc->deviceUsage) = mVruDeviceUsage;
