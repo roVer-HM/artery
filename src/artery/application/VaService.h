@@ -1,5 +1,5 @@
-#ifndef ARTERY_VBS_H
-#define ARTERY_VBS_H
+#ifndef ARTERY_VASERVICE_H
+#define ARTERY_VASERVICE_H
 
 #include "artery/application/ItsG5BaseService.h"
 #include "artery/utility/Channel.h"
@@ -36,10 +36,10 @@ enum class VruRole
 class MovingNodeDataProvider;
 class NetworkInterfaceTable;
 
-class Vbs: public ItsG5BaseService
+class VaService: public ItsG5BaseService
 {
 public:
-    Vbs();
+    VaService();
     void initialize() override;
     void indicate(const vanetza::btp::DataIndication&, std::unique_ptr<vanetza::UpPacket>) override;
     void trigger() override;
@@ -88,4 +88,4 @@ private:
 };
 }
 
-#endif /* ARTERY_VBS_H */
+#endif /* ARTERY_VASERVICE_H */

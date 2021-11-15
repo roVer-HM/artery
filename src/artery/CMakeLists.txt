@@ -35,7 +35,7 @@ add_library(core SHARED
     application/Timer.cc
     application/TransportDispatcher.cc
     application/VaObject.cc
-    application/Vbs.cc
+    application/VaService.cc
     application/VehicleDataProvider.cc
     application/VehicleKinematics.cc
     application/VehicleMiddleware.cc

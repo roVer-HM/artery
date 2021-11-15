@@ -21,7 +21,7 @@ protected:
     }
 };
 
-Register_ResultFilter("vamStationId", VamStationIdResultFilter)
+Register_ResultFilter("vamStationId", VamStationIdResultFilter);
 
 
 class VamGenerationDeltaTimeResultFilter : public cObjectResultFilter
@@ -36,7 +36,7 @@ protected:
     }
 };
 
-Register_ResultFilter("vamGenerationDeltaTime", VamGenerationDeltaTimeResultFilter)
+Register_ResultFilter("vamGenerationDeltaTime", VamGenerationDeltaTimeResultFilter);
 
 
 

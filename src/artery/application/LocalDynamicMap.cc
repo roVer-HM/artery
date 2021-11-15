@@ -28,11 +28,11 @@ void LocalDynamicMap::updateAwareness(const CaObject& obj)
     }
 
     AwarenessEntry entry(obj, expiry);
-    auto found = mCaMessages.find(msg->header.stationID);
-    if (found != mCaMessages.end()) {
+    auto found = mMessages.find(msg->header.stationID);
+    if (found != mMessages.end()) {
         found->second = std::move(entry);
     } else {
-        mCaMessages.emplace(msg->header.stationID, std::move(entry));
+        mMessages.emplace(msg->header.stationID, std::move(entry));
     }
 }
 
@@ -47,66 +47,60 @@ void LocalDynamicMap::updateAwareness(const VaObject& obj)
     const auto now = omnetpp::simTime();
     if (expiry < now || expiry > now + 2 * lifetime) {
         EV_STATICCONTEXT
-        EV_WARN << "Expiry of received CAM is out of bounds";
+        EV_WARN << "Expiry of received VAM is out of bounds";
         return;
     }
 
-    AwarenessEntryVru entry(obj, expiry);
-    auto found = mVbsMessages.find(msg->header.stationID);
-    if (found != mVbsMessages.end()) {
+    AwarenessEntry entry(obj, expiry);
+    auto found = mMessages.find(msg->header.stationID);
+    if (found != mMessages.end()) {
         found->second = std::move(entry);
     } else {
-        mVbsMessages.emplace(msg->header.stationID, std::move(entry));
+        mMessages.emplace(msg->header.stationID, std::move(entry));
     }
 }
 
 void LocalDynamicMap::dropExpired()
 {
     const auto now = omnetpp::simTime();
-    for (auto it = mCaMessages.begin(); it != mCaMessages.end();) {
+    for (auto it = mMessages.begin(); it != mMessages.end();) {
         if (it->second.expiry < now) {
-            it = mCaMessages.erase(it);
+            it = mMessages.erase(it);
         } else {
             ++it;
         }
     }
 
-    for (auto it = mVbsMessages.begin(); it != mVbsMessages.end();) {
-        if (it->second.expiry < now) {
-            it = mVbsMessages.erase(it);
-        } else {
-            ++it;
-        }
-   }
-
 }
 
 unsigned LocalDynamicMap::count(const CamPredicate& predicate) const
 {
-    return std::count_if(mCaMessages.begin(), mCaMessages.end(),
+    return std::count_if(mMessages.begin(), mMessages.end(),
             [&predicate](const std::pair<const StationID, AwarenessEntry>& map_entry) {
-                const Cam& cam = map_entry.second.object.asn1();
-                return predicate(cam);
+                if(!map_entry.second.object.index()){
+                    CaObject caObj = std::get<CaObject>(map_entry.second.object);
+                    const Cam& cam = caObj.asn1();
+                    return predicate(cam);
+                }
             });
 }
 
 unsigned LocalDynamicMap::count(const VamPredicate& predicate) const
 {
-    return std::count_if(mVbsMessages.begin(), mVbsMessages.end(),
-            [&predicate](const std::pair<const StationID, AwarenessEntryVru>& map_entry) {
-                const Vam& vam = map_entry.second.object.asn1();
-                return predicate(vam);
+    return std::count_if(mMessages.begin(), mMessages.end(),
+            [&predicate](const std::pair<const StationID, AwarenessEntry>& map_entry) {
+                if(map_entry.second.object.index()){
+                    VaObject vaObj = std::get<VaObject>(map_entry.second.object);
+                    const Vam& vam = vaObj.asn1();
+                    return predicate(vam);
+                }
             });
 }
 
-LocalDynamicMap::AwarenessEntry::AwarenessEntry(const CaObject& obj, omnetpp::SimTime t) :
+LocalDynamicMap::AwarenessEntry::AwarenessEntry(const std::variant<CaObject, VaObject>& obj, omnetpp::SimTime t) :
     expiry(t), object(obj)
 {
 }
 
-LocalDynamicMap::AwarenessEntryVru::AwarenessEntryVru(const VaObject& obj, omnetpp::SimTime t) :
-    expiry(t), object(obj)
-{
-}
 
 } // namespace artery

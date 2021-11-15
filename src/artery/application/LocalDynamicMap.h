@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <functional>
 #include <map>
+#include <variant>
 
 namespace artery
 {
@@ -33,27 +34,17 @@ public:
 private:
     struct AwarenessEntry
     {
-        AwarenessEntry(const CaObject&, omnetpp::SimTime);
+        AwarenessEntry(const std::variant<CaObject, VaObject>&, omnetpp::SimTime);
         AwarenessEntry(AwarenessEntry&&) = default;
         AwarenessEntry& operator=(AwarenessEntry&&) = default;
 
         omnetpp::SimTime expiry;
-        CaObject object;
+        std::variant<CaObject, VaObject> object;
     };
 
-    struct AwarenessEntryVru
-    {
-        AwarenessEntryVru(const VaObject&, omnetpp::SimTime);
-        AwarenessEntryVru(AwarenessEntryVru&&) = default;
-        AwarenessEntryVru& operator=(AwarenessEntryVru&&) = default;
-
-        omnetpp::SimTime expiry;
-        VaObject object;
-    };
 
     const Timer& mTimer;
-    std::map<StationID, AwarenessEntry> mCaMessages;
-    std::map<StationID, AwarenessEntryVru> mVbsMessages;
+    std::map<StationID, AwarenessEntry> mMessages;
 };
 
 } // namespace artery

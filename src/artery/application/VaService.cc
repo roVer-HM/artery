@@ -1,4 +1,4 @@
-#include "artery/application/Vbs.h"
+#include "artery/application/VaService.h"
 #include "artery/application/VaObject.h"
 #include "artery/application/Asn1PacketVisitor.h"
 #include "artery/application/MovingNodeDataProvider.h"
@@ -22,9 +22,9 @@ static const simsignal_t scSignalVamReceived = cComponent::registerSignal("VamRe
 static const simsignal_t scSignalVamSent = cComponent::registerSignal("VamSent");
 static const auto scLowFrequencyContainerInterval = std::chrono::milliseconds(2000);
 
-Define_Module(Vbs)
+Define_Module(VaService);
 
-Vbs::Vbs() :
+VaService::VaService() :
     mDeviceDataProvider(nullptr),
     mNetworkInterfaceTable(nullptr),
     mTimer(nullptr),
@@ -36,7 +36,7 @@ Vbs::Vbs() :
 {
 }
 
-void Vbs::initialize()
+void VaService::initialize()
 {
     ItsG5BaseService::initialize();
 
@@ -45,7 +45,7 @@ void Vbs::initialize()
     mNetworkInterfaceTable = &getFacilities().get_const<NetworkInterfaceTable>();
     mTimer = &getFacilities().get_const<Timer>();
     mLocalDynamicMap = &getFacilities().get_mutable<artery::LocalDynamicMap>();
-    mPrimaryChannel = getFacilities().get_const<MultiChannelPolicy>().primaryChannel(vanetza::aid::CA);
+    mPrimaryChannel = getFacilities().get_const<MultiChannelPolicy>().primaryChannel(vanetza::aid::VRU);
 
     // initialize generation interval boundaries
     mGenVamMin = par("minInterval");
@@ -77,7 +77,7 @@ void Vbs::initialize()
     mStationType = &getStationType();
 }
 
-void Vbs::indicate(const vanetza::btp::DataIndication& ind, std::unique_ptr<vanetza::UpPacket> packet)
+void VaService::indicate(const vanetza::btp::DataIndication& ind, std::unique_ptr<vanetza::UpPacket> packet)
 {
     Enter_Method("indicate");
     // VRUs with VruRoleOff shall not receive VAMs - TS 103 300-2 v2.1.1 (section 4.2)
@@ -93,27 +93,35 @@ void Vbs::indicate(const vanetza::btp::DataIndication& ind, std::unique_ptr<vane
     }
 }
 
-void Vbs::trigger()
+void VaService::trigger()
 {
     Enter_Method("trigger");
     // VRUs with VruRoleOff shall not send VAMs - TS 103 300-2 v2.1.1 (section 4.2)
     // VRUs with the cluster state VruPassive shall not send VAMs - TS 103 300-2 v2.1.1 (section 5.4.2.1)
-    if(mVruRole == VruRole::VruRoleOn || mClusterState == ClusterState::VruPassive){
+    if(mVruRole == VruRole::VruRoleOn && mClusterState != ClusterState::VruPassive){
         checkTriggerConditions(simTime());
     }
 }
 
-void Vbs::checkTriggerConditions(const SimTime& T_now)
+void VaService::checkTriggerConditions(const SimTime& T_now)
 {
     // Variable names according to TS 103 300-2 V2.1.1 (section 6.2).
+
     SimTime& T_GenVam = mGenVam;
+
+    // Minimum time elapsed between the start of two consecutive VAMs -> 100ms.
     const SimTime& T_GenVamMin = mGenVamMin;
+
+    // Maximum time elapsed between the start of two consecutive VAMs -> 5000ms.
     const SimTime& T_GenVamMax = mGenVamMax;
+
     const SimTime T_elapsed = T_now - mLastVamTimestamp;
+
+    // Current valid interval for consecutive VAM generation, either mGenVam or set via DCC if enabled.
     const SimTime T_GenVamDcc = mDccRestriction ? genVamDcc() : mGenVam;
 
     // Time elapsed since last VAM is greater than the minimum time between two VAMs.
-    if(T_elapsed >= T_GenVam) {
+    if(T_elapsed >= T_GenVamDcc) {
         // Check if VAM generation & transmission shall be skipped due to redundancy mitigation.
         if(checkRedundancyMitigation(T_elapsed)){
             return;
@@ -125,22 +133,22 @@ void Vbs::checkTriggerConditions(const SimTime& T_now)
     }
 }
 
-bool Vbs::checkSpeedDelta() const
+bool VaService::checkSpeedDelta() const
 {
     return abs(mLastVamSpeed - mDeviceDataProvider->speed()) > mSpeedThreshold;
 }
 
-bool Vbs::checkReferencePositionDelta() const
+bool VaService::checkReferencePositionDelta() const
 {
     return (distance(mLastVamReferencePosition, mDeviceDataProvider->position()) > mReferencePositionThreshold);
 }
 
-bool Vbs::checkOrientationDelta() const
+bool VaService::checkOrientationDelta() const
 {
     return abs(mLastVamOrientation - mDeviceDataProvider->heading()) > mOrientationThreshold;
 }
 
-bool Vbs::checkRedundancyTimeDelta(const SimTime& T_elapsed) const
+bool VaService::checkRedundancyTimeDelta(const SimTime& T_elapsed) const
 {
     return T_elapsed > (mNumSkipVamRedundancy * mGenVamMax);
 }
@@ -151,7 +159,7 @@ bool Vbs::checkRedundancyTimeDelta(const SimTime& T_elapsed) const
  *      - VRU is in a protected or non-drivable area e.g. buildings. -> Solve via management entity/sensors?
  *      - Information about the VRU has been reported by another ITS-S within T_GenVam. -> Solve via LDM check for own StationID?
  */
-bool Vbs::checkRedundancyMitigation(const SimTime& T_elapsed) const
+bool VaService::checkRedundancyMitigation(const SimTime& T_elapsed) const
 {
     return (mClusterState == ClusterState::VruPassive ||
             (!checkSpeedDelta() && !checkReferencePositionDelta() && !checkOrientationDelta() && checkRedundancyTimeDelta(T_elapsed)));
@@ -160,7 +168,7 @@ bool Vbs::checkRedundancyMitigation(const SimTime& T_elapsed) const
 /**
  * Modified Version of the CaServices sendCam method to send a VAM.
  */
-void Vbs::sendVam(const omnetpp::SimTime& T_now)
+void VaService::sendVam(const omnetpp::SimTime& T_now)
 {
     uint16_t genDeltaTimeMod = countTaiMilliseconds(mTimer->getTimeFor(mDeviceDataProvider->updated()));
     auto vam = generateVam(*mDeviceDataProvider, genDeltaTimeMod);
@@ -195,16 +203,16 @@ void Vbs::sendVam(const omnetpp::SimTime& T_now)
 
 /**
  * Same Method as used in CaService.
- * Use the NetworkInterfaceTable to retrieve the value for T_GenVam from the VBS management entity according to the.
+ * Use the NetworkInterfaceTable to retrieve the value for T_GenVam from the VaService management entity according to the.
  * channel usage requirements of the Decentralized Congestion Control (DCC).
  */
-SimTime Vbs::genVamDcc()
+SimTime VaService::genVamDcc()
 {
     // network interface may not be ready yet during initialization, so look it up at this later point.
     auto netifc = mNetworkInterfaceTable->select(mPrimaryChannel);
     vanetza::dcc::TransmitRateThrottle* trc = netifc ? netifc->getDccEntity().getTransmitRateThrottle() : nullptr;
     if (!trc) {
-        throw cRuntimeError("No DCC TRC found for CA's primary channel %i", mPrimaryChannel);
+        throw cRuntimeError("No DCC TRC found for VA's primary channel %i", mPrimaryChannel);
     }
 
     static const vanetza::dcc::TransmissionLite ca_tx(vanetza::dcc::Profile::DP2, 0);
@@ -217,7 +225,7 @@ SimTime Vbs::genVamDcc()
  * Returns a VAM, containing the basic container and the high frequency container.
  * Both containers only contain the required fields and all fields necessary for VRU profile 1.
  */
-vanetza::asn1::Vam Vbs::generateVam(const MovingNodeDataProvider& ddp, uint16_t genDeltaTime)
+vanetza::asn1::Vam VaService::generateVam(const MovingNodeDataProvider& ddp, uint16_t genDeltaTime)
 {
     vanetza::asn1::Vam message;
 
@@ -232,7 +240,7 @@ vanetza::asn1::Vam Vbs::generateVam(const MovingNodeDataProvider& ddp, uint16_t 
     VruHighFrequencyContainer_t*& hfc = vam.vamParameters.vruHighFrequencyContainer;
     hfc = vanetza::asn1::allocate<VruHighFrequencyContainer_t>();
 
-    basic.stationType = StationType_pedestrian;
+    basic.stationType = (e_StationType)mStationType->getStationType();
     basic.referencePosition.altitude.altitudeValue = AltitudeValue_unavailable;
     basic.referencePosition.altitude.altitudeConfidence = AltitudeConfidence_unavailable;
     basic.referencePosition.longitude = round(ddp.longitude(), microdegree) * Longitude_oneMicrodegreeEast;
@@ -274,7 +282,7 @@ vanetza::asn1::Vam Vbs::generateVam(const MovingNodeDataProvider& ddp, uint16_t 
  * Adds the low frequency container to an existing VAM.
  * The low frequency container only contains required fields and all fields necessary for VRU profile 1.
  */
-void Vbs::addLowFrequencyContainer(vanetza::asn1::Vam& message)
+void VaService::addLowFrequencyContainer(vanetza::asn1::Vam& message)
 {
     VruLowFrequencyContainer_t*& lfc = message->vam.vamParameters.vruLowFrequencyContainer;
     lfc = vanetza::asn1::allocate<VruLowFrequencyContainer_t>();

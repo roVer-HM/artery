@@ -1,6 +1,6 @@
 package artery.application;
 
-simple Vbs like ItsG5Service
+simple VaService like ItsG5Service
 {
     parameters:
         @signal[VamReceived](type=VaObject);
