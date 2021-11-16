@@ -1,6 +1,8 @@
 package traci;
 
-module Manager
+moduleinterface TraCiManager {}
+
+module Manager like TraCiManager
 {
     parameters:
         @display("i=block/network2;is=s");
