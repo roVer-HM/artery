@@ -118,6 +118,8 @@ else()
 		set(MAKE_MODE debug)
 	endif()
 	
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-format-security")
+	
 	
 	find_path(Veins_DIR NAMES src/veins/package.ned PATHS ${VEINS_PATH} DOC "Veins root directory")
 	import_opp_target(veins ${Veins_DIR}/src/Makefile)
