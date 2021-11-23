@@ -123,7 +123,7 @@ void VaService::checkTriggerConditions(const SimTime& T_now)
     // Time elapsed since last VAM is greater than the minimum time between two VAMs.
     if(T_elapsed >= T_GenVamDcc) {
         // Check if VAM generation & transmission shall be skipped due to redundancy mitigation.
-        if(checkRedundancyMitigation(T_elapsed)){
+        if(checkRedundancyMitigation(T_elapsed, T_now)){
             return;
         }else if (checkSpeedDelta() || checkReferencePositionDelta() || checkOrientationDelta()) {
             sendVam(T_now);
@@ -154,19 +154,46 @@ bool VaService::checkRedundancyTimeDelta(const SimTime& T_elapsed) const
 }
 
 /**
- *  According to TS 103 300-3 V2.1.1 (section 6.43).
- *  Currently missing the following checks:
- *      - VRU is in a protected or non-drivable area e.g. buildings. -> Solve via management entity/sensors?
- *      - Information about the VRU has been reported by another ITS-S within T_GenVam. -> Solve via LDM check for own StationID?
+ * TODO: This method has not been tested yet but should work in theory!
  */
-bool VaService::checkRedundancyMitigation(const SimTime& T_elapsed) const
+bool VaService::checkRedundancyMessageSent(const SimTime& T_now) const
 {
-    return (mClusterState == ClusterState::VruPassive ||
+    LocalDynamicMap::VamPredicate stationIdPresent = [&] (const LocalDynamicMap::Vam& msg) {
+        bool result;
+
+        const StationID_t stationId = msg->header.stationID;
+        const SimTime genDeltaTime = SimTime(msg->vam.generationDeltaTime, SIMTIME_MS);
+
+        if(stationId == mDeviceDataProvider->getStationId() &&
+               (T_now - genDeltaTime) <= mGenVam  ) {
+            result = true;
+        } else {
+            result = false;
+        }
+
+        return result;
+    };
+
+    return mLocalDynamicMap->count(stationIdPresent) >= 1;
+}
+
+/**
+ *  According to TS 103 300-3 V2.1.1 (section 6.43).
+ *  Multiple checks for skipping the current VAM generation event:
+ *      - Time elapsed, position change, speed change and orientation change since the last VAM generation do not exceed a certain threshold.
+ *      - The information about the ego-VRU has been reported by another ITS-S within T_GenVam.
+ *      - The VRU is member of a cluster.
+ *  Currently missing the following checks:
+ *      - VRU is in a protected or non-drivable area e.g. buildings.
+ */
+bool VaService::checkRedundancyMitigation(const SimTime& T_elapsed, const SimTime& T_now) const
+{
+    return (mClusterState == ClusterState::VruPassive || checkRedundancyMessageSent(T_now) ||
             (!checkSpeedDelta() && !checkReferencePositionDelta() && !checkOrientationDelta() && checkRedundancyTimeDelta(T_elapsed)));
 }
 
 /**
- * Modified Version of the CaServices sendCam method to send a VAM.
+ * Modified Version of the CaServices sendCam method to create and send a VAM.
  */
 void VaService::sendVam(const omnetpp::SimTime& T_now)
 {
@@ -232,7 +259,7 @@ vanetza::asn1::Vam VaService::generateVam(const MovingNodeDataProvider& ddp, uin
     ItsPduHeader_t& header = message->header;
     header.protocolVersion = 1;
     header.messageID = ItsPduHeader__messageID_vam;
-    header.stationID = ddp.station_id();
+    header.stationID = ddp.getStationId();
 
     VruAwareness_t& vam = message->vam;
     vam.generationDeltaTime = genDeltaTime * GenerationDeltaTime_oneMilliSec;

@@ -49,7 +49,8 @@ private:
     bool checkSpeedDelta() const;
     bool checkReferencePositionDelta() const;
     bool checkOrientationDelta() const;
-    bool checkRedundancyMitigation(const omnetpp::SimTime&) const;
+    bool checkRedundancyMitigation(const omnetpp::SimTime&, const omnetpp::SimTime&) const;
+    bool checkRedundancyMessageSent(const omnetpp::SimTime&) const;
     bool checkRedundancyTimeDelta(const omnetpp::SimTime&) const;
     void sendVam(const omnetpp::SimTime&);
     omnetpp::SimTime genVamDcc();
