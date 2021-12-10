@@ -6,8 +6,8 @@ simple VaService like ItsG5Service
         @signal[VamReceived](type=VaObject);
         @signal[VamSent](type=VaObject);
         
-        @statistic[reception](source=VamReceived;record=vector(VamStationId)?,vector(VamGenerationDeltaTime)?);
-        @statistic[transmission](source=VamSent;record=vector(VamStationId)?,vector(VamGenerationDeltaTime)?);
+        @statistic[reception](source=VamReceived;record=vector(vamStationId)?,vector(vamGenerationDeltaTime)?);
+        @statistic[transmission](source=VamSent;record=vector(vamStationId)?,vector(vamGenerationDeltaTime)?);
         	
        	// enable Dcc transmission interval restrictions
         bool withDccRestriction = default(true);
