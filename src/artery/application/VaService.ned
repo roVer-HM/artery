@@ -5,9 +5,11 @@ simple VaService like ItsG5Service
     parameters:
         @signal[VamReceived](type=VaObject);
         @signal[VamSent](type=VaObject);
+        @signal[VamRefPosDiff](type=double);
         
-        @statistic[reception](source=VamReceived;record=vector(vamStationId)?,vector(vamGenerationDeltaTime)?);
-        @statistic[transmission](source=VamSent;record=vector(vamStationId)?,vector(vamGenerationDeltaTime)?);
+        @statistic[reception](source=VamReceived;record=stats(vamPacketByteSize),vector(vamStationId)?,vector(vamGenerationDeltaTime)?);
+        @statistic[transmission](source=VamSent;record=stats(vamPacketByteSize),vector(vamStationId)?,vector(vamGenerationDeltaTime)?);  
+        @statistic[posDiff](source=VamRefPosDiff; record=stats);
         	
        	// enable Dcc transmission interval restrictions
         bool withDccRestriction = default(true);

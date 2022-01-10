@@ -11,6 +11,7 @@
 #include <vanetza/dcc/transmission.hpp>
 #include <vanetza/dcc/transmit_rate_control.hpp>
 #include <chrono>
+#include <boost/geometry/algorithms/distance.hpp>
 
 
 namespace artery
@@ -20,6 +21,9 @@ using namespace omnetpp;
 
 static const simsignal_t scSignalVamReceived = cComponent::registerSignal("VamReceived");
 static const simsignal_t scSignalVamSent = cComponent::registerSignal("VamSent");
+static const simsignal_t scSignalVamAssemblyTime = cComponent::registerSignal("VamAssemblyTime");
+static const simsignal_t scSignalVamRefPosDiff = cComponent::registerSignal("VamRefPosDiff");
+static const simsignal_t scSignalVamLatency = cComponent::registerSignal("VamLatency");
 static const auto scLowFrequencyContainerInterval = std::chrono::milliseconds(2000);
 
 Define_Module(VaService);
@@ -103,6 +107,9 @@ void VaService::trigger()
     }
 }
 
+/**
+ * TODO: First Individual VAM shall be generated immediately and shall not be affected by redundancy mitigation.
+ */
 void VaService::checkTriggerConditions(const SimTime& T_now)
 {
     // Variable names according to TS 103 300-2 V2.1.1 (section 6.2).
@@ -226,6 +233,12 @@ void VaService::sendVam(const omnetpp::SimTime& T_now)
     std::unique_ptr<convertible::byte_buffer> buffer { new VamByteBuffer(obj.shared_ptr()) };
     payload->layer(OsiLayer::Application) = std::move(buffer);
     this->request(request, std::move(payload));
+
+
+    // Calculate deviation refPos in meters
+    double refPosDeviation = distance(mLastVamReferencePosition, mDeviceDataProvider->position()).value();
+    emit(scSignalVamRefPosDiff, refPosDeviation);
+
 }
 
 /**
