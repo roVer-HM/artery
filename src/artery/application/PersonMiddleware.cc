@@ -19,6 +19,7 @@ Define_Module(PersonMiddleware)
 void PersonMiddleware::initialize(int stage)
 {
     if (stage == InitStages::Self) {
+        findHost()->subscribe(MobilityBase::stateChangedSignal, this);
         initializePersonController(par("mobilityModule"));
         initializeStationType(mPersonController->getNodeClass());
 
