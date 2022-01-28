@@ -10,6 +10,7 @@
 #include <vanetza/btp/ports.hpp>
 #include <vanetza/dcc/transmission.hpp>
 #include <vanetza/dcc/transmit_rate_control.hpp>
+#include <vanetza/facilities/cam_functions.hpp>
 #include <chrono>
 #include <boost/geometry/algorithms/distance.hpp>
 
@@ -23,7 +24,6 @@ static const simsignal_t scSignalVamReceived = cComponent::registerSignal("VamRe
 static const simsignal_t scSignalVamSent = cComponent::registerSignal("VamSent");
 static const simsignal_t scSignalVamAssemblyTime = cComponent::registerSignal("VamAssemblyTime");
 static const simsignal_t scSignalVamRefPosDiff = cComponent::registerSignal("VamRefPosDiff");
-static const simsignal_t scSignalVamLatency = cComponent::registerSignal("VamLatency");
 static const auto scLowFrequencyContainerInterval = std::chrono::milliseconds(2000);
 
 Define_Module(VaService);
@@ -93,9 +93,50 @@ void VaService::indicate(const vanetza::btp::DataIndication& ind, std::unique_pt
             VaObject obj = visitor.shared_wrapper;
             emit(scSignalVamReceived, &obj);
             mLocalDynamicMap->updateAwareness(obj);
+
+            // Calculate deviation of the position of the ITS-S that sent the VAM
+            const unsigned long stationIdVam = (*vam)->header.stationID;
+
+            cModule* worldNode = getSimulation()->getSystemModule();
+            cModule* pNode = getParentModule()->getParentModule();
+
+            for (cModule::SubmoduleIterator it(worldNode); !it.end(); it++) {
+                cModule* node = *it;
+
+                if(strcmp(node->getName(), "pNode") == 0 && strcmp(pNode->getFullName(), node->getFullName()) != 0 ){
+                    cModule* vaMod = node->findModuleByPath(".middleware.VaService");
+
+                    if(vaMod){
+                        VaService* va = check_and_cast<VaService*>(vaMod);
+                        const MovingNodeDataProvider* vDDP = va->mDeviceDataProvider;
+                        const unsigned long stationIdModule = vDDP->getStationId();
+                        if(stationIdVam == stationIdModule){
+                            // Get longitude and latitude from received VAM
+                            const auto& bc = (*vam)->vam.vamParameters.basicContainer;
+                            auto pLat = bc.referencePosition.latitude;
+                            auto pLong = bc.referencePosition.longitude;
+                            ReferencePosition r;
+                            r.longitude = round(vDDP->longitude(), microdegree) * Longitude_oneMicrodegreeEast;
+                            r.latitude =  round(vDDP->latitude(), microdegree) * Latitude_oneMicrodegreeNorth;
+                            auto cLat = vDDP->latitude();
+                            auto cLong = vDDP->longitude();
+
+                            // Calculate the position difference
+                            auto posDiff = vanetza::facilities::distance(bc.referencePosition, vDDP->latitude(), vDDP->longitude());
+                            /*EV_INFO << pNode->getFullName() << " received VAM from " << node->getFullName();
+                            EV_INFO << " | GeoCoordinates (Lat,Long) from VAM (" << pLat << ", " << pLong << ")";
+                            EV_INFO << " -- from DDP (" << cLat.value() << ", " << cLong.value() << ") | ";
+                            EV_INFO << node->getFullName() << " has moved " << posDiff.value() << "m in this time.";
+                            */
+                            emit(scSignalVamRefPosDiff, posDiff.value());
+                        }
+                    }
+                }
+            }
         }
     }
 }
+
 
 void VaService::trigger()
 {
@@ -234,11 +275,6 @@ void VaService::sendVam(const omnetpp::SimTime& T_now)
     payload->layer(OsiLayer::Application) = std::move(buffer);
     this->request(request, std::move(payload));
 
-
-    // Calculate deviation refPos in meters
-    double refPosDeviation = distance(mLastVamReferencePosition, mDeviceDataProvider->position()).value();
-    emit(scSignalVamRefPosDiff, refPosDeviation);
-
 }
 
 /**
@@ -340,6 +376,5 @@ void VaService::addLowFrequencyContainer(vanetza::asn1::Vam& message)
         throw cRuntimeError("Invalid Low Frequency VAM: %s", error.c_str());
     }
 }
-
 
 } // namespace artery

@@ -39,22 +39,4 @@ protected:
 Register_ResultFilter("vamGenerationDeltaTime", VamGenerationDeltaTimeResultFilter);
 
 
-class VamPacketByteSizeResultFilter : public cObjectResultFilter
-{
-protected:
-    void receiveSignal(cResultFilter* prev, simtime_t_cref t, cObject* object, cObject* details) override
-    {
-        if (auto vam = dynamic_cast<VaObject*>(object)) {
-            const auto packetByteSize = vam->asn1().size();
-            fire(this, t, packetByteSize, details);
-        }
-    }
-};
-
-Register_ResultFilter("vamPacketByteSize", VamPacketByteSizeResultFilter);
-
-
-
-
-
 } // namespace artery
