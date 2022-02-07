@@ -9,7 +9,7 @@ import inet.transportlayer.udp.Udp;
 import inet.transportlayer.contract.ITcp;
 import inet.transportlayer.contract.IUdp;
 import inet.common.MessageDispatcher;
-import lte.stack.ILteNic;
+import simu5g.stack.ICellularNic;
 
 module Car extends artery.inet.Car
 {
@@ -47,7 +47,7 @@ module Car extends artery.inet.Car
             @display("p=150,125");
         }
 
-        lteNic: <nicType> like ILteNic {
+        cellularNic: <nicType> like ICellularNic {
             @display("p=150,400");
             nodeType = "UE";
         }
@@ -82,10 +82,10 @@ module Car extends artery.inet.Car
         }
 
     connections allowunconnected:
-        lteNic.radioIn <-- lteRadioIn;
+        cellularNic.radioIn <-- lteRadioIn;
         
-        lteNic.upperLayerOut --> nl.in++;
-        lteNic.upperLayerIn <-- nl.out++;
+        cellularNic.upperLayerOut --> nl.in++;
+        cellularNic.upperLayerIn <-- nl.out++;
 
         networkLayer.ifIn <-- nl.out++;
         networkLayer.ifOut --> nl.in++;
