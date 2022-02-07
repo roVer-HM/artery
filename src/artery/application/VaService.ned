@@ -9,7 +9,7 @@ simple VaService like ItsG5Service
         
         @statistic[reception](source=VamReceived;record=vector(vamStationId)?,vector(vamGenerationDeltaTime)?);
         @statistic[transmission](source=VamSent;record=vector(vamStationId)?,vector(vamGenerationDeltaTime)?);  
-        @statistic[posdiff](source=VamRefPosDiff;record=stats);
+        @statistic[posdiff](source=VamRefPosDiff;record=stats,vector);
         	
        	// enable Dcc transmission interval restrictions
         bool withDccRestriction = default(true);

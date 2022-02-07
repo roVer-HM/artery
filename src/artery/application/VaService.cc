@@ -123,11 +123,11 @@ void VaService::indicate(const vanetza::btp::DataIndication& ind, std::unique_pt
 
                             // Calculate the position difference
                             auto posDiff = vanetza::facilities::distance(bc.referencePosition, vDDP->latitude(), vDDP->longitude());
-                            /*EV_INFO << pNode->getFullName() << " received VAM from " << node->getFullName();
+                            EV_INFO << pNode->getFullName() << " received VAM from " << node->getFullName();
                             EV_INFO << " | GeoCoordinates (Lat,Long) from VAM (" << pLat << ", " << pLong << ")";
                             EV_INFO << " -- from DDP (" << cLat.value() << ", " << cLong.value() << ") | ";
                             EV_INFO << node->getFullName() << " has moved " << posDiff.value() << "m in this time.";
-                            */
+
                             emit(scSignalVamRefPosDiff, posDiff.value());
                         }
                     }
