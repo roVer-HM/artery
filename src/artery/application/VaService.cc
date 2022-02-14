@@ -5,6 +5,7 @@
 #include "artery/application/MultiChannelPolicy.h"
 #include "artery/utility/simtime_cast.h"
 #include "artery/utility/Calculations.h"
+#include "artery/utility/IdentityRegistry.h"
 #include "veins/base/utils/Coord.h"
 #include <omnetpp/cexception.h>
 #include <vanetza/btp/ports.hpp>
@@ -95,43 +96,37 @@ void VaService::indicate(const vanetza::btp::DataIndication& ind, std::unique_pt
             mLocalDynamicMap->updateAwareness(obj);
 
             // Calculate deviation of the position of the ITS-S that sent the VAM
-            const unsigned long stationIdVam = (*vam)->header.stationID;
+            uint32_t stationIdVam = (*vam)->header.stationID;
 
-            cModule* worldNode = getSimulation()->getSystemModule();
             cModule* pNode = getParentModule()->getParentModule();
+            cModule* i = findModuleByPath("World.identiyRegistry");
+            IdentityRegistry* idr = check_and_cast<IdentityRegistry*>(i);
+            auto identity = idr->lookup<IdentityRegistry::application>(stationIdVam);
 
-            for (cModule::SubmoduleIterator it(worldNode); !it.end(); it++) {
-                cModule* node = *it;
+            cModule* node = identity->host;
+            cModule* vaMod = node->findModuleByPath(".middleware.VaService");
 
-                if(strcmp(node->getName(), "pNode") == 0 && strcmp(pNode->getFullName(), node->getFullName()) != 0 ){
-                    cModule* vaMod = node->findModuleByPath(".middleware.VaService");
+            if(vaMod) {
+                VaService* va = check_and_cast<VaService*>(vaMod);
+                const MovingNodeDataProvider* vDDP = va->mDeviceDataProvider;
+                // Get longitude and latitude from received VAM
+                const auto& bc = (*vam)->vam.vamParameters.basicContainer;
+                auto pLat = bc.referencePosition.latitude;
+                auto pLong = bc.referencePosition.longitude;
+                ReferencePosition r;
+                r.longitude = round(vDDP->longitude(), microdegree) * Longitude_oneMicrodegreeEast;
+                r.latitude =  round(vDDP->latitude(), microdegree) * Latitude_oneMicrodegreeNorth;
+                auto cLat = vDDP->latitude();
+                auto cLong = vDDP->longitude();
 
-                    if(vaMod){
-                        VaService* va = check_and_cast<VaService*>(vaMod);
-                        const MovingNodeDataProvider* vDDP = va->mDeviceDataProvider;
-                        const unsigned long stationIdModule = vDDP->getStationId();
-                        if(stationIdVam == stationIdModule){
-                            // Get longitude and latitude from received VAM
-                            const auto& bc = (*vam)->vam.vamParameters.basicContainer;
-                            auto pLat = bc.referencePosition.latitude;
-                            auto pLong = bc.referencePosition.longitude;
-                            ReferencePosition r;
-                            r.longitude = round(vDDP->longitude(), microdegree) * Longitude_oneMicrodegreeEast;
-                            r.latitude =  round(vDDP->latitude(), microdegree) * Latitude_oneMicrodegreeNorth;
-                            auto cLat = vDDP->latitude();
-                            auto cLong = vDDP->longitude();
+                // Calculate the position difference
+                auto posDiff = vanetza::facilities::distance(bc.referencePosition, vDDP->latitude(), vDDP->longitude());
+                EV_INFO << pNode->getFullName() << " received VAM from " << node->getFullName();
+                EV_INFO << " | GeoCoordinates (Lat,Long) from VAM (" << pLat << ", " << pLong << ")";
+                EV_INFO << " -- from DDP (" << cLat.value() << ", " << cLong.value() << ") | ";
+                EV_INFO << node->getFullName() << " has moved " << posDiff.value() << "m in this time.";
 
-                            // Calculate the position difference
-                            auto posDiff = vanetza::facilities::distance(bc.referencePosition, vDDP->latitude(), vDDP->longitude());
-                            EV_INFO << pNode->getFullName() << " received VAM from " << node->getFullName();
-                            EV_INFO << " | GeoCoordinates (Lat,Long) from VAM (" << pLat << ", " << pLong << ")";
-                            EV_INFO << " -- from DDP (" << cLat.value() << ", " << cLong.value() << ") | ";
-                            EV_INFO << node->getFullName() << " has moved " << posDiff.value() << "m in this time.";
-
-                            emit(scSignalVamRefPosDiff, posDiff.value());
-                        }
-                    }
-                }
+                emit(scSignalVamRefPosDiff, posDiff.value());
             }
         }
     }
