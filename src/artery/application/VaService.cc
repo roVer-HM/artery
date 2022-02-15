@@ -74,6 +74,7 @@ void VaService::initialize()
 
     // initialize VRU specific attributes
     mVruDeviceUsage = par("vruDeviceUsage");
+    mVruDeviceType = VruDeviceType(int(par("vruDeviceType")));
     mClusterState = ClusterState::VruActiveStandalone;
     mVruRole = VruRole::VruRoleOn;
     mSizeClass = VruSizeClass_medium;
@@ -84,9 +85,10 @@ void VaService::initialize()
 
 void VaService::indicate(const vanetza::btp::DataIndication& ind, std::unique_ptr<vanetza::UpPacket> packet)
 {
-    Enter_Method("indicate");
     // VRUs with VruRoleOff shall not receive VAMs - TS 103 300-2 v2.1.1 (section 4.2)
-    if(mVruRole == VruRole::VruRoleOn){
+    // VRUs with the Tx device type shall not receive VAMS - TS 103 300-2 v2.1.1 (section 4.1)
+    if(mVruRole == VruRole::VruRoleOn && mVruDeviceType != VruDeviceType::VruTx ){
+        Enter_Method("indicate");
         Asn1PacketVisitor<vanetza::asn1::Vam> visitor;
         const vanetza::asn1::Vam* vam = boost::apply_visitor(visitor, *packet);
 
@@ -135,10 +137,13 @@ void VaService::indicate(const vanetza::btp::DataIndication& ind, std::unique_pt
 
 void VaService::trigger()
 {
-    Enter_Method("trigger");
     // VRUs with VruRoleOff shall not send VAMs - TS 103 300-2 v2.1.1 (section 4.2)
+    // VRUs with the Rx device type shall not send VAMS - TS 103 300-2 v2.1.1 (section 4.1)
     // VRUs with the cluster state VruPassive shall not send VAMs - TS 103 300-2 v2.1.1 (section 5.4.2.1)
-    if(mVruRole == VruRole::VruRoleOn && mClusterState != ClusterState::VruPassive){
+    if(mVruRole == VruRole::VruRoleOn &&
+            mVruDeviceType != VruDeviceType::VruRx &&
+            mClusterState != ClusterState::VruPassive){
+        Enter_Method("trigger");
         checkTriggerConditions(simTime());
     }
 }

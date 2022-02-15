@@ -33,6 +33,16 @@ enum class VruRole
     VruRoleOn
 };
 
+/**
+ * Enum for VRU device type specification according to TS 103 300-2 v2.1.1 (section 4.1)
+ */
+enum class VruDeviceType
+{
+    VruRx,
+    VruTx,
+    VruSt
+};
+
 class MovingNodeDataProvider;
 class NetworkInterfaceTable;
 
@@ -77,6 +87,7 @@ private:
     VruProfileAndSubprofile_t mVruProfile;
     VruRole mVruRole;
     ClusterState mClusterState;
+    VruDeviceType mVruDeviceType;
     const StationType* mStationType;
     long mSizeClass;
     long mVruDeviceUsage;

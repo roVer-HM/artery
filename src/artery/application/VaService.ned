@@ -36,6 +36,9 @@ simple VaService like ItsG5Service
         // Indication about parallel activity of the VRU.
         int vruDeviceUsage = default(2);
         
+        // Vru device type, can be either Rx(0), Tx(1) or St(2). Defaults to St.
+        int vruDeviceType = default(0);
+        
         //  Threshold for trajectory interception of the  VRU and other road users between two consecutive VAMs.
         double trajectoryInterceptionThreshold = default(0.1);
         
