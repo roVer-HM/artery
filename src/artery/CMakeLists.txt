@@ -41,6 +41,7 @@ add_library(core SHARED
     application/VehicleMiddleware.cc
     application/VehicleMiddlewareEmpty.cc
     application/XmlMultiChannelPolicy.cc
+    application/den/CollisionRiskUseCase.cc
     application/den/EmergencyBrakeLight.cc
     application/den/ImpactReductionUseCase.cc
     application/den/Memory.cc
