@@ -113,8 +113,8 @@ void VaService::indicate(const vanetza::btp::DataIndication& ind, std::unique_pt
                 const MovingNodeDataProvider* vDDP = va->mDeviceDataProvider;
                 // Get longitude and latitude from received VAM
                 const auto& bc = (*vam)->vam.vamParameters.basicContainer;
-                auto pLat = bc.referencePosition.latitude;
-                auto pLong = bc.referencePosition.longitude;
+                auto pLat = bc.referencePosition.latitude / 1e7 ;
+                auto pLong = bc.referencePosition.longitude/ 1e7;
                 ReferencePosition r;
                 r.longitude = round(vDDP->longitude(), microdegree) * Longitude_oneMicrodegreeEast;
                 r.latitude =  round(vDDP->latitude(), microdegree) * Latitude_oneMicrodegreeNorth;
