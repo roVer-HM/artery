@@ -26,6 +26,8 @@ static const simsignal_t scSignalVamSent = cComponent::registerSignal("VamSent")
 static const simsignal_t scSignalVamAssemblyTime = cComponent::registerSignal("VamAssemblyTime");
 static const simsignal_t scSignalVamRefPosDiff = cComponent::registerSignal("VamRefPosDiff");
 static const auto scLowFrequencyContainerInterval = std::chrono::milliseconds(2000);
+static const auto scVamInterval = std::chrono::milliseconds(100);
+
 
 Define_Module(VaService);
 
@@ -58,8 +60,10 @@ void VaService::initialize()
     mGenVam = mGenVamMin;
     mDccRestriction = par("withDccRestriction");
 
-    // initialize VAM timestamps so that the first generated VAM includes a low frequency container.
-    mLastVamTimestamp = simTime();
+    // initialize LastVamTimestamp so that a VAM is send immediately after the VRU spawns - TS 103 300-3 v2.1.1 (section 6.4.1)
+    mLastVamTimestamp = simTime() - artery::simtime_cast(scVamInterval);
+
+    // initialize low frequency container timestamp to send a low frequency container with the first VAM
     mLastVamLfTimestamp = mLastVamTimestamp - artery::simtime_cast(scLowFrequencyContainerInterval);
 
     // initialize threshold variables
@@ -148,9 +152,6 @@ void VaService::trigger()
     }
 }
 
-/**
- * TODO: First Individual VAM shall be generated immediately and shall not be affected by redundancy mitigation.
- */
 void VaService::checkTriggerConditions(const SimTime& T_now)
 {
     // Variable names according to TS 103 300-2 V2.1.1 (section 6.2).
