@@ -5,6 +5,7 @@ import inet.node.ethernet.Eth10G;
 import inet.node.inet.Router;
 import inet.node.inet.StandardHost;
 import simu5g.common.binder.Binder;
+import simu5g.common.carrierAggregation.CarrierAggregation;
 import simu5g.nodes.eNodeB;
 import simu5g.nodes.PgwStandard;
 import simu5g.world.radio.LteChannelControl;
@@ -13,7 +14,7 @@ network World extends artery.inet.World
 {
     parameters:
         int numLteBaseStations = default(1);
-        traci.mapper.objectType = default("artery.lte.Car");
+        traci.mapper.vehicleType = default("artery.lte.Car");
 
     submodules:
         channelControl: LteChannelControl {
@@ -24,6 +25,10 @@ network World extends artery.inet.World
         binder: Binder {
             parameters:
                 @display("p=140,60");
+        }
+        
+        carrierAggregation: CarrierAggregation {
+            @display("p=50.993748,258.7;is=s");
         }
 
         configurator: Ipv4NetworkConfigurator {
@@ -36,7 +41,7 @@ network World extends artery.inet.World
                 mobility.initFromDisplayString = false;
                 macNodeId = default(index + 1);
                 macCellId = default(index + 1);
-                **.eNodeBCount = default(numLteBaseStations);
+                **.eNodeBCount = default(parent.numLteBaseStations);
         }
 
         pgw: PgwStandard {

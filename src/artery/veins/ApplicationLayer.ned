@@ -24,7 +24,7 @@ module ApplicationLayer like IBaseApplLayer
 		vanetza: <default("Vanetza")> like IVanetza {
 			*.middlewareModule = absPath("^.middleware");
 			*.radioDriverModule = absPath("^.radioDriver");
-			runtime.datetime = middleware.datetime;
+			runtime.datetime = parent.middleware.datetime;
 		}
 
 		middleware : <default("VehicleMiddleware")> like IMiddleware {

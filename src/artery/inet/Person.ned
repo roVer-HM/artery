@@ -71,7 +71,7 @@ module Person like INetworkNode
         middleware: PersonMiddleware {
             parameters:
                 @display("p=250,100");
-                mobilityModule = ".mobility";
+                mobilityModule = absPath("^.mobility");
         }
 
     connections:

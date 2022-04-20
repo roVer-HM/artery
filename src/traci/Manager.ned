@@ -12,7 +12,6 @@ module Manager like TraCiManager
         subscriptions.coreModule = "^.core";
 
         bool ignorePersons = default(true);
-        *.ignorePersons = ignorePersons;
 
     submodules:
         core : <default("Core")> like ICore {
@@ -22,9 +21,11 @@ module Manager like TraCiManager
         }
 
         subscriptions: <default("BasicSubscriptionManager")> like SubscriptionManager {
+            ignorePersons = parent.ignorePersons;
         }
 
         nodes : <default("BasicNodeManager")> like NodeManager {
+            ignorePersons = parent.ignorePersons;
         }
 
         mapper: <default("BasicModuleMapper")> like ModuleMapper {

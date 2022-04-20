@@ -71,7 +71,7 @@ protected:
     virtual void updateVehicle(const std::string&, VehicleSink*);
     virtual omnetpp::cModule* createModule(const std::string&, omnetpp::cModuleType*);
     virtual omnetpp::cModule* addNodeModule(const std::string&, omnetpp::cModuleType*, NodeInitializer&);
-    virtual void removeNodeModule(const std::string&);
+    virtual void removeNodeModule(const std::string&, bool deleteModule);
     virtual omnetpp::cModule* getNodeModule(const std::string&);
     virtual PersonSink* getPersonSink(omnetpp::cModule*);
     virtual PersonSink* getPersonSink(const std::string&);

@@ -48,7 +48,7 @@ const inet::Protocol InetRadioDriver::geonet { "GeoNet", "ETSI ITS-G5 GeoNetwork
 
 int InetRadioDriver::numInitStages() const
 {
-	return inet::InitStages::NUM_INIT_STAGES;
+	return inet::NUM_INIT_STAGES;
 }
 
 void InetRadioDriver::initialize(int stage)
@@ -65,7 +65,7 @@ void InetRadioDriver::initialize(int stage)
 		std::call_once(register_protocol_flag, []() {
 			inet::ProtocolGroup::ethertype.addProtocol(0x8947, &geonet);
 		});
-	} else if (stage == inet::InitStages::INITSTAGE_LINK_LAYER) {
+	} else if (stage == inet::INITSTAGE_LINK_LAYER) {
 
 		ASSERT(mChannelNumber > 0);
 		auto properties = new RadioDriverProperties();
