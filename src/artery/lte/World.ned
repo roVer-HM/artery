@@ -1,6 +1,6 @@
 package artery.lte;
 
-import inet.networklayer.configurator.ipv4.Ipv4NetworkConfigurator;
+import simu5g.common.CellularNetworkConfigurator;
 import inet.node.ethernet.Eth10G;
 import inet.node.inet.Router;
 import inet.node.inet.StandardHost;
@@ -31,7 +31,7 @@ network World extends artery.inet.World
             @display("p=50.993748,258.7;is=s");
         }
 
-        configurator: Ipv4NetworkConfigurator {
+        configurator: CellularNetworkConfigurator {
             parameters:
                 @display("p=60,60");
         }

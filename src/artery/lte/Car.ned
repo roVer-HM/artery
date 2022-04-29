@@ -15,14 +15,16 @@ module Car extends artery.inet.Car
 {
     parameters:
         //# Network Layer specs
-        *.routingTableModule = default(absPath(".ipv4.routingTable"));   
+        *.routingTableModule = default(absPath(".ipv4.routingTable"));
+        *.interfaceTableModule = default(absPath(".interfaceTable"));  
         ipv4.configurator.typename = "HostAutoConfigurator";
-        // ipv4.configurator.interfaces = "cellular";
+        ipv4.configurator.interfaces = "cellular";
 
         // LTE NIC
         string nicType = default("LteNicUe");
-        int macNodeId = default(0);
-        int masterId;
+        int masterId @mutable;
+        int macNodeId @mutable = default(0); // TODO: this is not a real parameter
+        int macCellId @mutable = default(0); // TODO: this is not a real parameter
 
         //# Apps
         int numApps = default(0);   // no of apps.
@@ -30,30 +32,23 @@ module Car extends artery.inet.Car
         //# Transport layer
         bool hasUdp = default(firstAvailableOrEmpty("Udp") != "");
         bool hasTcp = default(firstAvailableOrEmpty("Tcp", "TcpLwip", "TcpNsc") != "");
+        
+        //# External Ethernet interfaces
+        int numEthInterfaces = default(0);
+        string extHostAddress = default("");
 
     gates:
         input lteRadioIn @directIn;
 
     submodules:
-        configurator: HostAutoConfigurator {
-            @display("p=50,25");
-        }
-
-        routingTable: <default("IPv4RoutingTable")> like IRoutingTable {
-            @display("p=50,125");
-        }
-
-        networkLayer: <default("IPv4NetworkLayer")> like INetworkLayer {
-            @display("p=150,125");
-        }
-
+        //# submodules for network layers (need to be ordered from lower to upper layer)
         cellularNic: <nicType> like ICellularNic {
             @display("p=150,400");
             nodeType = "UE";
         }
 
-        app[numApps]: <> like IApp {
-            @display("p=375,76,row,140");
+        ipv4: <default("Ipv4NetworkLayer")> like INetworkLayer {
+            @display("p=150,125");
         }
 
         udp: <default(firstAvailableOrEmpty("Udp"))> like IUdp if hasUdp {
@@ -63,6 +58,10 @@ module Car extends artery.inet.Car
         tcp: <default(firstAvailableOrEmpty("Tcp", "TcpLwip", "TcpNsc"))> like ITcp if hasTcp {
             parameters:
                 @display("p=525,226");
+        }
+
+        app[numApps]: <> like IApp {
+            @display("p=375,76,row,140");
         }
         
         // message dispatcher for SAP between application and transport layer
@@ -87,11 +86,11 @@ module Car extends artery.inet.Car
         cellularNic.upperLayerOut --> nl.in++;
         cellularNic.upperLayerIn <-- nl.out++;
 
-        networkLayer.ifIn <-- nl.out++;
-        networkLayer.ifOut --> nl.in++;
+        ipv4.ifIn <-- nl.out++;
+        ipv4.ifOut --> nl.in++;
 
-        networkLayer.transportIn <-- tn.out++;
-        networkLayer.transportOut --> tn.in++;
+        ipv4.transportIn <-- tn.out++;
+        ipv4.transportOut --> tn.in++;
         
         udp.ipOut --> tn.in++ if hasUdp;
         udp.ipIn <-- tn.out++ if hasUdp;
