@@ -23,7 +23,7 @@ class PersonSink;
 class VehicleCache;
 class VehicleSink;
 
-class BasicNodeManager : public NodeManager, public Listener, public omnetpp::cSimpleModule
+class BasicNodeManager : public NodeManager, public omnetpp::cSimpleModule, public Listener
 {
 public:
     static const omnetpp::simsignal_t addNodeSignal;
@@ -62,6 +62,7 @@ protected:
 
     void initialize() override;
     void finish() override;
+    using Listener::finish;
 
     virtual void addPerson(const std::string&);
     virtual void removePerson(const std::string&);

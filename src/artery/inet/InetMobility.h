@@ -39,7 +39,7 @@ public:
 protected:
     void refreshDisplay() const override;
 
-    void initialize(const Position& pos, Angle heading, double speed) override;
+    virtual void initialize(const Position& pos, Angle heading, double speed) override;
     void update(const Position& pos, Angle heading, double speed) override;
 
 private:

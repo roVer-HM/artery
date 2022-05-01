@@ -132,7 +132,7 @@ class TraCIException : public omnetpp::cRuntimeError {
 public:
     /** constructor */
     TraCIException(std::string what)
-        : omnetpp::cRuntimeError(what.c_str()) {}
+        : omnetpp::cRuntimeError("%s", what.c_str()) {}
 };
 
 /**
@@ -143,7 +143,7 @@ class FatalTraCIError : public omnetpp::cRuntimeError {
 public:
     /** constructor */
     FatalTraCIError(std::string what)
-        : omnetpp::cRuntimeError (what.c_str()) {}
+        : omnetpp::cRuntimeError ("%s", what.c_str()) {}
 };
 
 /// @name Structures definitions
