@@ -23,7 +23,7 @@ module VanetMac extends MacProtocolBase like IIeee80211Mac
         int mtu @unit(B) = default(2304B);
         bool qosStation = default(true);
 
-        *.mibModule = default(absPath(mibModule));
+        *.mibModule = default(absPath(this.mibModule));
         *.rxModule = "^.rx";
         *.txModule = "^.tx";
 

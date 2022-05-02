@@ -16,6 +16,7 @@ void ClearLaneService::initialize()
 void ClearLaneService::indicate(const vanetza::btp::DataIndication& ind, omnetpp::cPacket* packet)
 {
     Enter_Method("ClearLaneService indicate");
+    take(packet);
     auto clearLaneMessage = check_and_cast<const PoliceClearLane*>(packet);
 
     const std::string id = mVehicleController->getVehicleId();

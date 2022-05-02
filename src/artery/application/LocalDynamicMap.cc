@@ -23,7 +23,8 @@ void LocalDynamicMap::updateAwareness(const CaObject& obj)
     const auto now = omnetpp::simTime();
     if (expiry < now || expiry > now + 2 * lifetime) {
         EV_STATICCONTEXT
-        EV_WARN << "Expiry of received CAM is out of bounds";
+        EV_WARN << "Expiry of received CAM is out of bounds (expiry: " << expiry << " now: "
+            << now << ")";
         return;
     }
 

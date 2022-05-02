@@ -7,5 +7,5 @@ module RegionOfInterestNodeManager extends ExtensibleNodeManager
 
         numVehiclePolicies = 1;
         vehiclePolicy[0].typename = "RegionOfInterestVehiclePolicy";
-        vehiclePolicy[0].regionsOfInterest = regionsOfInterest;
+        vehiclePolicy[0].regionsOfInterest = this.regionsOfInterest;
 }

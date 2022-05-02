@@ -8,7 +8,7 @@ module RSU extends artery.inet.RSU
     submodules:
         environmentModel: LocalEnvironmentModel {
             @display("p=214,57");
-            middlewareModule = default(".middleware");
+            middlewareModule = default("^.middleware");
         }
 }
 

@@ -7,5 +7,5 @@ module InsertionDelayNodeManager extends ExtensibleNodeManager
 
         numVehiclePolicies = 1;
         vehiclePolicy[0].typename = "InsertionDelayVehiclePolicy";
-        vehiclePolicy[0].insertionDelay = insertionDelay;
+        vehiclePolicy[0].insertionDelay = this.insertionDelay;
 }

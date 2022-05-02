@@ -13,7 +13,7 @@ void BasicModuleMapper::initialize()
 {
     m_rng = getRNG(0);
     m_person_type = cModuleType::find(par("personType"));
-    m_vehicle_type = cModuleType::get(par("vehicleType"));
+    m_vehicle_type = cModuleType::find(par("vehicleType"));
 
     double penetration = par("penetrationRate");
     m_person_penetration = par("personPenetrationRate");

@@ -39,7 +39,7 @@ class StorageInvalidArg : public omnetpp::cRuntimeError {
 public:
     /** constructor */
     StorageInvalidArg(std::string what)
-        : omnetpp::cRuntimeError(what.c_str()) {}
+        : omnetpp::cRuntimeError("%s", what.c_str()) {}
 };
 
 

@@ -19,7 +19,12 @@ cplusplus {{
 typedef std::array<uint8_t, 1024> AsioBuffer;
 typedef std::size_t AsioLength;
 }}
-class noncobject AsioBuffer;
+
+class AsioBuffer
+{
+    @existingClass;
+    @opaque;
+}
 
 message AsioData {
     AsioBuffer Buffer;

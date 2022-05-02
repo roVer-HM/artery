@@ -173,7 +173,7 @@ void AsioScheduler::cancelTask(AsioTask* task)
 void AsioScheduler::processTask(AsioTask* task)
 {
 	using namespace std::placeholders;
-	auto& buffer = task->m_message->getBuffer();
+	auto& buffer = task->m_message->getBufferForUpdate();
 	auto handler = std::bind(&AsioScheduler::handleTask, this, task, _1, _2);
 	task->m_socket.async_read_some(boost::asio::buffer(buffer.data(), buffer.size()), handler);
 }

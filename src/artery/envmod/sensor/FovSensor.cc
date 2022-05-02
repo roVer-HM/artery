@@ -31,9 +31,7 @@ FovSensor::FovSensor() :
 
 FovSensor::~FovSensor()
 {
-    if (mGroupFigure) {
-        delete mGroupFigure->removeFromParent();
-    }
+
 }
 
 void FovSensor::initialize()

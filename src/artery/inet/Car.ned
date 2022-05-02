@@ -42,7 +42,7 @@ module Car like INetworkNode
         wlan[numRadios]: <default("VanetNic")> like IWirelessInterface {
             parameters:
                 @display("p=250,400,row,100;q=queue");
-                radio.antenna.mobilityModule = absPath(withAntennaMobility ? "^.antennaMobility" : "^.mobility");
+                radio.antenna.mobilityModule = absPath(parent.withAntennaMobility ? "^.antennaMobility" : "^.mobility");
         }
 
         antennaMobility: AntennaMobility if withAntennaMobility == true {
@@ -64,7 +64,7 @@ module Car like INetworkNode
                 *.middlewareModule = absPath("^.middleware");
                 *.mobilityModule = absPath("^.mobility");
                 *.radioDriverModule = absPath("^.radioDriver[" + string(index) + "]");
-                runtime.datetime = middleware.datetime;
+                runtime.datetime = parent.middleware.datetime;
         }
 
         mobility: <default("artery.inet.VehicleMobility")> like IMobility {
@@ -75,7 +75,7 @@ module Car like INetworkNode
         middleware: VehicleMiddleware {
             parameters:
                 @display("p=250,100");
-                mobilityModule = ".mobility";
+                mobilityModule = absPath("^.mobility");
         }
 
     connections:

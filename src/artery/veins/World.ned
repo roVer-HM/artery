@@ -26,9 +26,9 @@ network World
 
         world: BaseWorldUtility {
             parameters:
-                playgroundSizeX = playgroundSizeX;
-                playgroundSizeY = playgroundSizeY;
-                playgroundSizeZ = playgroundSizeZ;
+                playgroundSizeX = parent.playgroundSizeX;
+                playgroundSizeY = parent.playgroundSizeY;
+                playgroundSizeZ = parent.playgroundSizeZ;
                 @display("p=40,150");
         }
 

@@ -127,7 +127,9 @@ void BasicNodeManager::traciStep()
 void BasicNodeManager::traciClose()
 {
     for (unsigned i = m_nodes.size(); i > 0; --i) {
-        removeNodeModule(m_nodes.begin()->first);
+        removeNodeModule(m_nodes.begin()->first, false);
+        // Note: module is removed/unregistered but not deleted - otherwise opp will complain
+        //       (deletion is done later by opp environment)
     }
 }
 
@@ -185,7 +187,7 @@ void BasicNodeManager::addVehicle(const std::string& id)
 void BasicNodeManager::removeVehicle(const std::string& id)
 {
     emit(removeVehicleSignal, id.c_str());
-    removeNodeModule(id);
+    removeNodeModule(id, true);
     m_vehicles.erase(id);
 }
 
@@ -246,7 +248,7 @@ void BasicNodeManager::addPerson(const std::string& id)
 void BasicNodeManager::removePerson(const std::string& id)
 {
     emit(removePersonSignal, id.c_str());
-    removeNodeModule(id);
+    removeNodeModule(id, true);
     m_persons.erase(id);
 }
 
@@ -264,8 +266,18 @@ void BasicNodeManager::updatePerson(const std::string& id, PersonSink* sink)
 
 cModule* BasicNodeManager::createModule(const std::string&, cModuleType* type)
 {
-    cModule* module = type->create("node", getSystemModule(), m_nodeIndex, m_nodeIndex);
+    const char* submoduleName = "node";
+    cModule* parentModule = getSystemModule();
+
+    if (!parentModule->hasSubmoduleVector(submoduleName)) {
+        parentModule->addSubmoduleVector(submoduleName, m_nodeIndex + 1);
+    }
+    else
+        parentModule->setSubmoduleVectorSize(submoduleName, m_nodeIndex + 1);
+    cModule* module = type->create(submoduleName, parentModule, m_nodeIndex);
+
     ++m_nodeIndex;
+
     return module;
 }
 
@@ -283,13 +295,14 @@ cModule* BasicNodeManager::addNodeModule(const std::string& id, cModuleType* typ
     return module;
 }
 
-void BasicNodeManager::removeNodeModule(const std::string& id)
+void BasicNodeManager::removeNodeModule(const std::string& id, bool deleteModule)
 {
     cModule* module = getNodeModule(id);
     if (module) {
         emit(removeNodeSignal, id.c_str(), module);
         module->callFinish();
-        module->deleteModule();
+        if (deleteModule)
+            module->deleteModule();
         m_nodes.erase(id);
     } else {
         EV_DEBUG << "Node with id " << id << " does not exist, no removal\n";

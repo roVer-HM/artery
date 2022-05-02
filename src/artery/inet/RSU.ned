@@ -33,8 +33,7 @@ module RSU like INetworkNode
         wlan[numRadios]: <default("VanetNic")> like IWirelessInterface {
             parameters:
                 @display("p=216,406,row,60;q=queue");
-                radio.antenna.mobilityModule = withAntennaMobility ?
-                    ".antennaMobility[" + string(index) + "]" : ".mobility";
+                radio.antenna.mobilityModule = absPath( parent.withAntennaMobility ? "^.antennaMobility[" + string(index) + "]" : "^.mobility");
         }
 
         antennaMobility[numRadios]: AntennaMobility if withAntennaMobility == true {
@@ -56,7 +55,7 @@ module RSU like INetworkNode
                 *.radioDriverModule = absPath("^.radioDriver[" + string(index) + "]");
                 *.traciCoreModule = "traci.core";
                 position.typename = default("StationaryPositionProvider");
-                runtime.datetime = middleware.datetime;
+                runtime.datetime = parent.middleware.datetime;
                 router.isMobile = false;
         }
 
