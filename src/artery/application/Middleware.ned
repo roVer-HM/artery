@@ -28,5 +28,5 @@ simple Middleware extends MiddlewareBase like IMiddleware
 		xml services;
 		xml mcoPolicy = default(xml("<mco default=\"CCH\" />"));
 
-		string positionProviderModule = default(".vanetza[0].position");
+		string positionProviderModule = default(".vanetza.position");
 }
