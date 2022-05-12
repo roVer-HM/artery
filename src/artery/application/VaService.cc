@@ -117,21 +117,15 @@ void VaService::indicate(const vanetza::btp::DataIndication& ind, std::unique_pt
                 const MovingNodeDataProvider* vDDP = va->mDeviceDataProvider;
                 // Get longitude and latitude from received VAM
                 const auto& bc = (*vam)->vam.vamParameters.basicContainer;
-                auto pLat = bc.referencePosition.latitude / 1e7 ;
-                auto pLong = bc.referencePosition.longitude/ 1e7;
-                ReferencePosition r;
-                r.longitude = round(vDDP->longitude(), microdegree) * Longitude_oneMicrodegreeEast;
-                r.latitude =  round(vDDP->latitude(), microdegree) * Latitude_oneMicrodegreeNorth;
-                auto cLat = vDDP->latitude();
-                auto cLong = vDDP->longitude();
 
                 // Calculate the position difference
                 auto posDiff = vanetza::facilities::distance(bc.referencePosition, vDDP->latitude(), vDDP->longitude());
-                EV_INFO << pNode->getFullName() << " received VAM from " << node->getFullName();
-                EV_INFO << " | GeoCoordinates (Lat,Long) from VAM (" << pLat << ", " << pLong << ")";
-                EV_INFO << " -- from DDP (" << cLat.value() << ", " << cLong.value() << ") | ";
-                EV_INFO << node->getFullName() << " has moved " << posDiff.value() << "m in this time.";
 
+                /*EV_INFO << pNode->getFullName() << " received VAM from " << node->getFullName();
+                EV_INFO << " | GeoCoordinates (Lat,Long) from VAM (" << bc.referencePosition.latitude << ", " << bc.referencePosition.longitude << ")";
+                EV_INFO << " -- from DDP (" << vDDP->latitude().value() << ", " << vDDP->longitude().value() << ") | ";
+                EV_INFO << node->getFullName() << " has moved " << posDiff.value() << "m in this time.";
+                */
                 emit(scSignalVamRefPosDiff, posDiff.value());
             }
         }
