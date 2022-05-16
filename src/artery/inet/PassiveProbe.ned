@@ -1,6 +1,6 @@
 package artery.inet;
 
-import inet.node.inet.INetworkNode;
+import inet.node.contract.INetworkNode;
 import inet.linklayer.contract.IWirelessInterface;
 import inet.mobility.contract.IMobility;
 import inet.networklayer.common.InterfaceTable;
