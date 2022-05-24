@@ -22,21 +22,32 @@ namespace artery {
 
 Define_Module(PersonMiddlewareEmpty);
 
+void PersonMiddlewareEmpty::initialize(int stage) {
+    if (stage == InitStages::Self) {
+        // consistency check - to avoid misleading runtime errors
+        auto *host = findHost();
+        auto mobilityModule = inet::getModuleFromPar<omnetpp::cModule>(
+                par("mobilityModule"), host);
+        std::string mobilityModuleTypeName = std::string(mobilityModule->getClassName());
+        if (mobilityModuleTypeName.find("Vadere") != std::string::npos) {
+            throw omnetpp::cRuntimeError(
+                    "Mobility module type '%s' is not suitable for this middleware - check your simulation setup! (useVadere parameter and mobilityModule.typename)",
+                    mobilityModuleTypeName.c_str());
+        }
 
+        // initialize all required parameters
+        mMobility = inet::getModuleFromPar<PersonMobility>(
+                par("mobilityModule"), host);
+        mStationType = vanetza::geonet::StationType::Pedestrian;
+        getFacilities().register_const(mMobility);
 
-void PersonMiddlewareEmpty::initialize(int stage)
-{
-if (stage == InitStages::Self) {
-    mMobility = inet::getModuleFromPar<PersonMobility>(par("mobilityModule"), findHost());
-    mStationType = vanetza::geonet::StationType::Pedestrian;
-    getFacilities().register_const(mMobility);
-
-    Identity identity;
-    identity.traci = mMobility->getPersonId();
-    identity.application = Identity::randomStationId(getRNG(0));
-    emit(Identity::changeSignal, Identity::ChangeTraCI | Identity::ChangeStationId, &identity);
-}
-MiddlewareBase::initialize(stage);
+        Identity identity;
+        identity.traci = mMobility->getPersonId();
+        identity.application = Identity::randomStationId(getRNG(0));
+        emit(Identity::changeSignal,
+                Identity::ChangeTraCI | Identity::ChangeStationId, &identity);
+    }
+    MiddlewareBase::initialize(stage);
 }
 
 } /* namespace artery */
