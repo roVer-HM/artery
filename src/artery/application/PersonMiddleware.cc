@@ -29,8 +29,9 @@ void PersonMiddleware::initialize(int stage)
 
         Identity identity;
         identity.traci = mPersonController->getNodeId();
-        identity.application = Identity::randomStationId(getRNG(0));
+        identity.application = Identity::deriveStationId(findHost(), par("stationIdDerivation").stringValue());
         mDataProvider.setStationId(identity.application);
+
         emit(Identity::changeSignal, Identity::ChangeTraCI | Identity::ChangeStationId, &identity);
     }
 

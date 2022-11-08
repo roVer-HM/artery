@@ -1,15 +1,4 @@
-scenarios/artery
-scenarios/car2car-grid
-scenarios/gemv2
-scenarios/highway-police
-scenarios/lte-blackice
-scenarios/mt-its2017
-scenarios/ots-demo
-scenarios/rsu_grid
-scenarios/simulte
-scenarios/storyboard
-scenarios/testbed
-scenarios/transfusion
 src/artery
+src/artery/envmod
 src/ots
 src/traci

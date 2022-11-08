@@ -21,7 +21,6 @@ class FovSensor : public BaseSensor
 {
 public:
     FovSensor();
-    ~FovSensor();
 
     void measurement() override;
     const FieldOfView& getFieldOfView() const;
@@ -30,7 +29,7 @@ public:
     const std::string& getSensorCategory() const override;
     const std::string getSensorName() const override;
     void setSensorName(const std::string& name) override;
-    SensorDetection detectObjects(ObstacleRtree& obstacleRtree, PreselectionMethod& preselector) const override;
+    SensorDetection detectObjects() const override;
 
 protected:
     template<typename T>
@@ -48,8 +47,10 @@ protected:
     };
 
     void initialize() override;
+    void finish() override;
     void initializeVisualization();
     void refreshDisplay() const override;
+    virtual SensorDetection createSensorCone() const;
 
     SensorConfigFov mFovConfig;
     Updatable<SensorDetection> mLastDetection;

@@ -2,6 +2,7 @@
 #include "artery/envmod/EnvironmentModelObject.h"
 #include "artery/envmod/Geometry.h"
 #include <boost/geometry/strategies/transform/matrix_transformers.hpp>
+#include <boost/math/constants/constants.hpp>
 #include <boost/units/cmath.hpp>
 #include <boost/units/systems/angle/degrees.hpp>
 
@@ -15,21 +16,23 @@ std::vector<Position> createSensorArc(const SensorConfigFov& config, const Posit
     using translation = gm::strategy::transform::translate_transformer<double, 2, 2>;
 
     const double openingAngleDeg = config.fieldOfView.angle / boost::units::degree::degrees;
-    // egoHeading is headed north (clockwise), OMNeT++ angles are headed east (counter-clockwise)
-    const double egoHeadingDeg = -1.0 * (egoHeading.degree() - 90.0);
-    const unsigned segments = std::max(config.numSegments, 1u);
+    unsigned segments = std::max(config.numSegments, 1u);
     const double segmentAngle = openingAngleDeg / segments;
     const double sensorPositionDeg = relativeAngle(config.sensorPosition).degree();
 
     std::vector<Position> points;
 
-    // if sensor cone is 360 deg omit center point
-    if (config.fieldOfView.angle != 360.0 * boost::units::degree::degrees) {
+    const bool full_circle = config.fieldOfView.angle == 360.0 * boost::units::degree::degree;
+    if (full_circle) {
+        // full circle: omit last segment point to prevent nearly-overlapping geometry points
+        --segments;
+    } else {
+        // actual cone: add center point
         points.push_back(Position {0.0, 0.0});
     }
 
     Position sensorBoundary(config.fieldOfView.range / boost::units::si::meters, 0.0);
-    rotation rotateSensorBoundary(egoHeadingDeg - sensorPositionDeg - 0.5 * openingAngleDeg);
+    rotation rotateSensorBoundary(egoHeading.degree() - sensorPositionDeg - 0.5 * openingAngleDeg);
     gm::transform(sensorBoundary, sensorBoundary, rotateSensorBoundary);
     points.push_back(sensorBoundary);
 
@@ -51,8 +54,13 @@ std::vector<Position> createSensorArc(const SensorConfigFov& config, const Posit
 
 std::vector<Position> createSensorArc(const SensorConfigFov& config, const EnvironmentModelObject& egoObj)
 {
+    using boost::units::si::radians;
+    static const auto pi = boost::math::constants::pi<double>();
+    // heading from vehicle data is headed north (clockwise),
+    // OMNeT++ angles are headed east (counter-clockwise)
+    const Angle heading = 0.5 * pi * radians - egoObj.getVehicleData().heading();
     Position sensorPos = egoObj.getAttachmentPoint(config.sensorPosition);
-    return createSensorArc(config, sensorPos, egoObj.getVehicleData().heading());
+    return createSensorArc(config, sensorPos, heading);
 }
 
 } // namespace artery
