@@ -48,6 +48,12 @@ const Facilities& ItsG5BaseService::getFacilities() const
 	return m_middleware->getFacilities();
 }
 
+const StationType& ItsG5BaseService::getStationType() const
+{
+    assert(m_middleware);
+    return m_middleware->getStationType();
+}
+
 bool ItsG5BaseService::requiresListener() const
 {
 	return true;

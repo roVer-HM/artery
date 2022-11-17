@@ -9,7 +9,7 @@
 #include "artery/application/DenService.h"
 #include "artery/application/Timer.h"
 #include "artery/application/StoryboardSignal.h"
-#include "artery/application/VehicleDataProvider.h"
+#include "artery/application/MovingNodeDataProvider.h"
 #include "artery/utility/FilterRules.h"
 #include <omnetpp/checkandcast.h>
 #include <omnetpp/ccomponenttype.h>
@@ -34,14 +34,19 @@ DenService::DenService() :
 }
 
 DenService::~DenService(){
-
+    /*for(auto use_case : mUseCases) {
+        use_case->callFinish();
+        use_case->deleteModule();
+    }*/
+    mUseCases.clear();
+    /*
     std::list<artery::den::UseCase*>::iterator i = mUseCases.begin();
     while (i != mUseCases.end())
     {
         (*i)->callFinish();
         (*i)->deleteModule();
         i = mUseCases.erase(i);
-    }
+    }*/
 }
 
 void DenService::initialize()
@@ -95,7 +100,7 @@ void DenService::indicate(const vanetza::btp::DataIndication& indication, std::u
 {
     Asn1PacketVisitor<vanetza::asn1::Denm> visitor;
     const vanetza::asn1::Denm* denm = boost::apply_visitor(visitor, *packet);
-    const auto egoStationID = getFacilities().get_const<VehicleDataProvider>().station_id();
+    const auto egoStationID = getFacilities().get_const<MovingNodeDataProvider>().getStationId();
 
     if (denm && (*denm)->header.stationID != egoStationID) {
         DenmObject obj = visitor.shared_wrapper;
@@ -120,7 +125,7 @@ void DenService::trigger()
 ActionID_t DenService::requestActionID()
 {
     ActionID_t id;
-    id.originatingStationID = getFacilities().get_const<VehicleDataProvider>().station_id();
+    id.originatingStationID = getFacilities().get_const<MovingNodeDataProvider>().getStationId();
     id.sequenceNumber = ++mSequenceNumber;
     return id;
 }

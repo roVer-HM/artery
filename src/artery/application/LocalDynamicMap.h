@@ -2,12 +2,13 @@
 #define ARTERY_LOCALDYNAMICMAP_H_AL7SS9KT
 
 #include "artery/application/CaObject.h"
+#include "artery/application/VaObject.h"
 #include <omnetpp/simtime.h>
 #include <vanetza/asn1/cam.hpp>
 #include <cstdint>
 #include <functional>
 #include <map>
-#include <memory>
+#include <variant>
 
 namespace artery
 {
@@ -20,38 +21,32 @@ public:
     using StationID = uint32_t;
     using Cam = vanetza::asn1::Cam;
     using CamPredicate = std::function<bool(const Cam&)>;
-
-    class AwarenessEntry
-    {
-    public:
-        AwarenessEntry(const CaObject&, omnetpp::SimTime);
-        AwarenessEntry(AwarenessEntry&&) = default;
-        AwarenessEntry& operator=(AwarenessEntry&&) = default;
-
-        omnetpp::SimTime expiry() const { return mExpiry; }
-        const Cam& cam() const { return mObject.asn1(); }
-        std::shared_ptr<const Cam> camPtr() const { return mObject.shared_ptr(); }
-
-    private:
-        omnetpp::SimTime mExpiry;
-        CaObject mObject;
-    };
-
-    using AwarenessEntries = std::map<StationID, AwarenessEntry>;
+    using Vam = vanetza::asn1::Vam;
+    using VamPredicate = std::function<bool(const Vam&)>;
 
     LocalDynamicMap(const Timer&);
     void updateAwareness(const CaObject&);
+    void updateAwareness(const VaObject&);
     void dropExpired();
     unsigned count(const CamPredicate&) const;
-    std::shared_ptr<const Cam> getCam(StationID) const;
-    const AwarenessEntries& allEntries() const { return mCaMessages; }
+    unsigned count(const VamPredicate&) const;
 
 private:
+    struct AwarenessEntry
+    {
+        AwarenessEntry(const std::variant<CaObject, VaObject>&, omnetpp::SimTime);
+        AwarenessEntry(AwarenessEntry&&) = default;
+        AwarenessEntry& operator=(AwarenessEntry&&) = default;
+
+        omnetpp::SimTime expiry;
+        std::variant<CaObject, VaObject> object;
+    };
+
+
     const Timer& mTimer;
-    AwarenessEntries mCaMessages;
+    std::map<StationID, AwarenessEntry> mMessages;
 };
 
 } // namespace artery
 
 #endif /* ARTERY_LOCALDYNAMICMAP_H_AL7SS9KT */
-

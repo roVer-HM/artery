@@ -26,6 +26,7 @@ VehicleMiddleware::VehicleMiddleware() :
 void VehicleMiddleware::initialize(int stage)
 {
     if (stage == InitStages::Self) {
+        findHost()->subscribe(MobilityBase::stateChangedSignal, this);
         initializeVehicleController(par("mobilityModule"));
         initializeStationType(mVehicleController->getVehicleClass());
         getFacilities().registerConst(static_cast<MovingNodeDataProvider*>(&mVehicleDataProvider));

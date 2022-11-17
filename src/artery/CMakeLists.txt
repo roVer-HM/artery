@@ -34,11 +34,14 @@ add_library(core SHARED
     application/StoryboardSignal.cc
     application/Timer.cc
     application/TransportDispatcher.cc
+    application/VaObject.cc
+    application/VaService.cc
     application/VehicleDataProvider.cc
     application/VehicleKinematics.cc
     application/VehicleMiddleware.cc
     application/VehicleMiddlewareEmpty.cc
     application/XmlMultiChannelPolicy.cc
+    application/den/CollisionRiskUseCase.cc
     application/den/EmergencyBrakeLight.cc
     application/den/ImpactReductionUseCase.cc
     application/den/Memory.cc
