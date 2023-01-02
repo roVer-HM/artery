@@ -4,6 +4,7 @@
 #include "artery/application/ItsG5BaseService.h"
 #include "artery/utility/Channel.h"
 #include "artery/utility/Geometry.h"
+#include "artery/application/VaClusterHelper.h"
 #include <vanetza/asn1/vam.hpp>
 #include <vanetza/btp/data_interface.hpp>
 #include <vanetza/units/angle.hpp>
@@ -67,6 +68,7 @@ private:
     vanetza::asn1::Vam generateVam(const MovingNodeDataProvider&, uint16_t genDeltaTime);
     void addLowFrequencyContainer(vanetza::asn1::Vam&);
 
+
     const MovingNodeDataProvider* mDeviceDataProvider;
     const Timer* mTimer;
     artery::LocalDynamicMap* mLocalDynamicMap;
@@ -97,6 +99,7 @@ private:
     vanetza::units::Length mMinVertDistance;
     double mTrajectoryInterceptionThreshold;
     double mLastVamTrajectoryInterception[8];
+    vanetza::asn1::Vam mLastSentVAM;
 };
 }
 

@@ -3,6 +3,7 @@
 #include "artery/application/Asn1PacketVisitor.h"
 #include "artery/application/MovingNodeDataProvider.h"
 #include "artery/application/MultiChannelPolicy.h"
+#include "artery/application/VaClusterHelper.h"
 #include "artery/utility/simtime_cast.h"
 #include "artery/utility/Calculations.h"
 #include "artery/utility/IdentityRegistry.h"
@@ -101,11 +102,16 @@ void VaService::indicate(const vanetza::btp::DataIndication& ind, std::unique_pt
             emit(scSignalVamReceived, &obj);
             mLocalDynamicMap->updateAwareness(obj);
 
+            double velocityDiff = cluster::getVeloDifference(cluster::getVamVelocity(&mLastSentVAM), cluster::getVamVelocity(vam));
+
+
             // Calculate deviation of the position of the ITS-S that sent the VAM
             uint32_t stationIdVam = (*vam)->header.stationID;
 
             cModule* pNode = getParentModule()->getParentModule();
+
             cModule* i = findModuleByPath("World.identiyRegistry");
+
             IdentityRegistry* idr = check_and_cast<IdentityRegistry*>(i);
 
             auto identity = idr->lookup<IdentityRegistry::application>(stationIdVam);
@@ -263,6 +269,8 @@ void VaService::sendVam(const omnetpp::SimTime& T_now)
     request.gn.maximum_lifetime = geonet::Lifetime { geonet::Lifetime::Base::One_Second, 1 };
     request.gn.traffic_class.tc_id(static_cast<unsigned>(dcc::Profile::DP2));
     request.gn.communication_profile = geonet::CommunicationProfile::ITS_G5;
+
+    mLastSentVAM = vam;
 
     VaObject obj(std::move(vam));
     emit(scSignalVamSent, &obj);
