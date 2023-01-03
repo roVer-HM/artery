@@ -100,6 +100,7 @@ private:
     double mTrajectoryInterceptionThreshold;
     double mLastVamTrajectoryInterception[8];
     vanetza::asn1::Vam mLastSentVAM;
+    cluster::ClusterManager mClusterManager;
 };
 }
 

@@ -97,6 +97,21 @@ unsigned LocalDynamicMap::count(const VamPredicate& predicate) const
                          });
 }
 
+std::vector<LocalDynamicMap::Vam> LocalDynamicMap::getAllVams() const
+{
+    std::vector<Vam> vams;
+
+    for (auto const& pair : mMessages)
+    {
+        std::variant<CaObject, VaObject> object = pair.second.object;
+        if (object.index()) {
+            vams.push_back(std::get<VaObject>(object).asn1());
+        }
+    }
+
+    return vams;
+}
+
 LocalDynamicMap::AwarenessEntry::AwarenessEntry(const std::variant<CaObject, VaObject>& obj, omnetpp::SimTime t) :
     expiry(t), object(obj)
 {

@@ -9,6 +9,7 @@
 #include <functional>
 #include <map>
 #include <variant>
+#include <vector>
 
 namespace artery
 {
@@ -30,6 +31,8 @@ public:
     void dropExpired();
     unsigned count(const CamPredicate&) const;
     unsigned count(const VamPredicate&) const;
+
+    std::vector<Vam> getAllVams() const;
 
 private:
     struct AwarenessEntry

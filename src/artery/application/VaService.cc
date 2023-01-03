@@ -40,7 +40,8 @@ VaService::VaService() :
     mGenVamMin {100, SIMTIME_MS},
     mGenVamMax {5000, SIMTIME_MS},
     mGenVam {mGenVamMin},
-    mNumSkipVamRedundancy(5)
+    mNumSkipVamRedundancy(5),
+    mClusterManager{}
 {
 }
 
@@ -102,8 +103,18 @@ void VaService::indicate(const vanetza::btp::DataIndication& ind, std::unique_pt
             emit(scSignalVamReceived, &obj);
             mLocalDynamicMap->updateAwareness(obj);
 
-            double velocityDiff = cluster::getVeloDifference(cluster::getVamVelocity(&mLastSentVAM), cluster::getVamVelocity(vam));
-
+            // Cluster management
+            auto cInfoC = (*vam)->vam.vamParameters.vruClusterInformationContainer;
+            if (cInfoC != nullptr) {
+                // Received VAM with cluster information container
+                if (mClusterState == ClusterState::VruActiveStandalone) {
+                    // Not in Cluster - possible to join?
+                    if (cluster::canJoinCluster(mLastSentVAM, *vam, cluster::defaultFormingParameters)) {
+                        // Position and velocity ok -> Join the cluster
+                        int x = 0;
+                    }
+                }
+            }
 
             // Calculate deviation of the position of the ITS-S that sent the VAM
             uint32_t stationIdVam = (*vam)->header.stationID;
@@ -269,6 +280,20 @@ void VaService::sendVam(const omnetpp::SimTime& T_now)
     request.gn.maximum_lifetime = geonet::Lifetime { geonet::Lifetime::Base::One_Second, 1 };
     request.gn.traffic_class.tc_id(static_cast<unsigned>(dcc::Profile::DP2));
     request.gn.communication_profile = geonet::CommunicationProfile::ITS_G5;
+
+    if (mClusterState == ClusterState::VruActiveStandalone) {
+        // Check whether this node can form a cluster
+        if (cluster::canFormCluster(vam, mLocalDynamicMap->getAllVams(), cluster::defaultFormingParameters)) {
+            // Make cluster leader
+            mClusterState = ClusterState::VruActiveClusterLeader;
+            mClusterManager.makeCluster();
+        }
+    }
+
+    // If VRU is cluster leader: Add ClusterInformationContainer
+    if (mClusterState == ClusterState::VruActiveClusterLeader) {
+        mClusterManager.addClusterContainer(vam);
+    }
 
     mLastSentVAM = vam;
 
