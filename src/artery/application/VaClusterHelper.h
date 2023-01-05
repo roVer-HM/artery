@@ -11,7 +11,7 @@
 #include <vanetza/units/length.hpp>
 #include <vector>
 #include <vanetza/facilities/cam_functions.hpp>
-#include <stdlib.h>
+#include <omnetpp.h>
 
 namespace artery
 {
@@ -71,14 +71,35 @@ public:
         isLeader = false;
     }
 
-    void joinCluster(int id) {
-        clusterId = id;
+    void joinCluster(ClusterId_t cid) {
+        clusterId = cid;
         isLeader = false;
     }
 
-    void makeCluster() {
-        clusterId = generateClusterId();
+    void makeCluster(ClusterId_t cid) {
+        clusterId = cid;
         isLeader = true;
+    }
+
+    void addStation(StationID_t sid) {
+        if (!isLeader) {
+            throw omnetpp::cRuntimeError("Only the cluster leader can add a station to the cluster");
+        }
+
+        if (std::find(containsStations.begin(), containsStations.end(), sid) == containsStations.end()) {
+            containsStations.push_back(sid);
+        }
+    }
+
+    void leaveCluster() {
+        if (isLeader) {
+            throw omnetpp::cRuntimeError("The leader can't leave a cluster");
+        }
+        clusterId = -1;
+    }
+
+    int getClusterSize() {
+        return containsStations.size() + 1;
     }
 
     unsigned getClusterId() {
@@ -99,13 +120,24 @@ public:
         clusC->clusterCardinalitySize = containsStations.size() + 1;
     }
 
-private:
-
-    ClusterId_t generateClusterId()
+    void addJoinClusterContainer(vanetza::asn1::Vam& message, uint16_t genDeltaTime)
     {
-        return static_cast<ClusterId_t>(rand());
+        if (isLeader) {
+            throw omnetpp::cRuntimeError("The leader can't join a cluster");
+        }
+        if (clusterId < 0) {
+            throw omnetpp::cRuntimeError("Not part of a cluster, Can't send join message");
+        }
+
+        message->vam.vamParameters.vruClusterOperationContainer = vanetza::asn1::allocate<VruClusterOperationContainer_t>();
+        message->vam.vamParameters.vruClusterOperationContainer->clusterJoinInfo = vanetza::asn1::allocate<ClusterJoinInfo_t>();
+        ClusterJoinInfo_t*& jic = message->vam.vamParameters.vruClusterOperationContainer->clusterJoinInfo;
+
+        jic->clusterId = clusterId;
+        jic->joinTime = (genDeltaTime & (0xFF << 8)) >> 8;
     }
 
+private:
     ClusterId_t clusterId;
     int radius = 0;
     bool isLeader;

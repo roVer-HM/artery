@@ -15,6 +15,7 @@
 #include <vanetza/facilities/cam_functions.hpp>
 #include <chrono>
 #include <boost/geometry/algorithms/distance.hpp>
+#include <omnetpp.h>
 
 
 namespace artery
@@ -26,6 +27,7 @@ static const simsignal_t scSignalVamReceived = cComponent::registerSignal("VamRe
 static const simsignal_t scSignalVamSent = cComponent::registerSignal("VamSent");
 static const simsignal_t scSignalVamAssemblyTime = cComponent::registerSignal("VamAssemblyTime");
 static const simsignal_t scSignalVamRefPosDiff = cComponent::registerSignal("VamRefPosDiff");
+static const simsignal_t scSignalVamClusterSize = cComponent::registerSignal("ClusterSize");
 static const auto scLowFrequencyContainerInterval = std::chrono::milliseconds(2000);
 static const auto scVamInterval = std::chrono::milliseconds(100);
 
@@ -61,6 +63,13 @@ void VaService::initialize()
     mGenVamMax = par("maxInterval");
     mGenVam = mGenVamMin;
     mDccRestriction = par("withDccRestriction");
+    mCanLeadCluster = par("canLeadCluster").boolValue();
+
+    vVamX.setName("vam_x");
+    vVamY.setName("vam_y");
+    vVamId.setName("vam_id");
+    vVamCluster.setName("vam_cluster");
+    vVamH.setName("vam_heading");
 
     // initialize LastVamTimestamp so that a VAM is send immediately after the VRU spawns - TS 103 300-3 v2.1.1 (section 6.4.1)
     mLastVamTimestamp = simTime() - artery::simtime_cast(scVamInterval);
@@ -101,23 +110,57 @@ void VaService::indicate(const vanetza::btp::DataIndication& ind, std::unique_pt
         if(vam && vam->validate()){
             VaObject obj = visitor.shared_wrapper;
             emit(scSignalVamReceived, &obj);
-            mLocalDynamicMap->updateAwareness(obj);
 
             // Cluster management
             auto cInfoC = (*vam)->vam.vamParameters.vruClusterInformationContainer;
             if (cInfoC != nullptr) {
+                ClusterId_t cid = cInfoC->clusterId;
                 // Received VAM with cluster information container
+                // I'm standalone - is join possible?
                 if (mClusterState == ClusterState::VruActiveStandalone) {
                     // Not in Cluster - possible to join?
                     if (cluster::canJoinCluster(mLastSentVAM, *vam, cluster::defaultFormingParameters)) {
                         // Position and velocity ok -> Join the cluster
-                        int x = 0;
+                        mClusterManager.joinCluster(cid);
+                        // Stop disseminating VAMs
+                        mClusterState = ClusterState::VruPassive;
+
+                        sendJoinClusterVam();
                     }
+                }
+                // Position update from my cluster
+                else if (mClusterState == ClusterState::VruPassive && mClusterManager.getClusterId() == cid) {
+                    // Generate VAM (don't send!) to compare against cluster vam
+                    auto tempVam = generateVam(*mDeviceDataProvider, generationTime());
+                    // Would cluster still be possible?
+                    if (!cluster::canJoinCluster(tempVam, *vam, cluster::defaultFormingParameters)) {
+                       // Whooops, have to leave cluster
+                        mClusterManager.leaveCluster();
+                        mClusterState = ClusterState::VruActiveStandalone;
+                        // TODO: Send cluster leave
+                    }
+                }
+
+                vVamCluster.record(cInfoC->clusterCardinalitySize);
+            } else {
+                vVamCluster.record(0);
+            }
+
+            auto cOpC = (*vam)->vam.vamParameters.vruClusterOperationContainer;
+            if (cOpC != nullptr) {
+                auto cji = cOpC->clusterJoinInfo;
+                // VRU joins my cluster
+                if (cji != nullptr && cji->clusterId == mClusterManager.getClusterId()
+                        && mClusterState == ClusterState::VruActiveClusterLeader) {
+                       mClusterManager.addStation((*vam)->header.stationID);
+                       emit(scSignalVamClusterSize, mClusterManager.getClusterSize());
                 }
             }
 
             // Calculate deviation of the position of the ITS-S that sent the VAM
             uint32_t stationIdVam = (*vam)->header.stationID;
+
+            vVamId.record(stationIdVam);
 
             cModule* pNode = getParentModule()->getParentModule();
 
@@ -132,11 +175,21 @@ void VaService::indicate(const vanetza::btp::DataIndication& ind, std::unique_pt
             cModule* node = identity->host;
             cModule* vaMod = node->findModuleByPath(".middleware.VaService");
 
+            if ((*vam)->vam.vamParameters.vruHighFrequencyContainer == nullptr) {
+                return;
+            }
+
+            mLocalDynamicMap->updateAwareness(obj);
+
             if(vaMod) {
                 VaService* va = check_and_cast<VaService*>(vaMod);
                 const MovingNodeDataProvider* vDDP = va->mDeviceDataProvider;
                 // Get longitude and latitude from received VAM
                 const auto& bc = (*vam)->vam.vamParameters.basicContainer;
+
+                vVamX.record(bc.referencePosition.longitude);
+                vVamY.record(bc.referencePosition.latitude);
+                vVamH.record((*vam)->vam.vamParameters.vruHighFrequencyContainer->heading.headingValue);
 
                 // Calculate the position difference
                 auto posDiff = vanetza::facilities::distance(bc.referencePosition, vDDP->latitude(), vDDP->longitude());
@@ -260,8 +313,7 @@ bool VaService::checkRedundancyMitigation(const SimTime& T_elapsed, const SimTim
  */
 void VaService::sendVam(const omnetpp::SimTime& T_now)
 {
-    uint16_t genDeltaTimeMod = countTaiMilliseconds(mTimer->getTimeFor(mDeviceDataProvider->updated()));
-    auto vam = generateVam(*mDeviceDataProvider, genDeltaTimeMod);
+    auto vam = generateVam(*mDeviceDataProvider, generationTime());
 
     mLastVamReferencePosition = mDeviceDataProvider->position();
     mLastVamSpeed = mDeviceDataProvider->speed();
@@ -273,20 +325,13 @@ void VaService::sendVam(const omnetpp::SimTime& T_now)
     }
 
     using namespace vanetza;
-    btp::DataRequestB request;
-    request.destination_port = btp::ports::VA;
-    request.gn.its_aid = aid::VRU;
-    request.gn.transport_type = geonet::TransportType::SHB;
-    request.gn.maximum_lifetime = geonet::Lifetime { geonet::Lifetime::Base::One_Second, 1 };
-    request.gn.traffic_class.tc_id(static_cast<unsigned>(dcc::Profile::DP2));
-    request.gn.communication_profile = geonet::CommunicationProfile::ITS_G5;
 
-    if (mClusterState == ClusterState::VruActiveStandalone) {
+    if (mClusterState == ClusterState::VruActiveStandalone && mCanLeadCluster) {
         // Check whether this node can form a cluster
         if (cluster::canFormCluster(vam, mLocalDynamicMap->getAllVams(), cluster::defaultFormingParameters)) {
             // Make cluster leader
             mClusterState = ClusterState::VruActiveClusterLeader;
-            mClusterManager.makeCluster();
+            mClusterManager.makeCluster(getRNG(0)->intRand(255));
         }
     }
 
@@ -296,16 +341,22 @@ void VaService::sendVam(const omnetpp::SimTime& T_now)
     }
 
     mLastSentVAM = vam;
+    sendVamRequest(vam);
 
-    VaObject obj(std::move(vam));
-    emit(scSignalVamSent, &obj);
+}
 
-    using VamByteBuffer = convertible::byte_buffer_impl<asn1::Vam>;
-    std::unique_ptr<geonet::DownPacket> payload { new geonet::DownPacket() };
-    std::unique_ptr<convertible::byte_buffer> buffer { new VamByteBuffer(obj.shared_ptr()) };
-    payload->layer(OsiLayer::Application) = std::move(buffer);
-    this->request(request, std::move(payload));
+void VaService::sendJoinClusterVam()
+{
+    vanetza::asn1::Vam message;
 
+    VruAwareness_t& vam = message->vam;
+    vam.generationDeltaTime = generationTime() * GenerationDeltaTime_oneMilliSec;
+
+    addHeader(message, *mDeviceDataProvider);
+    addBasicContainer(message, *mDeviceDataProvider);
+    mClusterManager.addJoinClusterContainer(message, generationTime());
+
+    sendVamRequest(message);
 }
 
 /**
@@ -336,27 +387,13 @@ vanetza::asn1::Vam VaService::generateVam(const MovingNodeDataProvider& ddp, uin
 {
     vanetza::asn1::Vam message;
 
-    ItsPduHeader_t& header = message->header;
-    header.protocolVersion = 1;
-    header.messageID = ItsPduHeader__messageID_vam;
-    header.stationID = ddp.getStationId();
+    addHeader(message, ddp);
+    addBasicContainer(message, ddp);
 
     VruAwareness_t& vam = message->vam;
     vam.generationDeltaTime = genDeltaTime * GenerationDeltaTime_oneMilliSec;
-    BasicContainer_t& basic = vam.vamParameters.basicContainer;
     VruHighFrequencyContainer_t*& hfc = vam.vamParameters.vruHighFrequencyContainer;
     hfc = vanetza::asn1::allocate<VruHighFrequencyContainer_t>();
-
-    basic.stationType = (e_StationType)mStationType->getStationType();
-    basic.referencePosition.altitude.altitudeValue = AltitudeValue_unavailable;
-    basic.referencePosition.altitude.altitudeConfidence = AltitudeConfidence_unavailable;
-    basic.referencePosition.longitude = round(ddp.longitude(), microdegree) * Longitude_oneMicrodegreeEast;
-    basic.referencePosition.latitude = round(ddp.latitude(), microdegree) * Latitude_oneMicrodegreeNorth;
-    basic.referencePosition.positionConfidenceEllipse.semiMajorOrientation = HeadingValue_unavailable;
-    basic.referencePosition.positionConfidenceEllipse.semiMajorConfidence =
-            SemiAxisLength_unavailable;
-    basic.referencePosition.positionConfidenceEllipse.semiMinorConfidence =
-            SemiAxisLength_unavailable;
 
     hfc->heading.headingValue = round(ddp.heading(), decidegree);
     hfc->heading.headingConfidence = HeadingConfidence_equalOrWithinOneDegree;
@@ -406,6 +443,69 @@ void VaService::addLowFrequencyContainer(vanetza::asn1::Vam& message)
     if (!message.validate(error)) {
         throw cRuntimeError("Invalid Low Frequency VAM: %s", error.c_str());
     }
+}
+
+void VaService::addHeader(vanetza::asn1::Vam& message, const MovingNodeDataProvider& ddp)
+{
+    ItsPduHeader_t& header = message->header;
+    header.protocolVersion = 1;
+    header.messageID = ItsPduHeader__messageID_vam;
+    header.stationID = ddp.getStationId();
+
+    std::string error;
+    if (!message.validate(error)) {
+        throw cRuntimeError("Invalid VAM header: %s", error.c_str());
+    }
+}
+
+void VaService::addBasicContainer(vanetza::asn1::Vam& message, const MovingNodeDataProvider& ddp)
+{
+
+    BasicContainer_t& basic = message->vam.vamParameters.basicContainer;
+
+    basic.stationType = (e_StationType)mStationType->getStationType();
+    basic.referencePosition.altitude.altitudeValue = AltitudeValue_unavailable;
+    basic.referencePosition.altitude.altitudeConfidence = AltitudeConfidence_unavailable;
+    basic.referencePosition.longitude = round(ddp.longitude(), microdegree) * Longitude_oneMicrodegreeEast;
+    basic.referencePosition.latitude = round(ddp.latitude(), microdegree) * Latitude_oneMicrodegreeNorth;
+    basic.referencePosition.positionConfidenceEllipse.semiMajorOrientation = HeadingValue_unavailable;
+    basic.referencePosition.positionConfidenceEllipse.semiMajorConfidence =
+            SemiAxisLength_unavailable;
+    basic.referencePosition.positionConfidenceEllipse.semiMinorConfidence =
+            SemiAxisLength_unavailable;
+
+
+    std::string error;
+    if (!message.validate(error)) {
+        throw cRuntimeError("Invalid VAM basic container: %s", error.c_str());
+    }
+}
+
+uint16_t VaService::generationTime()
+{
+    return countTaiMilliseconds(mTimer->getTimeFor(mDeviceDataProvider->updated()));
+}
+
+void VaService::sendVamRequest(vanetza::asn1::Vam& vam)
+{
+    using namespace vanetza;
+
+    btp::DataRequestB request;
+    request.destination_port = btp::ports::VA;
+    request.gn.its_aid = aid::VRU;
+    request.gn.transport_type = geonet::TransportType::SHB;
+    request.gn.maximum_lifetime = geonet::Lifetime { geonet::Lifetime::Base::One_Second, 1 };
+    request.gn.traffic_class.tc_id(static_cast<unsigned>(dcc::Profile::DP2));
+    request.gn.communication_profile = geonet::CommunicationProfile::ITS_G5;
+
+    VaObject obj(std::move(vam));
+    emit(scSignalVamSent, &obj);
+
+    using VamByteBuffer = convertible::byte_buffer_impl<asn1::Vam>;
+    std::unique_ptr<geonet::DownPacket> payload { new geonet::DownPacket() };
+    std::unique_ptr<convertible::byte_buffer> buffer { new VamByteBuffer(obj.shared_ptr()) };
+    payload->layer(OsiLayer::Application) = std::move(buffer);
+    this->request(request, std::move(payload));
 }
 
 } // namespace artery

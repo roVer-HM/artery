@@ -10,6 +10,7 @@
 #include <vanetza/units/angle.hpp>
 #include <vanetza/units/velocity.hpp>
 #include <omnetpp/simtime.h>
+#include <stdint.h>
 
 namespace artery
 {
@@ -67,6 +68,11 @@ private:
     omnetpp::SimTime genVamDcc();
     vanetza::asn1::Vam generateVam(const MovingNodeDataProvider&, uint16_t genDeltaTime);
     void addLowFrequencyContainer(vanetza::asn1::Vam&);
+    void addHeader(vanetza::asn1::Vam&, const MovingNodeDataProvider&);
+    void addBasicContainer(vanetza::asn1::Vam&, const MovingNodeDataProvider&);
+    uint16_t generationTime();
+    void sendJoinClusterVam();
+    void sendVamRequest(vanetza::asn1::Vam&);
 
 
     const MovingNodeDataProvider* mDeviceDataProvider;
@@ -101,6 +107,13 @@ private:
     double mLastVamTrajectoryInterception[8];
     vanetza::asn1::Vam mLastSentVAM;
     cluster::ClusterManager mClusterManager;
+    bool mCanLeadCluster;
+
+    omnetpp::cOutVector vVamX;
+    omnetpp::cOutVector vVamY;
+    omnetpp::cOutVector vVamId;
+    omnetpp::cOutVector vVamCluster;
+    omnetpp::cOutVector vVamH;
 };
 }
 
