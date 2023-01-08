@@ -74,14 +74,22 @@ public:
     void joinCluster(ClusterId_t cid) {
         clusterId = cid;
         isLeader = false;
+        containsStations.clear();
     }
 
     void makeCluster(ClusterId_t cid) {
         clusterId = cid;
         isLeader = true;
+        containsStations.clear();
     }
 
-    void addStation(StationID_t sid) {
+   void breakCluster() {
+        clusterId = -1;
+        isLeader = false;
+        containsStations.clear();
+    }
+
+    void addStation(StationID_t sid, double distanceToLeader) {
         if (!isLeader) {
             throw omnetpp::cRuntimeError("Only the cluster leader can add a station to the cluster");
         }
@@ -89,6 +97,17 @@ public:
         if (std::find(containsStations.begin(), containsStations.end(), sid) == containsStations.end()) {
             containsStations.push_back(sid);
         }
+        if (radius < distanceToLeader) {
+            radius = distanceToLeader;
+        }
+    }
+
+    void removeStation(StationID_t sid) {
+        if (!isLeader) {
+            throw omnetpp::cRuntimeError("Only the cluster leader can remove a station from the cluster");
+        }
+
+        containsStations.erase(std::remove(containsStations.begin(), containsStations.end(), sid), containsStations.end());
     }
 
     void leaveCluster() {
@@ -102,8 +121,12 @@ public:
         return containsStations.size() + 1;
     }
 
-    unsigned getClusterId() {
+    ClusterId_t getClusterId() {
         return clusterId;
+    }
+
+    double getRadius() {
+        return radius;
     }
 
     void addClusterContainer(vanetza::asn1::Vam& message)
@@ -135,11 +158,30 @@ public:
 
         jic->clusterId = clusterId;
         jic->joinTime = (genDeltaTime & (0xFF << 8)) >> 8;
+
+        if (jic->joinTime == 0) jic->joinTime = 1;
+    }
+
+    void addLeaveClusterContainer(vanetza::asn1::Vam& message)
+    {
+        if (isLeader) {
+            throw omnetpp::cRuntimeError("The leader can't leave a cluster");
+        }
+        if (clusterId < 0) {
+            throw omnetpp::cRuntimeError("Not part of a cluster, Can't send leave message");
+        }
+
+        message->vam.vamParameters.vruClusterOperationContainer = vanetza::asn1::allocate<VruClusterOperationContainer_t>();
+        message->vam.vamParameters.vruClusterOperationContainer->clusterLeaveInfo = vanetza::asn1::allocate<ClusterLeaveInfo_t>();
+        ClusterLeaveInfo_t*& lic = message->vam.vamParameters.vruClusterOperationContainer->clusterLeaveInfo;
+
+        lic->clusterId = clusterId;
+        lic->clusterLeaveReason = ClusterLeaveReason::ClusterLeaveReason_outOfClusterSpeedRange;
     }
 
 private:
     ClusterId_t clusterId;
-    int radius = 0;
+    double radius = 0.0;
     bool isLeader;
     std::vector<StationID_t> containsStations;
 };
@@ -157,7 +199,7 @@ struct ClusterFormingParameters {
 
 const ClusterFormingParameters defaultFormingParameters = {
     .numCreateCluster = 3,
-    .maxClusterDistance = 3,
+    .maxClusterDistance = 5,
     .maxClusterVelocityDifference = 0.05,
     .maxCombinedClusterDistance = 1.5,
     .minClusterSize = 1,
@@ -227,8 +269,13 @@ bool canFormCluster(
     // It is receiving VAMs from numCreateCluster different VRUs not further away than maxClusterDistance.
     for (auto const& vam : vams)
     {
-        if (getVamDistance(vam, me) <= parameters.maxClusterDistance)
+        // Ignore clusters
+        if (vam->vam.vamParameters.vruClusterInformationContainer != nullptr) {
+            continue;
+        }
+        if (getVamDistance(vam, me) <= parameters.maxClusterDistance) {
             vamsInCluster.push_back(vam);
+        }
     }
 
     return vamsInCluster.size() >= parameters.numCreateCluster;

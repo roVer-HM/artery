@@ -14,6 +14,8 @@ simple VaService like ItsG5Service
         @statistic[clustersize](source=ClusterSize;record=stats,vector);
         
         bool canLeadCluster = default(false);
+        bool sendsVams = default(false);
+        double vamWait @unit(s) = default(0.01s);
         	
        	// enable Dcc transmission interval restrictions
         bool withDccRestriction = default(true);

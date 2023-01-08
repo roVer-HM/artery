@@ -11,6 +11,7 @@
 #include <vanetza/units/velocity.hpp>
 #include <omnetpp/simtime.h>
 #include <stdint.h>
+#include <boost/circular_buffer.hpp>
 
 namespace artery
 {
@@ -72,6 +73,7 @@ private:
     void addBasicContainer(vanetza::asn1::Vam&, const MovingNodeDataProvider&);
     uint16_t generationTime();
     void sendJoinClusterVam();
+    void sendLeaveClusterVam();
     void sendVamRequest(vanetza::asn1::Vam&);
 
 
@@ -105,15 +107,20 @@ private:
     vanetza::units::Length mMinVertDistance;
     double mTrajectoryInterceptionThreshold;
     double mLastVamTrajectoryInterception[8];
+
     vanetza::asn1::Vam mLastSentVAM;
     cluster::ClusterManager mClusterManager;
     bool mCanLeadCluster;
+    bool mSendsVams;
+    boost::circular_buffer<double> mHeadingAvg;
 
     omnetpp::cOutVector vVamX;
     omnetpp::cOutVector vVamY;
     omnetpp::cOutVector vVamId;
     omnetpp::cOutVector vVamCluster;
     omnetpp::cOutVector vVamH;
+    omnetpp::cOutVector vVamBBoxSize;
+    omnetpp::cOutVector vVamType;
 };
 }
 
