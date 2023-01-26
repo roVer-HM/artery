@@ -18,6 +18,8 @@ namespace artery
 namespace cluster
 {
 
+double getVamDistance(const vanetza::asn1::Vam&, const vanetza::asn1::Vam&);
+
 class Velocity
 {
 public:
@@ -89,25 +91,56 @@ public:
         containsStations.clear();
     }
 
-    void addStation(StationID_t sid, double distanceToLeader) {
+    void addStation(const vanetza::asn1::Vam& vam, const vanetza::asn1::Vam& self) {
+        StationID_t sid = vam->header.stationID;
+
         if (!isLeader) {
             throw omnetpp::cRuntimeError("Only the cluster leader can add a station to the cluster");
         }
 
-        if (std::find(containsStations.begin(), containsStations.end(), sid) == containsStations.end()) {
-            containsStations.push_back(sid);
-        }
-        if (radius < distanceToLeader) {
-            radius = distanceToLeader;
-        }
+        ClusterStation station = {
+             .stationId = sid,
+             .distance = getVamDistance(vam, self)
+        };
+
+        if (std::find_if(
+                containsStations.begin(),
+                containsStations.end(),
+                [&station](const ClusterStation& obj) { return obj.stationId == station.stationId; }
+            ) == containsStations.end()
+        ) containsStations.push_back(station);
+
+        updateRadius(self);
     }
 
-    void removeStation(StationID_t sid) {
+    void removeStation(const vanetza::asn1::Vam& vam, const vanetza::asn1::Vam& self) {
+        StationID_t sid = vam->header.stationID;
+
         if (!isLeader) {
             throw omnetpp::cRuntimeError("Only the cluster leader can remove a station from the cluster");
         }
 
-        containsStations.erase(std::remove(containsStations.begin(), containsStations.end(), sid), containsStations.end());
+        containsStations.erase(std::remove_if(containsStations.begin(), containsStations.end(),
+                [&sid](ClusterStation& obj) {
+                    return obj.stationId == sid;
+                }
+        ), containsStations.end());
+
+        updateRadius(self);
+    }
+
+    void updateRadius(const vanetza::asn1::Vam& self) {
+        double maxDistance = 0;
+
+        for (const auto& station : containsStations) {
+            double dist = station.distance;
+
+            if (dist > maxDistance) {
+                maxDistance = dist;
+            }
+        }
+
+        radius = maxDistance;
     }
 
     void leaveCluster() {
@@ -180,10 +213,15 @@ public:
     }
 
 private:
+    struct ClusterStation {
+      StationID_t stationId;
+      double distance;
+    };
+
     ClusterId_t clusterId;
     double radius = 0.0;
     bool isLeader;
-    std::vector<StationID_t> containsStations;
+    std::vector<ClusterStation> containsStations;
 };
 
 
@@ -199,7 +237,7 @@ struct ClusterFormingParameters {
 
 const ClusterFormingParameters defaultFormingParameters = {
     .numCreateCluster = 3,
-    .maxClusterDistance = 5,
+    .maxClusterDistance = 3,
     .maxClusterVelocityDifference = 0.05,
     .maxCombinedClusterDistance = 1.5,
     .minClusterSize = 1,
@@ -281,22 +319,46 @@ bool canFormCluster(
     return vamsInCluster.size() >= parameters.numCreateCluster;
 }
 
+bool isInBoundingBox(
+        const vanetza::asn1::Vam& me,
+        const vanetza::asn1::Vam& cluster
+) {
+    const ClusterBoundingBoxShape_t bbox = cluster->vam.vamParameters.vruClusterInformationContainer->clusterBoundingBoxShape;
+
+    // Circular bounding box
+    if (bbox.present == ClusterBoundingBoxShape_PR::ClusterBoundingBoxShape_PR_clusterCircle) {
+        return getVamDistance(me, cluster) <= bbox.choice.clusterCircle.radius / 10;
+    }
+
+    // Other cases are complicated: ignore
+    // TODO: Other cases
+    return false;
+}
+
+// Conditions to determine whether to join or leave a cluster in normal conditions
+// ETSI TS 103 300-3
+// p. 27
 bool canJoinCluster(
     const vanetza::asn1::Vam& me,
     const vanetza::asn1::Vam& cluster,
     ClusterFormingParameters parameters
 ) {
-    // TODO: Check max cluster size
-    // TODO: Check bounding box
-    // If the compared information fulfils certain conditions, i.e. the cluster has not reached its maximal size (cardinality)
-    // maxClusterSize, the VRU is within the VRU cluster bounding box or at a certain distance maxClusterDistance away from the
-    // VRU cluster leader and velocity difference less than maxClusterVelocityDifference of own velocity, the VRU device may join the cluster.
-    if (getVamDistance(me, cluster) > parameters.maxClusterDistance)
+    // If the compared information fulfils certain conditions, i.e...
+
+    // ...the cluster has not reached its maximal size (cardinality) maxClusterSize...
+    if (cluster->vam.vamParameters.vruClusterInformationContainer->clusterProfiles.size >= parameters.maxClusterSize)
         return false;
 
+    // ...the VRU is within the VRU cluster bounding box...
+    // ...or at a certain distance maxClusterDistance away from the VRU cluster leader...
+    if (!isInBoundingBox(me, cluster) && getVamDistance(me, cluster) > parameters.maxClusterDistance)
+        return false;
+
+    // ...and velocity difference less than maxClusterVelocityDifference of own velocity...
     if (getVeloDifference(getVamVelocity(me), getVamVelocity(cluster)) > parameters.maxClusterVelocityDifference)
         return false;
 
+    // ...the VRU device may join the cluster.
     return true;
 }
 

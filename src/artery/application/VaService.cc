@@ -44,7 +44,7 @@ VaService::VaService() :
     mGenVamMax {5000, SIMTIME_MS},
     mGenVam {mGenVamMin},
     mNumSkipVamRedundancy(5),
-    mClusterManager{},
+    mClusterManager{new cluster::ClusterManager()},
     mHeadingAvg{20}
 {
 }
@@ -75,6 +75,8 @@ void VaService::initialize()
     vVamH.setName("vam_heading");
     vVamBBoxSize.setName("vam_bbox_size");
     vVamType.setName("vam_type");
+
+    clusterParameters.maxClusterDistance = par("maxClusterDistance").intValue();
 
     // initialize LastVamTimestamp so that a VAM is send immediately after the VRU spawns - TS 103 300-3 v2.1.1 (section 6.4.1)
     mLastVamTimestamp = simTime() - artery::simtime_cast(scVamInterval) + par("vamWait");
@@ -131,21 +133,21 @@ void VaService::indicate(const vanetza::btp::DataIndication& ind, std::unique_pt
 
                 if (mClusterState == ClusterState::VruActiveStandalone) {
                     // Not in Cluster - possible to join?
-                    if (cluster::canJoinCluster(mLastSentVAM, *vam, cluster::defaultFormingParameters)) {
+                    if (cluster::canJoinCluster(generateVam(*mDeviceDataProvider, generationTime()), *vam, clusterParameters)) {
                         // Position and velocity ok -> Join the cluster
-                        mClusterManager.joinCluster(cid);
+                        mClusterManager->joinCluster(cid);
                         // Stop disseminating VAMs
                         mClusterState = ClusterState::VruPassive;
 
                         sendJoinClusterVam();
                     }
                 }
-                else if (mClusterState == ClusterState::VruActiveClusterLeader && mClusterManager.getClusterSize() == 1
-                        && mClusterManager.getClusterId() != cid) {
+                else if (mClusterState == ClusterState::VruActiveClusterLeader && mClusterManager->getClusterSize() == 1
+                        && mClusterManager->getClusterId() != cid) {
                     // Breakup cluster - found a better one
-                    if (cluster::canJoinCluster(mLastSentVAM, *vam, cluster::defaultFormingParameters)) {
-                        mClusterManager.breakCluster();
-                        mClusterManager.joinCluster(cid);
+                    if (cluster::canJoinCluster(generateVam(*mDeviceDataProvider, generationTime()), *vam, clusterParameters)) {
+                        mClusterManager->breakCluster();
+                        mClusterManager->joinCluster(cid);
                         // Stop disseminating VAMs
                         mClusterState = ClusterState::VruPassive;
 
@@ -154,15 +156,15 @@ void VaService::indicate(const vanetza::btp::DataIndication& ind, std::unique_pt
 
                 }
                 // Position update from my cluster
-                else if (mClusterState == ClusterState::VruPassive && mClusterManager.getClusterId() == cid) {
+                else if (mClusterState == ClusterState::VruPassive && mClusterManager->getClusterId() == cid) {
                     // Generate VAM (don't send!) to compare against cluster vam
                     auto tempVam = generateVam(*mDeviceDataProvider, generationTime());
                     // Would cluster still be possible?
-                    if (!cluster::canJoinCluster(tempVam, *vam, cluster::defaultFormingParameters)) {
+                    if (!cluster::canJoinCluster(tempVam, *vam, clusterParameters)) {
                        // Whooops, have to leave cluster
                         sendLeaveClusterVam();
 
-                        mClusterManager.leaveCluster();
+                        mClusterManager->leaveCluster();
                         mClusterState = ClusterState::VruActiveStandalone;
                     }
                 }
@@ -178,19 +180,21 @@ void VaService::indicate(const vanetza::btp::DataIndication& ind, std::unique_pt
             if (cOpC != nullptr) {
                 // VRU joins my cluster
                 auto cji = cOpC->clusterJoinInfo;
-                if (cji != nullptr && cji->clusterId == mClusterManager.getClusterId()
-                        && mClusterState == ClusterState::VruActiveClusterLeader) {
+                if (cji != nullptr) {
                        vamType = 3;
-                       mClusterManager.addStation((*vam)->header.stationID, cluster::getVamDistance(mLastSentVAM, *vam));
-                       emit(scSignalVamClusterSize, mClusterManager.getClusterSize());
+                       if (cji->clusterId == mClusterManager->getClusterId() && mClusterState == ClusterState::VruActiveClusterLeader) {
+                           mClusterManager->addStation(*vam, generateVam(*mDeviceDataProvider, generationTime()));
+                           emit(scSignalVamClusterSize, mClusterManager->getClusterSize());
+                       }
                 }
                 // VRU leaves cluster
                 auto cli = cOpC->clusterLeaveInfo;
-                if (cli != nullptr && cli->clusterId == mClusterManager.getClusterId()
-                        && mClusterState == ClusterState::VruActiveClusterLeader) {
+                if (cli != nullptr) {
                        vamType = 4;
-                       mClusterManager.removeStation((*vam)->header.stationID);
-                       emit(scSignalVamClusterSize, mClusterManager.getClusterSize());
+                        if (cli->clusterId == mClusterManager->getClusterId() && mClusterState == ClusterState::VruActiveClusterLeader) {
+                           mClusterManager->removeStation(*vam, generateVam(*mDeviceDataProvider, generationTime()));
+                           emit(scSignalVamClusterSize, mClusterManager->getClusterSize());
+                        }
                 }
             }
 
@@ -367,19 +371,18 @@ void VaService::sendVam(const omnetpp::SimTime& T_now)
 
     if (mClusterState == ClusterState::VruActiveStandalone && mCanLeadCluster) {
         // Check whether this node can form a cluster
-        if (cluster::canFormCluster(vam, mLocalDynamicMap->getAllVams(), cluster::defaultFormingParameters)) {
+        if (cluster::canFormCluster(vam, mLocalDynamicMap->getAllVams(), clusterParameters)) {
             // Make cluster leader
             mClusterState = ClusterState::VruActiveClusterLeader;
-            mClusterManager.makeCluster(getRNG(0)->intRand(255));
+            mClusterManager->makeCluster(getRNG(0)->intRand(255));
         }
     }
 
     // If VRU is cluster leader: Add ClusterInformationContainer
     if (mClusterState == ClusterState::VruActiveClusterLeader) {
-        mClusterManager.addClusterContainer(vam);
+        mClusterManager->addClusterContainer(vam);
     }
 
-    mLastSentVAM = vam;
     sendVamRequest(vam);
 
 }
@@ -393,7 +396,7 @@ void VaService::sendJoinClusterVam()
 
     addHeader(message, *mDeviceDataProvider);
     addBasicContainer(message, *mDeviceDataProvider);
-    mClusterManager.addJoinClusterContainer(message, generationTime());
+    mClusterManager->addJoinClusterContainer(message, generationTime());
 
     sendVamRequest(message);
 }
@@ -405,7 +408,7 @@ void VaService::sendLeaveClusterVam()
 
     addHeader(message, *mDeviceDataProvider);
     addBasicContainer(message, *mDeviceDataProvider);
-    mClusterManager.addLeaveClusterContainer(message);
+    mClusterManager->addLeaveClusterContainer(message);
 
     sendVamRequest(message);
 }

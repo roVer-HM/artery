@@ -12,6 +12,7 @@
 #include <omnetpp/simtime.h>
 #include <stdint.h>
 #include <boost/circular_buffer.hpp>
+#include <memory>
 
 namespace artery
 {
@@ -108,8 +109,9 @@ private:
     double mTrajectoryInterceptionThreshold;
     double mLastVamTrajectoryInterception[8];
 
-    vanetza::asn1::Vam mLastSentVAM;
-    cluster::ClusterManager mClusterManager;
+    std::unique_ptr<cluster::ClusterManager> mClusterManager;
+    cluster::ClusterFormingParameters clusterParameters = cluster::defaultFormingParameters;
+
     bool mCanLeadCluster;
     bool mSendsVams;
     boost::circular_buffer<double> mHeadingAvg;
@@ -121,6 +123,8 @@ private:
     omnetpp::cOutVector vVamH;
     omnetpp::cOutVector vVamBBoxSize;
     omnetpp::cOutVector vVamType;
+
+
 };
 }
 
