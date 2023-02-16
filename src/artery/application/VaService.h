@@ -73,9 +73,13 @@ private:
     void addHeader(vanetza::asn1::Vam&, const MovingNodeDataProvider&);
     void addBasicContainer(vanetza::asn1::Vam&, const MovingNodeDataProvider&);
     uint16_t generationTime();
-    void sendJoinClusterVam();
-    void sendLeaveClusterVam();
+    void handleClustering(const vanetza::asn1::Vam*);
+    vanetza::asn1::Vam getJoinClusterVam();
+    vanetza::asn1::Vam getLeaveClusterVam(ClusterLeaveReason);
+    vanetza::asn1::Vam getBreakupClusterVam(ClusterBreakupReason);
     void sendVamRequest(vanetza::asn1::Vam&);
+
+    // void scheduleVam(const vanetza::asn1::Vam& vam, omnetpp::SimTime timeOffset);
 
 
     const MovingNodeDataProvider* mDeviceDataProvider;
@@ -110,11 +114,14 @@ private:
     double mLastVamTrajectoryInterception[8];
 
     std::unique_ptr<cluster::ClusterManager> mClusterManager;
-    cluster::ClusterFormingParameters clusterParameters = cluster::defaultFormingParameters;
+    cluster::ClusterFormingParameters clusterParameters;
+    cluster::ClusterMembershipParameters membershipParameters;
 
     bool mCanLeadCluster;
     bool mSendsVams;
     boost::circular_buffer<double> mHeadingAvg;
+
+    cluster::VamScheduler vamScheduler;
 
     omnetpp::cOutVector vVamX;
     omnetpp::cOutVector vVamY;
@@ -123,6 +130,10 @@ private:
     omnetpp::cOutVector vVamH;
     omnetpp::cOutVector vVamBBoxSize;
     omnetpp::cOutVector vVamType;
+
+    omnetpp::cOutVector vSelfX;
+    omnetpp::cOutVector vSelfY;
+    omnetpp::cOutVector vSelfCluster;
 
 
 };

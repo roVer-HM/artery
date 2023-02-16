@@ -66,17 +66,69 @@ private:
     bool valid;
 };
 
+
+struct ClusterFormingParameters {
+    int numCreateCluster;
+    int maxClusterDistance;
+    double maxClusterVelocityDifference;
+    double maxCombinedClusterDistance;
+    int minClusterSize;
+    int maxClusterSize;
+    int numClusterVAMRepeat;
+};
+
+struct ClusterMembershipParameters {
+    omnetpp::simtime_t timeClusterContinuity;
+    omnetpp::simtime_t timeClusterBreakupWarning;
+    omnetpp::simtime_t timeClusterJoinNotification;
+    omnetpp::simtime_t timeClusterJoinSuccess;
+    omnetpp::simtime_t timeClusterIdChangeNotification;
+    omnetpp::simtime_t timeClusterIdPersist;
+    omnetpp::simtime_t timeClusterLeaveNotification;
+    omnetpp::simtime_t timeCombinedVruClusterOpportunity;
+};
+
+class VamScheduler {
+public:
+    VamScheduler() {}
+    virtual ~VamScheduler() {}
+
+    void scheduleUntil(omnetpp::SimTime until, vanetza::asn1::Vam schedVam) {
+        scheduledUntil = until;
+        vam = schedVam;
+    }
+
+    void scheduleOffset(omnetpp::SimTime offsetFromNow, vanetza::asn1::Vam schedVam) {
+        scheduleUntil(omnetpp::simTime() + offsetFromNow, schedVam);
+    }
+
+    bool hasScheduledVam() {
+        return scheduledUntil > omnetpp::simTime();
+    }
+
+    vanetza::asn1::Vam getVam() {
+        return vam;
+    }
+
+private:
+    omnetpp::SimTime scheduledUntil;
+    vanetza::asn1::Vam vam;
+};
+
 class ClusterManager {
 public:
     ClusterManager() {
         clusterId = -1;
         isLeader = false;
+
+        lastMsgFromLeader = omnetpp::simTime();
     }
 
     void joinCluster(ClusterId_t cid) {
         clusterId = cid;
         isLeader = false;
         containsStations.clear();
+        lastMsgFromLeader = omnetpp::simTime();
     }
 
     void makeCluster(ClusterId_t cid) {
@@ -91,7 +143,19 @@ public:
         containsStations.clear();
     }
 
-    void addStation(const vanetza::asn1::Vam& vam, const vanetza::asn1::Vam& self) {
+   bool isClusterLeader() {
+       return clusterId != -1 && isLeader;
+   }
+
+   bool isMember() {
+      return clusterId != -1 && !isLeader;
+  }
+
+    void addStation(
+            const vanetza::asn1::Vam& vam,
+            const vanetza::asn1::Vam& self,
+            const ClusterFormingParameters& parameters
+    ) {
         StationID_t sid = vam->header.stationID;
 
         if (!isLeader) {
@@ -102,6 +166,10 @@ public:
              .stationId = sid,
              .distance = getVamDistance(vam, self)
         };
+
+        if (station.distance > parameters.maxClusterDistance) {
+            return;
+        }
 
         if (std::find_if(
                 containsStations.begin(),
@@ -143,6 +211,21 @@ public:
         radius = maxDistance;
     }
 
+    void receiveMessageFromLeader(const vanetza::asn1::Vam& msg) {
+        lastMsgFromLeader = omnetpp::simTime();
+    }
+
+    bool hasLostLeader(const ClusterMembershipParameters& membershipParameters) {
+        if (isLeader) {
+            throw omnetpp::cRuntimeError("Cluster leader can't lose cluster leader (KEKW)");
+        }
+        if (clusterId < 0) {
+            throw omnetpp::cRuntimeError("Not part of a cluster");
+        }
+
+        return (omnetpp::simTime() - lastMsgFromLeader) > membershipParameters.timeClusterContinuity;
+    }
+
     void leaveCluster() {
         if (isLeader) {
             throw omnetpp::cRuntimeError("The leader can't leave a cluster");
@@ -160,6 +243,21 @@ public:
 
     double getRadius() {
         return radius;
+    }
+
+    void addBreakupContainer(vanetza::asn1::Vam& message, ClusterBreakupReason reason, uint16_t genDeltaTime)
+    {
+        if (!isLeader) {
+            throw omnetpp::cRuntimeError("Only the cluster leader can break up clusters");
+        }
+
+        message->vam.vamParameters.vruClusterOperationContainer = vanetza::asn1::allocate<VruClusterOperationContainer_t>();
+        message->vam.vamParameters.vruClusterOperationContainer->clusterBreakupInfo = vanetza::asn1::allocate<ClusterBreakupInfo_t>();
+        ClusterBreakupInfo_t*& bic = message->vam.vamParameters.vruClusterOperationContainer->clusterBreakupInfo;
+
+        bic->breakupTime = (genDeltaTime & (0xFF << 8)) >> 8;
+        if (bic->breakupTime == 0) bic->breakupTime = 1;
+        bic->clusterBreakupReason = reason;
     }
 
     void addClusterContainer(vanetza::asn1::Vam& message)
@@ -195,7 +293,7 @@ public:
         if (jic->joinTime == 0) jic->joinTime = 1;
     }
 
-    void addLeaveClusterContainer(vanetza::asn1::Vam& message)
+    void addLeaveClusterContainer(vanetza::asn1::Vam& message, ClusterLeaveReason reason)
     {
         if (isLeader) {
             throw omnetpp::cRuntimeError("The leader can't leave a cluster");
@@ -209,8 +307,8 @@ public:
         ClusterLeaveInfo_t*& lic = message->vam.vamParameters.vruClusterOperationContainer->clusterLeaveInfo;
 
         lic->clusterId = clusterId;
-        lic->clusterLeaveReason = ClusterLeaveReason::ClusterLeaveReason_outOfClusterSpeedRange;
-    }
+        lic->clusterLeaveReason = reason;
+}
 
 private:
     struct ClusterStation {
@@ -222,27 +320,7 @@ private:
     double radius = 0.0;
     bool isLeader;
     std::vector<ClusterStation> containsStations;
-};
-
-
-struct ClusterFormingParameters {
-    int numCreateCluster;
-    int maxClusterDistance;
-    double maxClusterVelocityDifference;
-    double maxCombinedClusterDistance;
-    int minClusterSize;
-    int maxClusterSize;
-    int numClusterVAMRepeat;
-};
-
-const ClusterFormingParameters defaultFormingParameters = {
-    .numCreateCluster = 3,
-    .maxClusterDistance = 3,
-    .maxClusterVelocityDifference = 0.05,
-    .maxCombinedClusterDistance = 1.5,
-    .minClusterSize = 1,
-    .maxClusterSize = 20,
-    .numClusterVAMRepeat = 3
+    omnetpp::SimTime lastMsgFromLeader;
 };
 
 
@@ -360,6 +438,14 @@ bool canJoinCluster(
 
     // ...the VRU device may join the cluster.
     return true;
+}
+
+// Helper function that indicates wheter the the received VAM contains a breakup info container
+bool clusterWillBreak(const vanetza::asn1::Vam& vam) {
+    if (vam->vam.vamParameters.vruClusterOperationContainer == nullptr) {
+        return false;
+    }
+    return vam->vam.vamParameters.vruClusterOperationContainer->clusterBreakupInfo != nullptr;
 }
 
 

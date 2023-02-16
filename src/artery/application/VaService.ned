@@ -16,7 +16,9 @@ simple VaService like ItsG5Service
         bool canLeadCluster = default(false);
         bool sendsVams = default(false);
         double vamWait @unit(s) = default(0.01s);
+        
         int maxClusterDistance = default(3);
+        double maxClusterVelocityDifference = default(0.05);
         	
        	// enable Dcc transmission interval restrictions
         bool withDccRestriction = default(true);
