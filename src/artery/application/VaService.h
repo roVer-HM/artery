@@ -119,7 +119,6 @@ private:
 
     bool mCanLeadCluster;
     bool mSendsVams;
-    boost::circular_buffer<double> mHeadingAvg;
 
     cluster::VamScheduler vamScheduler;
 
@@ -134,6 +133,8 @@ private:
     omnetpp::cOutVector vSelfX;
     omnetpp::cOutVector vSelfY;
     omnetpp::cOutVector vSelfCluster;
+    omnetpp::cOutVector vVamPosError;
+    omnetpp::cOutVector vVamPosErrorCluster;
 
 
 };

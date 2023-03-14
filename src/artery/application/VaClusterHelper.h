@@ -69,7 +69,7 @@ private:
 
 struct ClusterFormingParameters {
     int numCreateCluster;
-    int maxClusterDistance;
+    double maxClusterDistance;
     double maxClusterVelocityDifference;
     double maxCombinedClusterDistance;
     int minClusterSize;
@@ -308,7 +308,16 @@ public:
 
         lic->clusterId = clusterId;
         lic->clusterLeaveReason = reason;
-}
+    }
+
+    std::vector<StationID_t> getStations()
+    {
+        std::vector<StationID_t> rStations;
+        for (auto& s : containsStations) {
+            rStations.push_back(s.stationId);
+        }
+        return rStations;
+    }
 
 private:
     struct ClusterStation {
@@ -424,7 +433,7 @@ bool canJoinCluster(
     // If the compared information fulfils certain conditions, i.e...
 
     // ...the cluster has not reached its maximal size (cardinality) maxClusterSize...
-    if (cluster->vam.vamParameters.vruClusterInformationContainer->clusterProfiles.size >= parameters.maxClusterSize)
+    if (cluster->vam.vamParameters.vruClusterInformationContainer->clusterCardinalitySize >= parameters.maxClusterSize)
         return false;
 
     // ...the VRU is within the VRU cluster bounding box...
