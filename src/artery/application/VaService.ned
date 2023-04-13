@@ -20,6 +20,10 @@ simple VaService like ItsG5Service
         double maxClusterDistance = default(3.0);
         double maxClusterVelocityDifference = default(0.05);
         int numCreateCluster = default(3);
+        double timeClusterJoinNotification @unit(s) = default(3s);
+        double maxClusterSpeedDifference = default(0);
+        double maxClusterAngleDifference = default(0);
+        int averageHeadingBufferSize = default(0);
         	
        	// enable Dcc transmission interval restrictions
         bool withDccRestriction = default(true);

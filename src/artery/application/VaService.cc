@@ -44,7 +44,8 @@ VaService::VaService() :
     mGenVamMax {5000, SIMTIME_MS},
     mGenVam {mGenVamMin},
     mNumSkipVamRedundancy(5),
-    mClusterManager{new cluster::ClusterManager()}
+    mClusterManager{new cluster::ClusterManager()},
+    mHeadingAvg{20}
 {
 }
 
@@ -98,13 +99,23 @@ void VaService::initialize()
         .maxCombinedClusterDistance = 1.5,
         .minClusterSize = 1,
         .maxClusterSize = 20,
-        .numClusterVAMRepeat = 3
+        .numClusterVAMRepeat = 3,
+        .maxClusterSpeedDifference = 0,
+        .maxClusterAngleDifference = 0
     };
+
+    membershipParameters.timeClusterJoinNotification = par("timeClusterJoinNotification");
 
 
     clusterParameters.maxClusterDistance = par("maxClusterDistance").doubleValue();
     clusterParameters.maxClusterVelocityDifference = par("maxClusterVelocityDifference").doubleValue();
     clusterParameters.numCreateCluster = par("numCreateCluster").intValue();
+
+    clusterParameters.maxClusterSpeedDifference = par("maxClusterSpeedDifference").doubleValue();
+    clusterParameters.maxClusterAngleDifference = par("maxClusterAngleDifference").doubleValue();
+
+    mAverageHeadingBufferSize = par("averageHeadingBufferSize").intValue();
+    mHeadingAvg.resize(mAverageHeadingBufferSize);
 
     // initialize LastVamTimestamp so that a VAM is send immediately after the VRU spawns - TS 103 300-3 v2.1.1 (section 6.4.1)
     mLastVamTimestamp = simTime() - artery::simtime_cast(scVamInterval) + par("vamWait");
@@ -344,6 +355,9 @@ void VaService::trigger()
     vSelfY.record(round(mDeviceDataProvider->latitude(), microdegree));
     vSelfCluster.record(mClusterManager->getClusterId());
 
+    if (mAverageHeadingBufferSize > 0)
+        mHeadingAvg.push_back(round(mDeviceDataProvider->heading(), decidegree));
+
     // VRUs with VruRoleOff shall not send VAMs - TS 103 300-2 v2.1.1 (section 4.2)
     // VRUs with the Rx device type shall not send VAMS - TS 103 300-2 v2.1.1 (section 4.1)
     // VRUs with the cluster state VruPassive shall not send VAMs - TS 103 300-2 v2.1.1 (section 5.4.2.1)
@@ -578,7 +592,14 @@ vanetza::asn1::Vam VaService::generateVam(const MovingNodeDataProvider& ddp, uin
     VruHighFrequencyContainer_t*& hfc = vam.vamParameters.vruHighFrequencyContainer;
     hfc = vanetza::asn1::allocate<VruHighFrequencyContainer_t>();
 
-    hfc->heading.headingValue = round(ddp.heading(), decidegree);
+    if (mAverageHeadingBufferSize > 0) {
+        hfc->heading.headingValue = std::accumulate(
+                mHeadingAvg.begin(),
+                mHeadingAvg.end(), 0.0) / static_cast<double>(mHeadingAvg.size());
+    } else {
+        hfc->heading.headingValue = round(ddp.heading(), decidegree);
+    }
+
 
     hfc->heading.headingConfidence = HeadingConfidence_equalOrWithinOneDegree;
     hfc->speed.speedValue = buildSpeedValue(ddp.speed());

@@ -136,7 +136,8 @@ private:
     omnetpp::cOutVector vVamPosError;
     omnetpp::cOutVector vVamPosErrorCluster;
 
-
+    boost::circular_buffer<double> mHeadingAvg;
+    int mAverageHeadingBufferSize;
 };
 }
 

@@ -49,7 +49,7 @@ public:
     }
 
     double getAngleBetween(const Velocity& other) const {
-        return acos(dotProduct(other)/(mag() * other.mag()));
+        return (acos(dotProduct(other)/(mag() * other.mag())) * 180) / M_PI;
     }
 
     bool isValid() const {
@@ -75,6 +75,9 @@ struct ClusterFormingParameters {
     int minClusterSize;
     int maxClusterSize;
     int numClusterVAMRepeat;
+    // Custom
+    double maxClusterSpeedDifference;
+    double maxClusterAngleDifference;
 };
 
 struct ClusterMembershipParameters {
@@ -360,15 +363,22 @@ Velocity getVamVelocity(const vanetza::asn1::Vam& message)
     return vamVelocity;
 }
 
+double getSpeedDifference(const Velocity v1, const Velocity v2)
+{
+    return 1 - std::min(v1.mag(), v2.mag()) / std::max(v1.mag(), v2.mag());
+}
+
+double getAngleDifference(const Velocity v1, const Velocity v2)
+{
+    return v1.getAngleBetween(v2) / 180;
+}
+
 double getVeloDifference(const Velocity v1, const Velocity v2)
 {
     if (!v1.isValid() || !v2.isValid()) {
         return -1;
     }
-    double speedDifference = 1 - std::min(v1.mag(), v2.mag()) / std::max(v1.mag(), v2.mag());
-    double angleDifference = v1.getAngleBetween(v2) / 180;
-
-    return std::max(speedDifference, angleDifference);
+    return std::max(getAngleDifference(v1, v2), getAngleDifference(v1, v2));
 
 }
 
@@ -442,8 +452,16 @@ bool canJoinCluster(
         return false;
 
     // ...and velocity difference less than maxClusterVelocityDifference of own velocity...
-    if (getVeloDifference(getVamVelocity(me), getVamVelocity(cluster)) > parameters.maxClusterVelocityDifference)
-        return false;
+    if (parameters.maxClusterSpeedDifference > 0) {
+        if (getSpeedDifference(getVamVelocity(me), getVamVelocity(cluster)) > parameters.maxClusterSpeedDifference)
+            return false;
+        if (getAngleDifference(getVamVelocity(me), getVamVelocity(cluster)) > parameters.maxClusterAngleDifference)
+            return false;
+    } else {
+        if (getVeloDifference(getVamVelocity(me), getVamVelocity(cluster)) > parameters.maxClusterVelocityDifference)
+            return false;
+    }
+
 
     // ...the VRU device may join the cluster.
     return true;
