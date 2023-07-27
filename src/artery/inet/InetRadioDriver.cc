@@ -44,7 +44,20 @@ static const simsignal_t channelLoadSignal = cComponent::registerSignal("Channel
 
 } // namespace
 
-const inet::Protocol InetRadioDriver::geonet { "GeoNet", "ETSI ITS-G5 GeoNetworking", inet::Protocol::NetworkLayer };
+//const inet::Protocol InetRadioDriver::geonet { "GeoNet", "ETSI ITS-G5 GeoNetworking", inet::Protocol::NetworkLayer };
+const int InetRadioDriver::GEONET_ID = 0x8947;
+
+const inet::Protocol* getGeoNetProtocol(){
+
+    const inet::Protocol* protocol = inet::ProtocolGroup::getEthertypeProtocolGroup()->findProtocol(InetRadioDriver::GEONET_ID);
+    if (protocol == nullptr){
+        protocol = new inet::Protocol("GeoNet", "ETSI ITS-G5 GeoNetworking", inet::Protocol::NetworkLayer);
+
+        inet::ProtocolGroup::getEthertypeProtocolGroup()->addProtocol(
+        InetRadioDriver::GEONET_ID, protocol);
+    }
+    return protocol;
+}
 
 int InetRadioDriver::numInitStages() const
 {
@@ -61,10 +74,8 @@ void InetRadioDriver::initialize(int stage)
 		mRadio = inet::findModuleFromPar<inet::physicallayer::Ieee80211Radio>(par("radioModule"), host);
 		mRadio->subscribe(radioChannelChangedSignal, this);
 
-		// we were allowed to call addProtocol each time but call_once makes more sense to me
-		std::call_once(register_protocol_flag, []() {
-			inet::ProtocolGroup::ethertype.addProtocol(0x8947, &geonet);
-		});
+		geonetProtocol = getGeoNetProtocol();
+
 	} else if (stage == inet::INITSTAGE_LINK_LAYER) {
 
 		ASSERT(mChannelNumber > 0);
@@ -108,8 +119,8 @@ void InetRadioDriver::handleDataRequest(cMessage* msg)
 	addr_tag->setSrcAddress(convert(request->source_addr));
 
 	auto proto_tag = packet->addTagIfAbsent<inet::PacketProtocolTag>();
-	proto_tag->setProtocol(&geonet);
-	assert(request->ether_type.host() == inet::ProtocolGroup::ethertype.findProtocolNumber(&geonet));
+	proto_tag->setProtocol(geonetProtocol);
+	assert(request->ether_type.host() == InetRadioDriver::GEONET_ID);
 
 	auto up_tag = packet->addTag<inet::UserPriorityReq>();
 
