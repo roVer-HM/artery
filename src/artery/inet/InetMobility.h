@@ -39,6 +39,7 @@ public:
 protected:
     void refreshDisplay() const override;
 
+    using omnetpp::cSimpleModule::initialize;
     virtual void initialize(const Position& pos, Angle heading, double speed) override;
     void update(const Position& pos, Angle heading, double speed) override;
 
@@ -57,6 +58,7 @@ private:
 class InetVehicleMobility : public InetMobility, public VehicleMobility
 {
 public:
+    using artery::InetMobility::initialize;
     virtual void initialize(int stage) override;
 
     virtual traci::MovingNodeController* getControllerBase() override {
@@ -67,6 +69,7 @@ public:
 class InetPersonMobility : public InetMobility, public PersonMobility
 {
 public:
+    using artery::InetMobility::initialize;
     virtual void initialize(int stage) override;
 
     virtual traci::MovingNodeController* getControllerBase() override {

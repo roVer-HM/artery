@@ -22,6 +22,7 @@ class InetRadioDriver : public RadioDriverBase, public omnetpp::cListener
 {
     public:
         int numInitStages() const override;
+        using RadioDriverBase::initialize;
         void initialize(int stage) override;
         void handleMessage(omnetpp::cMessage*) override;
 //        static const inet::Protocol geonet;

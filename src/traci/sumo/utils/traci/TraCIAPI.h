@@ -52,7 +52,7 @@ public:
     TraCIAPI();
 
     /// @brief Destructor
-    ~TraCIAPI();
+    virtual ~TraCIAPI();
 
     /// @name Connection handling
     /// @{
