@@ -18,6 +18,10 @@ build/
 www/
 .vagrant/
 
+# Building website with mkdocs
+www/
+venv/
+
 # OMNeT++ IDE / Eclipse CDT auto-generated files
 .cproject
 .oppbuildspec
