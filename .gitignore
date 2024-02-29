@@ -24,5 +24,8 @@ www/
 .project
 .settings
 
+# VSCode auto-generated files
+.vscode
+
 # CMake default directories
 build/
