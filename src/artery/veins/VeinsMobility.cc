@@ -19,7 +19,7 @@ void VeinsMobility::initialize(int stage)
         move.setSpeed(mSpeed);
         move.setDirectionByVector(mDirection);
     }
-    veins::BaseMobility::initialize(stage);
+    BaseMobility::initialize(stage);
 }
 
 void VeinsMobility::initialize(const Position& pos, Angle heading, double speed)

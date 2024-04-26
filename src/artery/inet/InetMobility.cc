@@ -28,7 +28,6 @@ void InetMobility::initialize(int stage)
     if (stage == inet::INITSTAGE_LOCAL) {
         mVisualRepresentation = inet::findModuleFromPar<cModule>(par("visualRepresentation"), this);
         mAntennaHeight = par("antennaHeight");
-        WATCH(mObjectId);
         WATCH(mPosition);
         WATCH(mSpeed);
         WATCH(mOrientation);
@@ -124,7 +123,7 @@ void InetMobility::refreshDisplay() const
 void InetPersonMobility::initialize(int stage)
 {
     if (stage == 0) {
-        WATCH(mPersonId);
+        WATCH(mObjectId);
     }
 
     InetMobility::initialize(stage);
@@ -133,7 +132,7 @@ void InetPersonMobility::initialize(int stage)
 void InetVehicleMobility::initialize(int stage)
 {
     if (stage == 0) {
-        WATCH(mVehicleId);
+        WATCH(mObjectId);
     }
 
     InetMobility::initialize(stage);

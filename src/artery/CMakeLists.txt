@@ -60,13 +60,11 @@ add_library(core SHARED
     networking/VehiclePositionProvider.cc
     nic/ChannelLoadSampler.cc
     nic/RadioDriverBase.cc
-    traci/ControllableVehicle.cc
-    traci/ControlablePerson.cc
     traci/Cast.cc
+    traci/Controller.cc
     traci/MobilityBase.cc
-    traci/MovingNodeController.cc
-    traci/PersonMobility.cc
     traci/PersonController.cc
+    traci/PersonMobility.cc
     traci/VehicleController.cc
     traci/VehicleMobility.cc
     traci/VehicleType.cc

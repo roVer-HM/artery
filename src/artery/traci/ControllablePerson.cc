@@ -5,7 +5,7 @@
  *      Author: vm-sts
  */
 
-#include <artery/traci/ControlablePerson.h>
+#include <artery/traci/ControllablePerson.h>
 
 traci::PersonController* ControlablePerson::getPersonController(){
     return getController<traci::PersonController>();

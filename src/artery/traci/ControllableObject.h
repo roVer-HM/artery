@@ -7,13 +7,13 @@
 
 #pragma once
 
-#include "artery/traci/MovingNodeController.h"
+#include "artery/traci/Controller.h"
 
 
 class ControllableObject {
 public:
     virtual ~ControllableObject() = default;
-    virtual traci::MovingNodeController* getControllerBase() = 0;
+    virtual traci::Controller* getControllerBase() = 0;
 
     template<typename T>
     T* getController() {

@@ -27,11 +27,6 @@ public:
     virtual const inet::Coord& getConstraintAreaMax() const override;
     virtual const inet::Coord& getConstraintAreaMin() const override;
 
-
-    virtual traci::MovingNodeController* getControllerBase() override {
-        return MobilityBase::getControllerBase();
-    }
-
     // omnetpp::cSimpleModule
     void initialize(int stage) override;
     int numInitStages() const override;
@@ -40,7 +35,7 @@ protected:
     void refreshDisplay() const override;
 
     using omnetpp::cSimpleModule::initialize;
-    virtual void initialize(const Position& pos, Angle heading, double speed) override;
+    void initialize(const Position& pos, Angle heading, double speed) override;
     void update(const Position& pos, Angle heading, double speed) override;
 
 private:
@@ -60,8 +55,9 @@ class InetVehicleMobility : public InetMobility, public VehicleMobility
 public:
     using artery::InetMobility::initialize;
     virtual void initialize(int stage) override;
+    const std::string& getTraciId() const override  { return mObjectId; };
 
-    virtual traci::MovingNodeController* getControllerBase() override {
+    virtual traci::Controller* getControllerBase() override {
         return MobilityBase::getControllerBase();
     }
 };
@@ -71,8 +67,9 @@ class InetPersonMobility : public InetMobility, public PersonMobility
 public:
     using artery::InetMobility::initialize;
     virtual void initialize(int stage) override;
+    const std::string& getTraciId() const override  { return mObjectId; };
 
-    virtual traci::MovingNodeController* getControllerBase() override {
+    virtual traci::Controller* getControllerBase() override {
         return MobilityBase::getControllerBase();
     }
 };

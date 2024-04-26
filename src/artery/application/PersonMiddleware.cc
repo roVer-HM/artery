@@ -6,6 +6,8 @@
 
 #include "artery/application/StationType.h"
 #include "artery/application/PersonMiddleware.h"
+#include "artery/traci/ControllablePerson.h"
+#include "artery/traci/MobilityBase.h"
 #include "artery/utility/InitStages.h"
 #include "inet/common/ModuleAccess.h"
 
@@ -16,53 +18,58 @@ namespace artery
 
 Define_Module(PersonMiddleware)
 
+PersonMiddleware::PersonMiddleware() :
+    mVehicleDataProvider(0) // OMNeT++ assigns RNG after construction: set final station ID later
+{
+}
+
 void PersonMiddleware::initialize(int stage)
 {
     if (stage == InitStages::Self) {
+        findHost()->subscribe(MobilityBase::stateChangedSignal, this);
         initializePersonController(par("mobilityModule"));
-        initializeStationType(mPersonController->getNodeClass());
-
-        getFacilities().register_const(&mDataProvider);
-        getFacilities().registerConst(static_cast<MovingNodeDataProvider*>(&mDataProvider));
-        mDataProvider.update(getKinematics(*mPersonController));
-
+        initializeStationType();
 
         Identity identity;
-        identity.traci = mPersonController->getNodeId();
+        identity.traci = mPersonController->getPersonId();
         identity.application = Identity::deriveStationId(findHost(), par("stationIdDerivation").stringValue());
-        mDataProvider.setStationId(identity.application);
-
         emit(Identity::changeSignal, Identity::ChangeTraCI | Identity::ChangeStationId, &identity);
+
+        mVehicleDataProvider.setStationId(identity.application);
+        mVehicleDataProvider.update(getKinematics(*mPersonController));
+        getFacilities().register_const(&mVehicleDataProvider);
     }
 
     Middleware::initialize(stage);
 }
 
-void PersonMiddleware::initializeStationType(const std::string& vclass)
+void PersonMiddleware::finish()
 {
-    auto gnStationType = deriveStationTypeFromVehicleClass(vclass);
+    Middleware::finish();
+    findHost()->unsubscribe(MobilityBase::stateChangedSignal, this);
+}
+
+void PersonMiddleware::initializeStationType()
+{
+    auto gnStationType = vanetza::geonet::StationType::Pedestrian;
     setStationType(gnStationType);
-    mDataProvider.setStationType(gnStationType);
+    mVehicleDataProvider.setStationType(gnStationType);
 }
 
 void PersonMiddleware::initializePersonController(cPar& mobilityPar)
 {
-    auto mobility = inet::getModuleFromPar<ControlablePerson>(mobilityPar, findHost());
-    mPersonController = mobility->getPersonController();
-    ASSERT(mPersonController);
-
-    getFacilities().register_const(mobility);
-    getFacilities().register_mutable(mobility->getControllerBase());
-    getFacilities().register_mutable(mPersonController);
+	auto mobility = inet::getModuleFromPar<ControllablePerson>(mobilityPar, findHost());
+	mPersonController = mobility->getPersonController();
+	ASSERT(mPersonController);
+	getFacilities().register_mutable(mPersonController);
 }
 
 void PersonMiddleware::receiveSignal(cComponent* component, simsignal_t signal, cObject* obj, cObject* details)
 {
-    if (signal == MobilityBase::stateChangedSignal && mPersonController) {
-        mDataProvider.update(getKinematics(*mPersonController));
-    }
+	if (signal == MobilityBase::stateChangedSignal && mPersonController) {
+		mVehicleDataProvider.update(getKinematics(*mPersonController));
+	}
 }
-
 
 } // namespace artery
 

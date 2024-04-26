@@ -71,7 +71,6 @@ void VehicleMiddlewareEmpty::initializeVehicleController(cPar& mobilityPar)
     mVehicleController = mobility->getVehicleController();
     ASSERT(mVehicleController);
 
-    getFacilities().register_mutable(mobility->getControllerBase());
     getFacilities().register_mutable(mVehicleController);
 }
 
