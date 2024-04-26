@@ -35,6 +35,10 @@ void FovSensor::finish()
     if (mGroupFigure) {
         delete mGroupFigure->removeFromParent();
         mGroupFigure = nullptr;
+        mSensorConeFigure = nullptr;
+        mLinesOfSightFigure = nullptr;
+        mObstaclesFigure = nullptr;
+        mObjectsFigure = nullptr;
     }
     BaseSensor::finish();
 }
