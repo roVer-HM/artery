@@ -42,7 +42,7 @@ void PersonMiddlewareEmpty::initialize(int stage) {
         getFacilities().register_const(mMobility);
 
         Identity identity;
-        identity.traci = mMobility->getPersonId();
+        identity.traci = mMobility->getTraciId();
         identity.application = Identity::randomStationId(getRNG(0));
         emit(Identity::changeSignal,
                 Identity::ChangeTraCI | Identity::ChangeStationId, &identity);

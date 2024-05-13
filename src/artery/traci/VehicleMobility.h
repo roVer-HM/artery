@@ -13,7 +13,7 @@ namespace artery
 class VehicleMobility :
     public virtual MobilityBase,
     public traci::VehicleSink, // for receiving updates from TraCI
-    public ControllableVehicle // for controlling the vehicle via TraCI - already in MobilityBase
+    public ControllableVehicle // for controlling the vehicle via TraCI
 {
 public:
     // traci::VehicleSink interface
@@ -21,12 +21,14 @@ public:
     void initializeVehicle(const traci::TraCIPosition&, traci::TraCIAngle, double speed) override;
     void updateVehicle(const traci::TraCIPosition&, traci::TraCIAngle, double speed) override;
 
+    const std::string& getTraciId() const override { return mObjectId; };
+
     // ControllableVehicle
     traci::VehicleController* getVehicleController() override;
 
 protected:
-    std::string mVehicleId;
-    // std::unique_ptr<traci::VehicleController> mController;  is now part of MobilityBase
+    // std::string mVehicleId;  is now part of MobilityBase (mObjectId)
+    std::unique_ptr<traci::VehicleController> mController;
 };
 
 } // namespace artery

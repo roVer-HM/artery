@@ -27,11 +27,6 @@ public:
     virtual const inet::Coord& getConstraintAreaMax() const override;
     virtual const inet::Coord& getConstraintAreaMin() const override;
 
-
-    virtual traci::MovingNodeController* getControllerBase() override {
-        return MobilityBase::getControllerBase();
-    }
-
     // omnetpp::cSimpleModule
     void initialize(int stage) override;
     int numInitStages() const override;
@@ -60,10 +55,7 @@ class InetVehicleMobility : public InetMobility, public VehicleMobility
 public:
     using artery::InetMobility::initialize;
     virtual void initialize(int stage) override;
-
-    virtual traci::MovingNodeController* getControllerBase() override {
-        return MobilityBase::getControllerBase();
-    }
+    const std::string& getTraciId() const override  { return mObjectId; };
 };
 
 class InetPersonMobility : public InetMobility, public PersonMobility
@@ -71,10 +63,7 @@ class InetPersonMobility : public InetMobility, public PersonMobility
 public:
     using artery::InetMobility::initialize;
     virtual void initialize(int stage) override;
-
-    virtual traci::MovingNodeController* getControllerBase() override {
-        return MobilityBase::getControllerBase();
-    }
+    const std::string& getTraciId() const override  { return mObjectId; };
 };
 
 } // namespace artery

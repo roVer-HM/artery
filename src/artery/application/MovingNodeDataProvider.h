@@ -8,7 +8,7 @@
 #ifndef ARTERY_APPLICATION_MOVINGNODEDATAPROVIDER_H_
 #define ARTERY_APPLICATION_MOVINGNODEDATAPROVIDER_H_
 
-#include "artery/traci/MovingNodeController.h"
+#include "artery/traci/Controller.h"
 #include "artery/application/VehicleKinematics.h"
 #include "artery/utility/Geometry.h"
 #include <omnetpp/simtime.h>

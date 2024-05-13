@@ -8,19 +8,15 @@
 namespace artery
 {
 
-class VeinsMobility : public veins::BaseMobility /* Veins */, public ControllableVehicle, public MobilityBase /* Artery */
+class VeinsMobility : public veins::BaseMobility, public artery::VehicleMobility
 {
 public:
     void initialize(int stage) override;
-
+    const std::string& getTraciId() const override { return mObjectId; };
 private:
     void initialize(const Position&, Angle, double speed) override;
     void update(const Position&, Angle, double speed) override;
 
-
-    traci::MovingNodeController* getControllerBase() override {
-        return MobilityBase::getControllerBase();
-    }
 
     veins::Coord mPosition;
     veins::Coord mDirection;
@@ -30,4 +26,3 @@ private:
 } // namespace artery
 
 #endif /* ARTERY_VEINSMOBILITY_H_JFWG67L1 */
-

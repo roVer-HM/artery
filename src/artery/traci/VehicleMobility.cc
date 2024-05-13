@@ -12,7 +12,7 @@ void VehicleMobility::initializeSink(std::shared_ptr<API> api, std::shared_ptr<V
     ASSERT(api);
     ASSERT(cache);
     mTraci = api;
-    mVehicleId = cache->getId();
+    mObjectId = cache->getId();
     mNetBoundary = boundary;
     mController.reset(new VehicleController(api, cache));
 }
@@ -34,7 +34,7 @@ void VehicleMobility::updateVehicle(const TraCIPosition& traci_pos, TraCIAngle t
 VehicleController* VehicleMobility::getVehicleController()
 {
     ASSERT(mController);
-    return MobilityBase::getController<VehicleController>();
+    return mController.get();
 }
 
 } // namespace artery

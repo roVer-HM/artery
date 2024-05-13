@@ -8,8 +8,7 @@
 #define ARTERY_PERSONMIDDLEWARE_H_IH5GPCMP
 
 #include "artery/application/Middleware.h"
-#include "artery/traci/PersonMobility.h"
-#include "artery/application/MovingNodeDataProvider.h"
+#include "artery/application/VehicleDataProvider.h"
 #include "artery/traci/PersonController.h"
 
 namespace artery
@@ -18,15 +17,18 @@ namespace artery
 class PersonMiddleware : public Middleware
 {
     public:
+        PersonMiddleware();
         void initialize(int stage) override;
+        void finish() override;
 
-    private:
-        void initializeStationType(const std::string&);
+    protected:
+        void initializeStationType();
         void initializePersonController(omnetpp::cPar&);
         void receiveSignal(omnetpp::cComponent*, omnetpp::simsignal_t, omnetpp::cObject*, omnetpp::cObject*) override;
 
+    private:
         traci::PersonController* mPersonController = nullptr;
-        MovingNodeDataProvider mDataProvider;
+        VehicleDataProvider mVehicleDataProvider;
 };
 
 } // namespace artery
