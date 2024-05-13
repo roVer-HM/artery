@@ -17,18 +17,18 @@ class PersonMobility :
 {
 public:
     // traci::PersonSink interface
-    void initializeSink(std::shared_ptr<traci::API>, std::shared_ptr<traci::PersonCache>, const traci::Boundary&) override;
-    void initializePerson(const traci::TraCIPosition&, traci::TraCIAngle, double speed) override;
-    void updatePerson(const traci::TraCIPosition&, traci::TraCIAngle, double speed) override;
+    virtual void initializeSink(std::shared_ptr<traci::API>, std::shared_ptr<traci::PersonCache>, const traci::Boundary&) override;
+    virtual void initializePerson(const traci::TraCIPosition&, traci::TraCIAngle, double speed) override;
+    virtual void updatePerson(const traci::TraCIPosition&, traci::TraCIAngle, double speed) override;
 
     const std::string& getTraciId() const override{ return mObjectId; };
 
     // ControllablePerson
-    traci::PersonController* getPersonController() override;
+    virtual traci::PersonController* getPersonController() override;
 
 protected:
     // std::string mPersonId; is now part of MobilityBase (mObjectId)
-    // std::unique_ptr<traci::PersonController> mController; is now part of MobilityBase
+    std::unique_ptr<traci::PersonController> mController;
 };
 
 } // namespace artery

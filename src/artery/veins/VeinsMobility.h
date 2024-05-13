@@ -18,10 +18,6 @@ private:
     void update(const Position&, Angle, double speed) override;
 
 
-    traci::Controller* getControllerBase() override {
-        return MobilityBase::getControllerBase();
-    }
-
     veins::Coord mPosition;
     veins::Coord mDirection;
     double mSpeed;

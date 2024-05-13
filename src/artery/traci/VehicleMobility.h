@@ -28,7 +28,7 @@ public:
 
 protected:
     // std::string mVehicleId;  is now part of MobilityBase (mObjectId)
-    // std::unique_ptr<traci::VehicleController> mController;  is now part of MobilityBase
+    std::unique_ptr<traci::VehicleController> mController;
 };
 
 } // namespace artery

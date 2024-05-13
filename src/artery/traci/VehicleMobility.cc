@@ -34,7 +34,7 @@ void VehicleMobility::updateVehicle(const TraCIPosition& traci_pos, TraCIAngle t
 VehicleController* VehicleMobility::getVehicleController()
 {
     ASSERT(mController);
-    return MobilityBase::getController<VehicleController>();
+    return mController.get();
 }
 
 } // namespace artery

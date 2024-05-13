@@ -2,9 +2,8 @@
 #define CONTROLLABLEPERSON_H_DJ96H4LS
 
 #include "artery/traci/PersonController.h"
-#include "artery/traci/ControllableObject.h"
 
-class ControllablePerson : public ControllableObject
+class ControllablePerson
 {
 public:
     virtual traci::PersonController* getPersonController() = 0;

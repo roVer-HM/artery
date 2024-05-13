@@ -34,7 +34,7 @@ void PersonMobility::updatePerson(const TraCIPosition& traci_pos, TraCIAngle tra
 PersonController* PersonMobility::getPersonController()
 {
     ASSERT(mController);
-    return MobilityBase::getController<PersonController>();
+    return mController.get();
 }
 
 } // namespace artery
