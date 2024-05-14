@@ -37,7 +37,7 @@ void PersonMiddleware::initialize(int stage)
 
         mVehicleDataProvider.setStationId(identity.application);
         mVehicleDataProvider.update(getKinematics(*mPersonController));
-        getFacilities().register_const(&mVehicleDataProvider);
+        getFacilities().register_const(static_cast<MovingNodeDataProvider*>(&mVehicleDataProvider));
     }
 
     Middleware::initialize(stage);
