@@ -21,7 +21,6 @@ module Car extends artery.inet.Car
         ipv4.configurator.interfaces = "cellular";
 
         // LTE NIC
-        string nicType = default("LteNicUe");
         int masterId @mutable;
         int macNodeId @mutable = default(0); // TODO: this is not a real parameter
         int macCellId @mutable = default(0); // TODO: this is not a real parameter
@@ -42,7 +41,7 @@ module Car extends artery.inet.Car
 
     submodules:
         //# submodules for network layers (need to be ordered from lower to upper layer)
-        cellularNic: <nicType> like ICellularNic {
+        cellularNic: <default("LteNicUe")> like ICellularNic {
             @display("p=150,400");
             nodeType = "UE";
         }
