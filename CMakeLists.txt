@@ -1,23 +1,13 @@
-cmake_minimum_required(VERSION 3.4)
+cmake_minimum_required(VERSION 3.16)
+cmake_policy(VERSION 3.16...3.31)
 project(Artery)
 
-if(POLICY CMP0076)
-    cmake_policy(SET CMP0076 NEW)
-endif()
-if(POLICY CMP0079)
-    if (CMAKE_VERSION VERSION_LESS 3.17)
-        cmake_policy(SET CMP0079 OLD)
-    else()
-        cmake_policy(SET CMP0079 NEW)
-    endif()
-endif()
-
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 enable_testing()
 
-find_package(OmnetPP 5.5.1 MODULE REQUIRED)
+find_package(OmnetPP 6.0.0 MODULE REQUIRED)
 include(AddOppRun)
 include(AddOppTarget)
 include(ImportOppTarget)
@@ -25,10 +15,12 @@ include(AddVSCode)
 include(CheckGitSubmodule)
 include(GenerateOppMessage)
 
-find_package(Boost 1.59 COMPONENTS date_time system REQUIRED)
-if (Boost_VERSION_STRING VERSION_GREATER_EQUAL "1.75")
-    # Boost.Geometry requires C++14 starting with Boost 1.75
-    set(CMAKE_CXX_STANDARD 14)
+find_package(Boost 1.59 REQUIRED COMPONENTS date_time system CONFIG)
+
+# use "RelWithDebInfo" as default build type
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+    set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "CMake build type" FORCE)
+    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 endif()
 
 # running simulations with opp_run requires shared libraries
@@ -156,4 +148,16 @@ option(VSCODE_LAUNCH_INTEGRATION "Generate VS Code configuration for debugging A
 # scenarios directory is part of repository but omitted for Docker build context
 if(EXISTS ${PROJECT_SOURCE_DIR}/scenarios)
     add_subdirectory(scenarios)
+endif()
+
+get_property(is_multi_config GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+if(is_multi_config)
+    foreach(config IN LISTS CMAKE_CONFIGURATION_TYPES)
+        string(TOLOWER "${config}" config_lower)
+        generate_run_config(TARGET artery CONFIG ${config} FILE "${PROJECT_BINARY_DIR}/run-artery.${config}.ini")
+        generate_run_config(TARGET artery CONFIG ${config} FILE "${PROJECT_BINARY_DIR}/run-artery.${config}.ini.install" INSTALL)
+    endforeach()
+else()
+    generate_run_config(TARGET artery CONFIG ${CMAKE_BUILD_TYPE} FILE "${PROJECT_BINARY_DIR}/run-artery.ini")
+    generate_run_config(TARGET artery CONFIG ${CMAKE_BUILD_TYPE} FILE "${PROJECT_BINARY_DIR}/run-artery.ini.install" INSTALL)
 endif()

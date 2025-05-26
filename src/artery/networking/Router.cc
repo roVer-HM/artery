@@ -130,14 +130,13 @@ void Router::handleMessage(omnetpp::cMessage* msg)
 
 void Router::initializeManagementInformationBase(vanetza::geonet::ManagementInformationBase& mib)
 {
-    mib.itsGnDefaultTrafficClass.tc_id(par("itsGnDefaultTrafficClass").intValue());
+    using namespace std::chrono;
+
+    mib.itsGnDefaultTrafficClass.tc_id(3); // send BEACONs with DP3
     mib.itsGnIsMobile = par("isMobile").boolValue();
     mib.itsGnSecurity = (mSecurityEntity != nullptr);
-    mib.vanetzaDeferInitialBeacon = par("deferInitialBeacon").boolValue();
-    mib.vanetzaDisableBeaconing = par("vanetzaDisableBeaconing").boolValue();
-    mib.itsGnBeaconServiceRetransmitTimer = par("itsGnBeaconServiceRetransmitTimer").doubleValue()*second;
-    mib.itsGnBeaconServiceMaxJitter = par("itsGnBeaconServiceMaxJitter").doubleValue()*second;
-
+    mib.vanetzaDeferInitialBeacon = duration_cast<vanetza::Clock::duration>(duration<double>(par("deferInitialBeacon").doubleValue()));
+    mib.vanetzaDisableBeaconing = par("disableBeaconing").boolValue();;
 }
 
 void Router::request(const vanetza::btp::DataRequestB& request, std::unique_ptr<vanetza::DownPacket> packet)

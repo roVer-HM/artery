@@ -1,4 +1,4 @@
-find_package(PythonInterp 3 REQUIRED)
+find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
 
 macro(import_opp_target _target _opp_makefile)
     # _cmake_target: generated CMake file with import target [optional argument]
@@ -15,7 +15,7 @@ macro(import_opp_target _target _opp_makefile)
 
     # generate target file (prior to build system generation)
     execute_process(
-        COMMAND ${PYTHON_EXECUTABLE} opp_cmake.py ${_opp_makefile} ${_cmake_target}
+        COMMAND ${Python3_EXECUTABLE} opp_cmake.py ${_opp_makefile} ${_cmake_target}
         ERROR_VARIABLE _opp_cmake_error
         RESULT_VARIABLE _opp_cmake_result
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
