@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from functools import partial
-from distutils.version import StrictVersion
+from packaging.version import Version
 import os
 import re
 import subprocess
@@ -192,8 +192,8 @@ class FlagsHandler:
 
     def target(self):
         self._project.read_ned_folders()
-        opp_version = StrictVersion(which_opp_version(self._configfile))
-        debug_suffix = '_dbg' if opp_version >= StrictVersion('5.2.0') else ''
+        opp_version = Version(which_opp_version(self._configfile))
+        debug_suffix = '_dbg' if opp_version >= Version('5.2.0') else ''
         return CMakeTarget(self._project, which_opp_toolchain(self._configfile), debug_suffix)
 
     def ignore(self):
