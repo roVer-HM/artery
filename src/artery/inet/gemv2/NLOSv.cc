@@ -10,6 +10,7 @@
 #include <inet/common/ModuleAccess.h>
 #include <inet/common/Units.h>
 #include <inet/physicallayer/wireless/common/contract/packetlevel/IRadioMedium.h>
+#include <inet/physicallayer/wireless/common/contract/packetlevel/INarrowbandSignalAnalogModel.h>
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -56,8 +57,8 @@ void NLOSv::initialize()
 
 double NLOSv::computePathLoss(const phy::ITransmission* transmission, const phy::IArrival* arrival) const
 {
-    auto radioMedium = transmission->getTransmitter()->getMedium();
-    auto narrowbandSignalAnalogModel = check_and_cast<const phy::INarrowbandSignal *>(transmission->getAnalogModel());
+    auto radioMedium = transmission->getMedium();
+    auto narrowbandSignalAnalogModel = check_and_cast<const inet::physicallayer::INarrowbandSignalAnalogModel *>(transmission->getAnalogModel());
     const mps propagationSpeed = radioMedium->getPropagation()->getPropagationSpeed();
     const Hz carrierFrequency = Hz(narrowbandSignalAnalogModel->getCenterFrequency());
     const m waveLength = propagationSpeed / carrierFrequency;

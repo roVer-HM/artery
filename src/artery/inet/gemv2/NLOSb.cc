@@ -13,6 +13,7 @@
 #include <inet/common/Units.h>
 #include <inet/physicallayer/wireless/common/contract/packetlevel/IPathLoss.h>
 #include <inet/physicallayer/wireless/common/contract/packetlevel/IRadioMedium.h>
+#include <inet/physicallayer/wireless/common/contract/packetlevel/INarrowbandSignalAnalogModel.h>
 #include <boost/geometry.hpp>
 #include <boost/geometry/views/closeable_view.hpp>
 #include <boost/units/cmath.hpp>
@@ -55,8 +56,8 @@ Position reflectPoint(const Position& p, const PositionSegment& line)
 
 inet::m getWaveLength(const inet::physicallayer::ITransmission* transmission)
 {
-    auto radioMedium = transmission->getTransmitter()->getMedium();
-    auto narrowbandSignalAnalogModel = check_and_cast<const phy::INarrowbandSignal *>(transmission->getAnalogModel());
+    auto radioMedium = transmission->getMedium();
+    auto narrowbandSignalAnalogModel = check_and_cast<const inet::physicallayer::INarrowbandSignalAnalogModel *>(transmission->getAnalogModel());
     const mps propagationSpeed = radioMedium->getPropagation()->getPropagationSpeed();
     const Hz carrierFrequency = Hz(narrowbandSignalAnalogModel->getCenterFrequency());
     const m waveLength = propagationSpeed / carrierFrequency;

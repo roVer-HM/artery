@@ -11,6 +11,7 @@
 #include <inet/common/ModuleAccess.h>
 #include <inet/common/Units.h>
 #include <inet/physicallayer/wireless/common/contract/packetlevel/IRadioMedium.h>
+#include <inet/physicallayer/wireless/common/contract/packetlevel/INarrowbandSignalAnalogModel.h>
 #include <boost/geometry.hpp>
 #include <boost/geometry/geometries/register/linestring.hpp>
 #include <algorithm>
@@ -50,8 +51,8 @@ std::ostream& NLOSf::printToStream(std::ostream& stream, int level, int evFlags)
 
 double NLOSf::computePathLoss(const physicallayer::ITransmission *transmission, const physicallayer::IArrival *arrival) const
 {
-    auto radioMedium = transmission->getTransmitter()->getMedium();
-    auto narrowbandSignalAnalogModel = check_and_cast<const physicallayer::INarrowbandSignal *>(transmission->getAnalogModel());
+    auto radioMedium = transmission->getMedium();
+    auto narrowbandSignalAnalogModel = check_and_cast<const inet::physicallayer::INarrowbandSignalAnalogModel *>(transmission->getAnalogModel());
     const mps propagationSpeed = radioMedium->getPropagation()->getPropagationSpeed();
     const Hz carrierFrequency = narrowbandSignalAnalogModel->getCenterFrequency();
     const m waveLength = propagationSpeed / carrierFrequency;
