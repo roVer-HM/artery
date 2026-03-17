@@ -16,14 +16,14 @@ module Car extends artery.inet.Car
     parameters:
         //# Network Layer specs
         *.routingTableModule = default(absPath(".ipv4.routingTable"));
-        *.interfaceTableModule = default(absPath(".interfaceTable"));  
+        *.interfaceTableModule = default(absPath(".interfaceTable"));
         ipv4.configurator.typename = "HostAutoConfigurator";
         ipv4.configurator.interfaces = "cellular";
 
         // LTE NIC
         int masterId @mutable;
         int macNodeId @mutable = default(0); // TODO: this is not a real parameter
-        int macCellId @mutable = default(0); // TODO: this is not a real parameter
+        int servingNodeId @mutable = default(0); // TODO: this is not a real parameter
 
         //# Apps
         int numApps = default(0);   // no of apps.
@@ -31,7 +31,7 @@ module Car extends artery.inet.Car
         //# Transport layer
         bool hasUdp = default(firstAvailableOrEmpty("Udp") != "");
         bool hasTcp = default(firstAvailableOrEmpty("Tcp", "TcpLwip", "TcpNsc") != "");
-        
+
         //# External Ethernet interfaces
         int numEthInterfaces = default(0);
         string extHostAddress = default("");
@@ -62,7 +62,7 @@ module Car extends artery.inet.Car
         app[numApps]: <> like IApp {
             @display("p=375,76,row,140");
         }
-        
+
         // message dispatcher for SAP between application and transport layer
         at: MessageDispatcher {
             parameters:
@@ -81,7 +81,7 @@ module Car extends artery.inet.Car
 
     connections allowunconnected:
         cellularNic.radioIn <-- lteRadioIn;
-        
+
         cellularNic.upperLayerOut --> nl.in++;
         cellularNic.upperLayerIn <-- nl.out++;
 
@@ -90,7 +90,7 @@ module Car extends artery.inet.Car
 
         ipv4.transportIn <-- tn.out++;
         ipv4.transportOut --> tn.in++;
-        
+
         udp.ipOut --> tn.in++ if hasUdp;
         udp.ipIn <-- tn.out++ if hasUdp;
 
