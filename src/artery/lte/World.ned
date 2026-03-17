@@ -40,7 +40,7 @@ network World extends artery.inet.World
             parameters:
                 mobility.initFromDisplayString = false;
                 macNodeId = default(index + 1);
-                servingNodeId = default(index + 1);
+                macCellId = default(index + 1);
                 **.eNodeBCount = default(parent.numLteBaseStations);
         }
 
