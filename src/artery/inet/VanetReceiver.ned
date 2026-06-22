@@ -1,8 +1,8 @@
 package artery.inet;
 
-import inet.physicallayer.wireless.ieee80211.packetlevel.Ieee80211ScalarReceiver;
+import inet.physicallayer.wireless.ieee80211.packetlevel.Ieee80211ScalarRadio;
 
-module VanetReceiver extends Ieee80211ScalarReceiver
+module VanetReceiver extends Ieee80211ScalarRadio
 {
     parameters:
         @class(VanetReceiver);

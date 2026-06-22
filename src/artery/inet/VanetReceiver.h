@@ -7,7 +7,7 @@
 #ifndef ARTERY_VANETRECEIVER_H_PNEYWKVR
 #define ARTERY_VANETRECEIVER_H_PNEYWKVR
 
-#include "inet/physicallayer/wireless/ieee80211/packetlevel/Ieee80211ScalarReceiver.h"
+#include "inet/physicallayer/wireless/ieee80211/packetlevel/Ieee80211Receiver.h"
 
 namespace artery
 {
@@ -15,7 +15,7 @@ namespace artery
 /**
  * VanetReceiver adds capturing of a stronger frame while already receiving a weak frame
  */
-class VanetReceiver : public inet::physicallayer::Ieee80211ScalarReceiver
+class VanetReceiver : public inet::physicallayer::Ieee80211Receiver
 {
     /* TODO: necessary with new INET4 Wlan implementations? */
     /*

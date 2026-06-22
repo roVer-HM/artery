@@ -9,8 +9,8 @@
 #include "inet/common/INETMath.h"
 #include "inet/common/ModuleAccess.h"
 #include "inet/linklayer/ieee80211/mac/contract/IContention.h"
-#include "inet/physicallayer/wireless/common/analogmodel/packetlevel/ScalarNoise.h"
-#include "inet/physicallayer/wireless/common/analogmodel/packetlevel/ScalarReception.h"
+#include "inet/physicallayer/wireless/common/analogmodel/scalar/ScalarNoise.h"
+#include "inet/physicallayer/wireless/common/analogmodel/scalar/ScalarReceptionAnalogModel.h"
 #include "inet/physicallayer/wireless/common/backgroundnoise/IsotropicScalarBackgroundNoise.h"
 #include "inet/physicallayer/wireless/common/contract/packetlevel/IRadio.h"
 #include "inet/physicallayer/wireless/common/contract/packetlevel/IRadioMedium.h"
@@ -103,7 +103,7 @@ void PowerLevelRx::recomputeMediumFree()
         const phy::ITransmission* transmission = mRadio->getReceptionInProgress();
         if (transmission) {
             const phy::IReception* reception = mRadio->getMedium()->getReception(mRadio, transmission);
-            auto scalarReception = omnetpp::check_and_cast<const phy::ScalarReception*>(reception);
+            auto scalarReception = dynamic_cast<const inet::physicallayer::ScalarReceptionAnalogModel *>(reception->getAnalogModel());
             const auto signalPower = scalarReception->getPower();
 
             const phy::INoise* noise = mRadio->getMedium()->getNoise(mRadio, transmission);
@@ -132,7 +132,7 @@ void PowerLevelRx::recomputeMediumFree()
                     // ignore just ending transmissions when switching from RECEIVING to BUSY
                     continue;
                 }
-                auto scalarReception = omnetpp::check_and_cast<const phy::ScalarReception*>(reception);
+                auto scalarReception = dynamic_cast<const inet::physicallayer::ScalarReceptionAnalogModel *>(reception->getAnalogModel());
                 mediumFree &= scalarReception->getPower() < mCcaSignalThreshold;
                 busyPower += scalarReception->getPower();
             }

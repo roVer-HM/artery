@@ -7,7 +7,7 @@
 #include "artery/inet/VanetReceiver.h"
 #include "inet/physicallayer/wireless/common/contract/packetlevel/IRadio.h"
 #include "inet/physicallayer/wireless/common/contract/packetlevel/IRadioMedium.h"
-#include <inet/physicallayer/wireless/common/analogmodel/packetlevel/ScalarReception.h>
+#include <inet/physicallayer/wireless/common/analogmodel/scalar/ScalarReceptionAnalogModel.h>
 #include <inet/physicallayer/wireless/common/contract/packetlevel/IRadio.h>
 #include <inet/physicallayer/wireless/common/contract/packetlevel/IRadioMedium.h>
 #include <inet/physicallayer/wireless/ieee80211/packetlevel/Ieee80211ControlInfo_m.h>

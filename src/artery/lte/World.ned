@@ -26,7 +26,7 @@ network World extends artery.inet.World
             parameters:
                 @display("p=140,60");
         }
-        
+
         carrierAggregation: CarrierAggregation {
             @display("p=50.993748,258.7;is=s");
         }

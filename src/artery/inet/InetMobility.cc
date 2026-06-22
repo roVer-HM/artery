@@ -20,7 +20,7 @@ Define_Module(InetVehicleMobility)
 
 int InetMobility::numInitStages() const
 {
-    return inet::INITSTAGE_PHYSICAL_ENVIRONMENT + 1;
+    return inet::INITSTAGE_SINGLE_MOBILITY + 1;
 }
 
 void InetMobility::initialize(int stage)
@@ -31,7 +31,7 @@ void InetMobility::initialize(int stage)
         WATCH(mPosition);
         WATCH(mSpeed);
         WATCH(mOrientation);
-    } else if (stage == inet::INITSTAGE_PHYSICAL_ENVIRONMENT) {
+    } else if (stage == inet::INITSTAGE_SINGLE_MOBILITY) {
         if (mVisualRepresentation) {
             auto visualizationTarget = mVisualRepresentation->getParentModule();
             mCanvasProjection = inet::CanvasProjection::getCanvasProjection(visualizationTarget->getCanvas());
